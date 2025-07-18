@@ -53,7 +53,7 @@ async def get_tag(ctx, tag, args):
     print(tags)
     print(users)
     if tag == None:
-        return await ctx.reply(f":information_source: %t `add|edit|delete|admin|alias|list|owner|meta`")
+        return await ctx.reply(f":information_source: %t `add|edit|delete|admin|alias|list|owner`")
     
     if tag in unique_tags:
         return await unique_tag(ctx, tag, args, ctx.message.content)
