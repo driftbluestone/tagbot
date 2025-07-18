@@ -78,8 +78,7 @@ async def check_permission(ctx, tag_type):
         return False
     return True
 
-async def dump_tag(ctx, cont, name, tag_type):
-    body = cont[(8+len(name)):]
+async def dump_tag(body, name, tag_type):
     with open(f"{DIR}/tags/{tag_type}/{name}.txt", "w") as file:
         file.write(body)
 
@@ -181,9 +180,11 @@ async def add_tag(ctx, args, cont):
         return await ctx.reply(f":warning: Tag **{name}** already exists, and is owned by <@{tags["global_tags"][name][0]}>.")
     if (not tag_type == "global_tags") and (name in tags[server_id]):
         return await ctx.reply(f":warning: Tag **{name}** already exists, and is owned by <@{tags[server_id][name][0]}>.")
-    
+    body = cont[(8+len(name)):]
+    if body == "" or body == " ":
+        return await ctx.reply(":warning: Tag has no body.")
     await generate_metadata(tag_type, name, user_id, "")
-    await dump_tag(ctx, cont, name, tag_type)
+    await dump_tag(body, name, tag_type)
 
     return await ctx.reply(f"✅ Added tag {name}!")
 
@@ -195,8 +196,11 @@ async def edit_tag(ctx, args, cont):
     tag_type = await get_tag_type(ctx, name)
     owner = await tag_owner(args[0], tag_type)
     if owner != user_id:
-        return await owner_tag(ctx, name, owner, ":warning:")
-    await dump_tag(ctx, cont, name, tag_type, False)
+        return await owner_tag(body, owner, ":warning:")
+    body = cont[(8+len(name)):]
+    if body == "" or body == " ":
+        return await ctx.reply(":warning: Tag has no body.")
+    await dump_tag(ctx, cont, name, tag_type)
     return await ctx.reply(f"✅ Edited tag {name}.")
 
 async def delete_tag(ctx, args, check_ownership):
@@ -257,12 +261,12 @@ async def admin_promote(ctx, args):
 
     if user in admins[promote_type][1]:
         admins[promote_type][1].remove(user)
-        with open(f"{DIR}/tags/{server_id}/admins.json", "w") as file:
+        with open(f"{DIR}/tags/{promote_type}/admins.json", "w") as file:
             dump(admins[promote_type], file)
         return await ctx.reply(f"✅ Removed user <@{user}>.")
     else:
         admins[promote_type][1].append(user)
-        with open(f"{DIR}/tags/{server_id}/admins.json", "w") as file:
+        with open(f"{DIR}/tags/{promote_type}/admins.json", "w") as file:
             dump(admins[promote_type], file)
         return await ctx.reply(f"✅ Added role <@{user}>.")
 
@@ -271,10 +275,15 @@ async def limit_to_admins(ctx):
     await generate_files(server_id)
     if admins[server_id][0]:
         admins[server_id][0] = False
+        with open(f"{DIR}/tags/{server_id}/admins.json", "w") as file:
+            dump(admins[server_id], file)
         return await ctx.reply("✅ Only admins can now create tags.")
     else:
         admins[server_id][0] = True
+        with open(f"{DIR}/tags/{server_id}/admins.json", "w") as file:
+            dump(admins[server_id], file)
         return await ctx.reply("✅ Any user can now create tags.")
+    
 
 async def alias_tag(ctx, args):
     server_id = str(ctx.guild.id)
@@ -298,22 +307,23 @@ async def alias_tag(ctx, args):
     except:
         return await ctx.reply(":warning: Please select a tag to alias to.")
     old_tag_type = server_id
+    old_tag_2 = old_tag
     if old_tag.startswith("*"):
         old_tag_type = "global_tags"
-        old_tag[1:]
+        old_tag_2 = old_tag[1:]
     if new_tag_type == "global_tags" and not old_tag_type == "global_tags":
         return await ctx.reply(":warning: Cannot alias global tag to local tag.")
     
     if any(char not in chars for char in new_tag):
         return await ctx.reply(f":warning: Tag name must consist of characters a-z, 0-9, _, or -. ")
 
-    if not old_tag in tags[old_tag_type]:
+    if not old_tag_2 in tags[old_tag_type]:
         return await ctx.reply(f":warning: Tag **{old_tag}** doesn't exist.")
     
     await generate_files(server_id)
     await generate_metadata(new_tag_type, new_tag, user_id, old_tag)
-    tags[old_tag_type][old_tag][1].append(new_tag)
-    return await ctx.reply(f"✅ Aliased **{new_tag}** to **{old_tag}**.")
+    tags[old_tag_type][old_tag_2][1].append(new_tag)
+    return await ctx.reply(f"✅ Aliased **{new_tag}** to **{old_tag_2}**.")
 
 async def list_tag(ctx, args):
     server_id = str(ctx.guild.id)
