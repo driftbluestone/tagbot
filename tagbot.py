@@ -32,7 +32,7 @@ for filepath in os.listdir(f"{DIR}/tags"):
     with open(f"{DIR}/tags/{filepath}/users.json", "r") as file:
         users[filepath] = load(file)
 
-unique_tags=["add","edit","delete","admin","alias","list","owner","meta"]
+unique_tags=["add","edit","delete","admin","alias","list","owner"]
 chars = ['1','2','3','4','5','6','7','8','9','0',
          'a','b','c','d','e','f','g','h','i','j',
          'k','l','m','n','o','p','q','r','s','t',
