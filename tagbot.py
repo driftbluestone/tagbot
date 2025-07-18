@@ -200,7 +200,7 @@ async def edit_tag(ctx, args, cont):
     body = cont[(8+len(name)):]
     if body == "" or body == " ":
         return await ctx.reply(":warning: Tag has no body.")
-    await dump_tag(ctx, cont, name, tag_type)
+    await dump_tag(body, name, tag_type)
     return await ctx.reply(f"✅ Edited tag {name}.")
 
 async def delete_tag(ctx, args, check_ownership):
