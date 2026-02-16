@@ -109,6 +109,13 @@ async def generate_metadata(tag_type, tag, user_id, alias):
     with open(f"{DIR}/tags/{tag_type}/users.json", "w") as file:
         dump(users[tag_type], file)
 
+async def is_moderator(ctx, tag_type: str) -> bool:
+    """Return True if ctx.author can manage other users' tags in tag_type."""
+    uid = str(ctx.author.id)
+    if tag_type == "global_tags":
+        return uid in admins["global_tags"][1]
+    return bool(ctx.author.guild_permissions.administrator or (uid in admins[tag_type][1]))
+
 async def get_tag_type(ctx, name):
     server_id = str(ctx.guild.id)
     if name.startswith("*") and name[1:] in tags["global_tags"]:
@@ -177,10 +184,10 @@ async def add_tag(ctx, args, cont):
         return await ctx.reply(f":warning: Tag {name} already exists.")
     tags[tag_type] = tags.get(tag_type, {})
     if name in tags["global_tags"]:
-        return await ctx.reply(f":warning: Tag **{name}** already exists, and is owned by <@{tags["global_tags"][name][0]}>.")
+        return await ctx.reply(f":warning: Tag **{name}** already exists, and is owned by <@{tags['global_tags'][name][0]}>.")
     if (not tag_type == "global_tags") and (name in tags[server_id]):
         return await ctx.reply(f":warning: Tag **{name}** already exists, and is owned by <@{tags[server_id][name][0]}>.")
-    body = cont[(8+len(name)):]
+    body = " ".join(args[1:]).strip()
     if body == "" or body == " ":
         return await ctx.reply(":warning: Tag has no body.")
     await generate_metadata(tag_type, name, user_id, "")
@@ -194,11 +201,28 @@ async def edit_tag(ctx, args, cont):
     user_id = str(ctx.author.id)
     name = str(args[0])
     tag_type = await get_tag_type(ctx, name)
-    owner = await tag_owner(args[0], tag_type)
-    if owner != user_id:
-        return await owner_tag(body, owner, ":warning:")
-    body = cont[(8+len(name)):]
-    if body == "" or body == " ":
+    if tag_type is False:
+        return await ctx.reply(f":warning: Tag {name} doesn't exist.")
+
+    # Normalize *global prefix
+    if tag_type == "global_tags" and name.startswith("*"):
+        name = name[1:]
+
+    # If editing an alias, edit the underlying real tag
+    if tags[tag_type][name][2]:
+        target = tags[tag_type][name][1]
+        if target.startswith("*"):
+            tag_type = "global_tags"
+            name = target[1:]
+        else:
+            name = target
+
+    owner = await tag_owner(name, tag_type)
+    if owner != user_id and not await is_moderator(ctx, tag_type):
+        return await owner_tag(ctx, name, owner, ":warning:")
+
+    body = " ".join(args[1:]).strip()
+    if not body:
         return await ctx.reply(":warning: Tag has no body.")
     await dump_tag(body, name, tag_type)
     return await ctx.reply(f"✅ Edited tag {name}.")
