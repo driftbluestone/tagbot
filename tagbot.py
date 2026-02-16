@@ -1,4 +1,4 @@
-import discord, os
+import discord, os, re, datetime
 from json import dump, load
 from pathlib import Path
 from discord.ext import commands
@@ -49,9 +49,7 @@ async def tag(ctx, tag: str=None, *args):
     await get_tag(ctx, tag, args)
 
 async def get_tag(ctx, tag, args):
-    print(ctx.message.content)
-    print(tags)
-    print(users)
+
     if tag == None:
         return await ctx.reply(f":information_source: %t `add|edit|delete|admin|alias|list|owner`")
     
@@ -392,5 +390,60 @@ async def owner_tag(ctx, tag, owner, msg):
     elif owner == False:
         return await ctx.reply(f"{msg} Tag **{tag}** doesn't exist.")
     return await ctx.reply(f"{msg} Tag **{tag}** is owned by <@{owner}>.")
+
+# @bot.event
+# async def on_message(sed_message):
+#     if sed_message.author.bot:
+#         return
+#     if not sed_message.content.startswith("sed/"):
+#         return
+    
+    
+#     if sed_message.reference is None:
+#         replied_message = None
+#         message_history = [message async for message in sed_message.channel.history(limit=20)]
+#         s_content = sed_message.content.split('/')
+#         pattern = s_content[1]
+#         for i in message_history:
+#             match = re.search(pattern, i.content)
+#             if i.content.startswith("sed/"):
+#                 pass
+#             elif match:
+#                 replied_message = i
+#                 break
+
+#     else:
+#         replied_message = await sed_message.channel.fetch_message(sed_message.reference.message_id)
+#     if replied_message:        
+#         await process_sed(sed_message, replied_message)
+#     else:
+#         await sed_message.add_reaction(":x:")
+
+# async def process_sed(message, replied_message):
+#     reply_content = replied_message.content
+#     s_content = message.content.split('/')
+#     pattern = s_content[1]
+
+#     if replied_message.author.bot:
+#         await message.add_reaction(":x:")
+#         return
+
+#     if len(s_content) > 2:
+#         replace = s_content[2]
+#     else:
+#         replace = ""
+#     count = 1
+#     if len(s_content) > 3 and s_content[3] == "g":
+#         count = 0
+#     if not pattern or not replace:
+#         await message.add_reaction(":x:")
+#     else:
+#         sub = re.sub(pattern, replace, reply_content, count)
+        
+#         embedVar = discord.Embed(description=sub, color=0x222222)
+#         embedVar.set_author(name=replied_message.author, icon_url=replied_message.author.avatar.url)
+#         embedVar.set_footer(text = f"sed replace in {message.channel}")
+#         await message.channel.send(embed=embedVar)
+#         print("Sucessfully sedded message:\n", reply_content)
 
 bot.run(TOKEN)
