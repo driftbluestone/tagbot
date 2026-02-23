@@ -1,0 +1,129 @@
+import discord, subprocess, uuid, pathlib, json, re
+from modules.message_embed import create_message_embed
+DIR = pathlib.Path(__file__).resolve().parent
+SPECIAL_TAGS = ["add","edit","delete","alias","list","owner","search", "admin"]
+VALID_NAME_CHARS = set("0123456789abcdefghijklmnopqrstuvwxyz_-")
+
+async def context_formatter(ctx):
+    message = ctx.message.content
+    message = message.split(" ")
+    if len(message) != 1:
+        tag = message[1].lower()
+        message = message[2:]
+    else:
+        tag = None
+    return tag, message
+
+async def get_tag(ctx, bot):
+    tag, message = await context_formatter(ctx)
+    if tag == None:
+        return await ctx.reply(f":information_source: %t `{"|".join(SPECIAL_TAGS)}`")
+    if tag in SPECIAL_TAGS:
+        return await special_tag(ctx, tag, message)
+    filepath =f"{DIR}/../tags/{tag}.json"
+    if not pathlib.Path(filepath).exists():
+        return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
+    with open(filepath, "r") as file:
+        data = json.load(file)
+    if data["type"] == "message":
+        link = data["message_link"]
+        embed = await create_message_embed(link, bot)
+        return await ctx.reply(embed=embed)
+    elif data["type"] == "code":
+        return await container(ctx, tag, message)
+    elif data["type"] == "plaintext":
+        with open(f"{filepath[:-5]}.txt", "r") as file:
+            content = file.read()
+        return await ctx.reply(content)
+
+async def special_tag(ctx, tag, message):
+    if tag == "add":
+        await add_tag(ctx, message[0], message[1:])
+    if tag == "edit":
+        await edit_tag(ctx, message[0], message[1:])
+    if tag == "delete":
+        await delete_tag(ctx, message[0])
+    if tag == "alias":
+        await alias_tag(ctx, message[0], message[1])
+    if tag == "list":
+        await list_tag(ctx, message[0])
+    if tag == "owner":
+        await owner_tag(ctx, message[0])
+    if tag == "search":
+        await search_tag(ctx, message)
+
+async def add_tag(ctx, tag_name, tag_body):
+    tag_body = " ".join(tag_body)
+    tag_name = tag_name.lower()
+    filepath =f"{DIR}/../tags/{tag_name}.json"
+    if pathlib.Path(filepath).exists():
+        with open(filepath, "r") as file:
+            data = json.load(file)
+        return await ctx.reply(f":warning: Tag **{tag_name}** already exists and is owned by <@{data["owner"]}>.")
+    if any(char not in VALID_NAME_CHARS for char in tag_name):
+        return await ctx.reply(f":warning: Tag name must consist of characters a-z, 0-9, _, or -. ")
+    
+    if re.match("https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", tag_body):
+        tag = {"name":tag_name,"type":"message","aliases":[],"message_link":tag_body, "owner":str(ctx.author.id)}
+        with open(filepath, "w") as file:
+            json.dump(tag, file)
+
+    elif tag_body.startswith("```") and tag_body.endswith("```"):
+        tag_body = tag_body[3:-3]
+        if tag_body.startswith("py"):
+            tag_body = tag_body[2:]
+        if tag_body.startswith("thon"):
+            tag_body =  tag_body[4:]
+        tag = {"name":tag_name,"type":"code","aliases":[],"owner":str(ctx.author.id)}
+        with open(filepath, "w") as file:
+            json.dump(tag, file)
+        with open(f"{filepath[:-5]}.py", "w") as file:
+            file.write(tag_body)
+    else:
+        tag = {"name":tag_name,"type":"plaintext","alises":[],"owner":str(ctx.author.id)}
+        with open(filepath, "w") as file:
+            json.dump(tag, file)
+        with open(f"{filepath[:-5]}.txt", "w") as file:
+            file.write(tag_body)
+    return await ctx.reply(f":white_check_mark: Created tag **{tag_name}**")
+    
+async def container(ctx, tag, message):
+    container_name = uuid.uuid4().hex
+    args = [str(ctx.author.id), ctx.author.name, str(ctx.channel.id)]
+    if not message == None:
+        args.extend(message)
+    docargs = ['docker', 'run',
+               '--name', container_name,
+               '--memory', '512m',
+               '--memory-swap', '512m',
+               '--network', 'none',
+               '--rm', '-v', f'{DIR}\\..\\tags:/data/:ro',
+               'python', 'python', f'/data/{tag}.py']
+    docargs.extend(args)
+    try:
+        result = subprocess.run(
+            docargs,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=5
+        )
+        output = result.stdout
+
+        # output = output.decode(errors="replace")
+    except subprocess.TimeoutExpired:
+        # Force kill the container
+        subprocess.run(
+            ['docker', 'rm', '-f', container_name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        output = "[PROCESS KILLED: exceeded 5s timeout]"
+    except subprocess.CalledProcessError as e:
+        output = e
+
+    await ctx.reply(output[:2000])
+
+
+        
