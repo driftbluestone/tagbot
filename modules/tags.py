@@ -1,4 +1,4 @@
-import discord, subprocess, uuid, pathlib, json, re
+import discord, subprocess, uuid, pathlib, json, re, os
 from modules.message_embed import create_message_embed
 DIR = pathlib.Path(__file__).resolve().parent
 SPECIAL_TAGS = ["add","edit","delete","alias","list","owner","search", "admin"]
@@ -52,7 +52,7 @@ async def special_tag(ctx, tag, message):
     if tag == "search":
         await search_tag(ctx, message)
 
-async def add_tag(ctx, tag_name, tag_body):
+async def add_tag(ctx, tag_name, tag_body, success_text = "Created"):
     tag_body = " ".join(tag_body)
     tag_name = tag_name.lower()
     filepath =f"{DIR}/../tags/{tag_name}.json"
@@ -62,7 +62,24 @@ async def add_tag(ctx, tag_name, tag_body):
         return await ctx.reply(f":warning: Tag **{tag_name}** already exists and is owned by <@{data["owner"]}>.")
     if any(char not in VALID_NAME_CHARS for char in tag_name):
         return await ctx.reply(f":warning: Tag name must consist of characters a-z, 0-9, _, or -. ")
+    await create_tag(ctx, tag_name, tag_body, filepath, success_text)
+
+async def edit_tag(ctx, tag, content):
+    filepath =f"{DIR}/../tags/{tag}.json"
+    if not pathlib.Path(filepath).exists():
+        return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
+    with open(filepath, "r") as file:
+        data = json.load(file)
+    if data["owner"] != str(ctx.author.id):
+        return await ctx.reply(f":warning: Tag **{tag}** is owned by <@{data["owner"]}>.")
+    if data["type"] == "code":
+        os.remove(f"{filepath[:-5]}.py")
+    if data["type"] == "plaintext":
+        os.remove(f"{filepath[:-5]}.txt")
     
+    await create_tag(ctx, tag, " ".join(content), filepath, "Edited")
+
+async def create_tag(ctx, tag_name, tag_body, filepath, success_text):
     if re.match("https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", tag_body):
         tag = {"name":tag_name,"type":"message","aliases":[],"message_link":tag_body, "owner":str(ctx.author.id)}
         with open(filepath, "w") as file:
@@ -85,8 +102,8 @@ async def add_tag(ctx, tag_name, tag_body):
             json.dump(tag, file)
         with open(f"{filepath[:-5]}.txt", "w") as file:
             file.write(tag_body)
-    return await ctx.reply(f":white_check_mark: Created tag **{tag_name}**")
-    
+    return await ctx.reply(f":white_check_mark: {success_text} tag **{tag_name}**")
+
 async def container(ctx, tag, message):
     container_name = uuid.uuid4().hex
     args = [str(ctx.author.id), ctx.author.name, str(ctx.channel.id)]
@@ -123,7 +140,4 @@ async def container(ctx, tag, message):
     except subprocess.CalledProcessError as e:
         output = e
 
-    await ctx.reply(output[:2000])
-
-
-        
+    await ctx.reply(output)
