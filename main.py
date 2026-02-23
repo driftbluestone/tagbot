@@ -1,4 +1,4 @@
-import discord, json, os, re, sys, subprocess, pathlib
+import discord, json, os, re, subprocess, pathlib, uuid
 from discord.ext import commands
 from dataclasses import asdict
 bot = commands.Bot(
@@ -130,25 +130,43 @@ async def add_tag(ctx, tag_name, tag_body):
     return await ctx.reply(f":white_check_mark: Created tag **{tag_name}**")
     
 async def container(ctx, tag, message):
+    container_name = uuid.uuid4().hex
+    max_out = 1048576
     args = [str(ctx.author.id), ctx.author.name, str(ctx.channel.id)]
     if not message == None:
         args.extend(message)
-    docargs = ['docker', 'run', '--rm', '-v', f'{DIR}\\tags:/data/:ro', 'python', 'python', f'/data/{tag}.py']
+    docargs = ['docker', 'run',
+               '--name', container_name,
+               '--memory', '512m',
+               '--memory-swap', '512m',
+               '--network', 'none',
+               '--rm', '-v', f'{DIR}\\tags:/data/:ro',
+               'python', 'python', f'/data/{tag}.py']
     docargs.extend(args)
     try:
         result = subprocess.run(
             docargs,
             check=True,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
             timeout=5
         )
         output = result.stdout
-        
+
+        # output = output.decode(errors="replace")
+    except subprocess.TimeoutExpired:
+        # Force kill the container
+        subprocess.run(
+            ['docker', 'rm', '-f', container_name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        output = "[PROCESS KILLED: exceeded 5s timeout]"
     except subprocess.CalledProcessError as e:
         output = e
-    await ctx.reply(output)
+
+    await ctx.reply(output[:2000])
 
 async def create_message_embed(link):
         link_list = link.split("/")[5:]
