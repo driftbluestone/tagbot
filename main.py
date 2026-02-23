@@ -47,16 +47,16 @@ async def on_message(message: discord.Message):
         await sed.sed(message)
 @bot.command(name="tag")
 async def tag(ctx):
-    await tags.get_tag(ctx, bot)
+    await tags.context_formatter(ctx, bot)
 
 @bot.command(name="t")
 async def t(ctx):
-    await tags.get_tag(ctx, bot)
+    await tags.context_formatter(ctx, bot)
 
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.ExpectedClosingQuoteError) or isinstance(error, commands.InvalidEndOfQuotedStringError) or isinstance(error, commands.UnexpectedQuoteError):
-        return await tags.get_tag(ctx, bot)
+        return await tags.context_formatter(ctx, bot)
     else:
         raise error
 

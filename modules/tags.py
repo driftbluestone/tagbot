@@ -1,10 +1,11 @@
 import discord, subprocess, uuid, pathlib, json, re, os
 from modules.message_embed import create_message_embed
+from modules.tag_utils import get_tag_data
 DIR = pathlib.Path(__file__).resolve().parent
 SPECIAL_TAGS = ["add","edit","delete","alias","list","owner","search", "admin"]
 VALID_NAME_CHARS = set("0123456789abcdefghijklmnopqrstuvwxyz_-")
 
-async def context_formatter(ctx):
+async def context_formatter(ctx, bot):
     message = ctx.message.content
     message = message.split(" ")
     if len(message) != 1:
@@ -12,19 +13,15 @@ async def context_formatter(ctx):
         message = message[2:]
     else:
         tag = None
-    return tag, message
+    await get_tag(ctx, bot, tag, message)
 
-async def get_tag(ctx, bot):
-    tag, message = await context_formatter(ctx)
+async def get_tag(ctx, bot, tag, message):
     if tag == None:
         return await ctx.reply(f":information_source: %t `{"|".join(SPECIAL_TAGS)}`")
     if tag in SPECIAL_TAGS:
         return await special_tag(ctx, tag, message)
-    filepath =f"{DIR}/../tags/{tag}.json"
-    if not pathlib.Path(filepath).exists():
-        return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
-    with open(filepath, "r") as file:
-        data = json.load(file)
+    data, filepath = await get_tag_data(ctx, tag, True, False)
+    if data == False: return
     if data["type"] == "message":
         link = data["message_link"]
         embed = await create_message_embed(link, bot)
@@ -35,8 +32,13 @@ async def get_tag(ctx, bot):
         with open(f"{filepath[:-5]}.txt", "r") as file:
             content = file.read()
         return await ctx.reply(content)
+    elif data["type"] == "alias":
+        await get_tag(ctx, bot, data["alias_of"], message)
 
 async def special_tag(ctx, tag, message):
+    if message == []:
+        message = ["", ""]
+
     if tag == "add":
         await add_tag(ctx, message[0], message[1:])
     if tag == "edit":
@@ -53,6 +55,8 @@ async def special_tag(ctx, tag, message):
         await search_tag(ctx, message)
 
 async def add_tag(ctx, tag_name, tag_body, success_text = "Created"):
+    if tag_name == "": return await ctx.reply(":information_source: %t add `name` `body`")
+
     tag_body = " ".join(tag_body)
     tag_name = tag_name.lower()
     filepath =f"{DIR}/../tags/{tag_name}.json"
@@ -65,13 +69,9 @@ async def add_tag(ctx, tag_name, tag_body, success_text = "Created"):
     await create_tag(ctx, tag_name, tag_body, filepath, success_text)
 
 async def edit_tag(ctx, tag, content):
-    filepath =f"{DIR}/../tags/{tag}.json"
-    if not pathlib.Path(filepath).exists():
-        return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
-    with open(filepath, "r") as file:
-        data = json.load(file)
-    if data["owner"] != str(ctx.author.id):
-        return await ctx.reply(f":warning: Tag **{tag}** is owned by <@{data["owner"]}>.")
+    if tag == "": return await ctx.reply(":information_source: %t edit `name` `new_body`")
+
+    data, filepath = await get_tag_data(ctx, tag, True, True)
     if data["type"] == "code":
         os.remove(f"{filepath[:-5]}.py")
     if data["type"] == "plaintext":
@@ -79,12 +79,62 @@ async def edit_tag(ctx, tag, content):
     
     await create_tag(ctx, tag, " ".join(content), filepath, "Edited")
 
+async def delete_tag(ctx, tag, override = False, silent = False):
+    if tag == "": return await ctx.reply(":information_source: %t delete `tag`")
+
+    data, filepath = await get_tag_data(ctx, tag, True, override)
+    if data == False: return
+    # make sure all aliases are deleted
+    deleted_aliases = ""
+    if data["type"] != "alias":
+        aliases = data["aliases"]
+        for alias in aliases:
+            deleted_aliases = " and surrounding aliases"
+            await delete_tag(ctx, alias, True, True)
+    else:
+        alias_of, alias_filepath = await get_tag_data(ctx, data["alias_of"], True, False)
+        alias_of["aliases"].remove(tag)
+        with open(alias_filepath, "w") as file:
+            json.dump(alias_of, file)
+    if data["type"] == "code":
+        os.remove(f"{filepath[:-5]}.py")
+    if data["type"] == "plaintext":
+        os.remove(f"{filepath[:-5]}.txt")
+    os.remove(filepath)
+
+    if not silent: return await ctx.reply(f":white_check_mark: Tag **{tag}**{deleted_aliases} deleted.")
+
+async def alias_tag(ctx, new_tag, tag):
+    if new_tag == "": return await ctx.reply(":information_source: %t alias `new_tag` `existing_tag`")
+    if tag == "": return await ctx.reply(":warning: Please provide a tag to alias to.")
+
+    data, filepath = await get_tag_data(ctx, tag, True, False)
+    if data == False: return
+    if data["type"] == "alias":
+        return await alias_tag(ctx, new_tag, data["alias_of"])
+    else:
+        
+        with open(filepath, "w") as file:
+            data["aliases"].append(new_tag)
+            json.dump(data, file)
+    new_data, new_filepath = await get_tag_data(ctx, new_tag, False, False)
+    if new_data == False: return
+
+    new_data = {"name":new_tag,"type":"alias","alias_of":tag, "owner":str(ctx.author.id)}
+    with open(new_filepath, "w") as file:
+        json.dump(new_data, file)
+    return await ctx.reply(f":white_check_mark: Aliased **{new_tag}** to **{tag}**.")
+
+
 async def create_tag(ctx, tag_name, tag_body, filepath, success_text):
+
+    # message tags
     if re.match("https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", tag_body):
         tag = {"name":tag_name,"type":"message","aliases":[],"message_link":tag_body, "owner":str(ctx.author.id)}
         with open(filepath, "w") as file:
             json.dump(tag, file)
 
+    # code tags
     elif tag_body.startswith("```") and tag_body.endswith("```"):
         tag_body = tag_body[3:-3]
         if tag_body.startswith("py"):
@@ -96,13 +146,17 @@ async def create_tag(ctx, tag_name, tag_body, filepath, success_text):
             json.dump(tag, file)
         with open(f"{filepath[:-5]}.py", "w") as file:
             file.write(tag_body)
+    # plaintext tags
     else:
-        tag = {"name":tag_name,"type":"plaintext","alises":[],"owner":str(ctx.author.id)}
+        tag = {"name":tag_name,"type":"plaintext","aliases":[],"owner":str(ctx.author.id)}
         with open(filepath, "w") as file:
             json.dump(tag, file)
         with open(f"{filepath[:-5]}.txt", "w") as file:
             file.write(tag_body)
     return await ctx.reply(f":white_check_mark: {success_text} tag **{tag_name}**")
+
+
+
 
 async def container(ctx, tag, message):
     container_name = uuid.uuid4().hex
