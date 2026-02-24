@@ -1,5 +1,5 @@
 import random
-sonny_list = ["forg", "frog", "sonny"]
+sonny_list = ["frog", "sonny", "toad"]
 reply_list = [":frog: Sonny the frog here to help!", ":frog: It seems I have been summoned!"]
 async def sonny(message):
     msg = message.content
