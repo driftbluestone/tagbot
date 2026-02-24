@@ -3,7 +3,7 @@ import discord, os, pathlib
 from discord.ext import commands
 from modules import tags, sed, sonny, message_embed
 bot = commands.Bot(
-    command_prefix="$",
+    command_prefix="%",
     allowed_mentions=discord.AllowedMentions(
         users=False,
         everyone=False,
