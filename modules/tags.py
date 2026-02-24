@@ -1,4 +1,5 @@
-import discord, subprocess, uuid, pathlib, json, re, os
+import discord, subprocess, uuid, pathlib, json, re, os, Levenshtein, heapq
+from modules import users
 from modules.message_embed import create_message_embed
 from modules.tag_utils import get_tag_data
 DIR = pathlib.Path(__file__).resolve().parent
@@ -21,7 +22,9 @@ async def get_tag(ctx, bot, tag, message):
     if tag in SPECIAL_TAGS:
         return await special_tag(ctx, tag, message)
     data, filepath = await get_tag_data(ctx, tag, True, False)
-    if data == False: return
+    if data == False:
+        match =  await search_tag(ctx, tag, 1)
+        return await ctx.reply(f"Tag {tag} not found, did you mean {match}?")
     if data["type"] == "message":
         link = data["message_link"]
         embed = await create_message_embed(link, bot)
@@ -52,7 +55,8 @@ async def special_tag(ctx, tag, message):
     if tag == "owner":
         await owner_tag(ctx, message[0])
     if tag == "search":
-        await search_tag(ctx, message)
+        out = await search_tag(ctx, message[0], 5)
+        await ctx.reply(f":information_source: {out}")
 
 async def add_tag(ctx, tag_name, tag_body, success_text = "Created"):
     if tag_name == "": return await ctx.reply(":information_source: %t add `name` `body`")
@@ -83,7 +87,7 @@ async def delete_tag(ctx, tag, override = False, silent = False):
     if tag == "": return await ctx.reply(":information_source: %t delete `tag`")
 
     data, filepath = await get_tag_data(ctx, tag, True, override)
-    if data == False: return
+    if data == False: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
     # make sure all aliases are deleted
     deleted_aliases = ""
     if data["type"] != "alias":
@@ -102,6 +106,10 @@ async def delete_tag(ctx, tag, override = False, silent = False):
         os.remove(f"{filepath[:-5]}.txt")
     os.remove(filepath)
 
+    user = users.get_user_profile(str(ctx.author.id))
+    user["tags"].remove(tag)
+    users.save_user_profile(user)
+
     if not silent: return await ctx.reply(f":white_check_mark: Tag **{tag}**{deleted_aliases} deleted.")
 
 async def alias_tag(ctx, new_tag, tag):
@@ -109,7 +117,7 @@ async def alias_tag(ctx, new_tag, tag):
     if tag == "": return await ctx.reply(":warning: Please provide a tag to alias to.")
 
     data, filepath = await get_tag_data(ctx, tag, True, False)
-    if data == False: return
+    if data == False: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
     if data["type"] == "alias":
         return await alias_tag(ctx, new_tag, data["alias_of"])
     else:
@@ -123,7 +131,77 @@ async def alias_tag(ctx, new_tag, tag):
     new_data = {"name":new_tag,"type":"alias","alias_of":tag, "owner":str(ctx.author.id)}
     with open(new_filepath, "w") as file:
         json.dump(new_data, file)
+
+    user = users.get_user_profile(str(ctx.author.id))
+    user["tags"].append(new_tag)
+    users.save_user_profile(user)
+
     return await ctx.reply(f":white_check_mark: Aliased **{new_tag}** to **{tag}**.")
+
+async def list_tag(ctx, user):
+    if user == "":
+        return await list_all_tags(ctx)
+    return await list_user_tags(ctx, user)
+    
+async def list_all_tags(ctx):
+    tags = ""
+    tag_count = 0
+    for file in os.listdir(f"{DIR}/../tags"):
+        if file.endswith(".json"):
+            tags+=f"`{file[:-5]}`, "
+            tag_count+=1
+    if tags == "":
+        return await ctx.reply("No tags found.")
+    else: tags[:-2]
+    if len(tags) >= 2000:
+        with open(f"{DIR}/message.txt", "w") as file:
+            file.write(tags)
+            return await ctx.reply(f"**Tags in this server ({tag_count})**:", file=file)
+    else:
+        return await ctx.reply(f"**Tags in this server ({tag_count})**:\n{tags}")
+
+async def list_user_tags(ctx, user):
+    user = await users.resolve_user(ctx, user)
+    if not user:
+        return await ctx.reply(":warning: Couldn't find user.")
+    tags = ""
+    tag_count = 0
+    for tag in user["tags"]:
+        tags+=f"`{tag}`, "
+        tag_count+=1
+    if tags == "":
+        return await ctx.reply(f"User <@{user["id"]}> has no tags.")
+    if len(tags) >= 2000:
+        with open(f"{DIR}/message.txt", "w") as file:
+            file.write(tags)
+            return await ctx.reply(f"**<@{user["id"]}>'s tags ({tag_count})**:", file=file)
+    else:
+        return await ctx.reply(f"**<@{user["id"]}>'s tags ({tag_count})**:\n{tags}")
+
+async def owner_tag(ctx, tag):
+    if tag == "": return await ctx.reply(":information_source: %t owner `tag`")
+
+    data, _ = await get_tag_data(ctx, tag, True, False)
+    if data == False: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
+    return await ctx.reply(f":information_source: Tag **{tag}** is owned by <@{data["owner"]}>.")
+
+async def search_tag(ctx, search, amount):
+    if search == "": return await ctx.reply(":information_source: %t search `query`")
+
+    tags = os.listdir(f"{DIR}/../tags")
+    tags = [tag for tag in tags if tag.endswith(".json")]
+    distances = {}
+    for tag in tags:
+        tag = tag[:-5]
+        distance = Levenshtein.distance(tag, search)
+        distances[tag] = distance
+    cloest_match = heapq.nlargest(amount, distances.items(), key=lambda item: item[1])
+    out = ""
+    for k, _ in cloest_match:
+        out += f"`{k}`, "
+    return out[:-2]
+    
+
 
 
 async def create_tag(ctx, tag_name, tag_body, filepath, success_text):
@@ -153,10 +231,12 @@ async def create_tag(ctx, tag_name, tag_body, filepath, success_text):
             json.dump(tag, file)
         with open(f"{filepath[:-5]}.txt", "w") as file:
             file.write(tag_body)
+
+    user = users.get_user_profile(str(ctx.author.id))
+    user["tags"].append(tag_name)
+    users.save_user_profile(user)
+
     return await ctx.reply(f":white_check_mark: {success_text} tag **{tag_name}**")
-
-
-
 
 async def container(ctx, tag, message):
     container_name = uuid.uuid4().hex

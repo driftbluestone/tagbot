@@ -7,7 +7,6 @@ async def get_tag_data(ctx, tag, require_exists, require_owned):
     if not exists and not require_exists and not require_owned:
         return True, filepath
     if not exists:
-        await ctx.reply(f":warning: Tag **{tag}** does not exist.")
         return False, filepath
     with open(filepath, "r") as file:
         data = json.load(file)

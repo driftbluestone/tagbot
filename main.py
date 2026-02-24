@@ -1,3 +1,4 @@
+# requires external packages discord and levenshtein.
 import discord, json, os, re, subprocess, pathlib, uuid
 from discord.ext import commands
 from dataclasses import asdict
