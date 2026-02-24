@@ -1,7 +1,7 @@
 # requires external packages discord and levenshtein, as well as docker
-import discord, os, re, pathlib
+import discord, os, re, pathlib, random
 from discord.ext import commands
-from modules import tags, sed
+from modules import tags, sed, sonny
 from modules.message_embed import create_message_embed
 bot = commands.Bot(
     command_prefix="$",
@@ -34,7 +34,7 @@ async def on_message(message: discord.Message):
         return await bot.process_commands(message)
     if message.author.bot:
         return
-    
+    await sonny.sonny(message)
     # check if message contains message link
     if re.search("https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", message.content):
         link = re.search("https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", message.content)
