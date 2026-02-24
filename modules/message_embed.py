@@ -1,4 +1,11 @@
-import discord
+import discord, re
+async def check_link(message, bot):
+    if re.search("https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", message.content):
+        link = re.search("https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", message.content)
+        link = link.group()
+        embed =  await create_message_embed(link, bot)
+        await message.reply(embed=embed)
+        
 async def create_message_embed(link, bot):
     link_list = link.split("/")[5:]
     channel = bot.get_channel(int(link_list[0]))
