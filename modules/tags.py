@@ -243,9 +243,9 @@ async def search_tag(ctx, search, amount):
         tag = tag[:-5]
         distance = Levenshtein.distance(tag, search)
         distances[tag] = distance
-    cloest_match = heapq.nlargest(amount, distances.items(), key=lambda item: item[1])
+    closest_match = heapq.nsmallest(amount, distances.items(), key=lambda item: item[1])
     out = ""
-    for k, _ in cloest_match:
+    for k, _ in closest_match:
         out += f"`{k}`, "
     return out[:-2]
 
