@@ -1,4 +1,5 @@
 import pathlib, json
+
 DIR = pathlib.Path(__file__).resolve().parent
 
 with open(f"{DIR}/configs/user.json", "r") as file:
@@ -27,6 +28,12 @@ async def save_user_profile(user):
     with open(filepath, "w") as file:
         json.dump(user, file)
     return user
+
+async def permission_check(user, permission):
+    try:
+        return user["permissions"][permission]
+    except:
+        permissions(user)
 
 async def resolve_user(ctx, user):
     if user.startswith("<@") and user.endswith(">"):

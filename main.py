@@ -1,5 +1,5 @@
 # requires external packages discord and levenshtein.
-import discord, json, os, re, subprocess, pathlib, uuid
+import discord, os, re, pathlib
 from discord.ext import commands
 from dataclasses import asdict
 from modules import tags, sed

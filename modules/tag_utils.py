@@ -1,4 +1,5 @@
 import pathlib, json
+from modules import users, config
 DIR = pathlib.Path(__file__).resolve().parent
 
 async def get_tag_data(ctx, tag, require_exists, require_owned):
@@ -16,9 +17,20 @@ async def get_tag_data(ctx, tag, require_exists, require_owned):
     if owner:
         return data, filepath
     else:
-        await ctx.reply(f":warning: Tag **{tag}** is owned by <@{data[owner]}>.")
+        await ctx.reply(f":warning: Tag **{tag}** is owned by <@{data["owner"]}>.")
         return False, filepath
 
+async def check_creation_permission(ctx):
+    limit = config.server_config["limit_tags_to_admins"]
+    user = await users.get_user_profile(str(ctx.author.id))
+    tag_admin = user["permissions"]["tag_admin"]
+    admin = ctx.author.guild_permissions.administrator
+    if limit and not (tag_admin or admin):
+        await ctx.reply(":information_source: Only admins can create tags")
+        return False
+    else:
+        return True
+    
 async def check_tag_exists(filepath):
     if not pathlib.Path(filepath).exists():
         return False
