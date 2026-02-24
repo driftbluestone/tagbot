@@ -1,9 +1,10 @@
-import subprocess, uuid, pathlib, json, re, os, Levenshtein, heapq
+import discord, subprocess, uuid, pathlib, json, re, os, Levenshtein, heapq
 from modules import users, config
 from modules.message_embed import create_message_embed
 from modules.tag_utils import get_tag_data, check_creation_permission
 DIR = pathlib.Path(__file__).resolve().parent
-SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search", "admin"]
+SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search", "admin", "raw"]
+DISPLAYED_SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search"]
 ADMIN_TAGS = ["delete", "promote", "limit"]
 VALID_NAME_CHARS = set("0123456789abcdefghijklmnopqrstuvwxyz_-")
 
@@ -19,7 +20,7 @@ async def context_formatter(ctx, bot):
 
 async def get_tag(ctx, bot, tag, message):
     if tag == None:
-        return await ctx.reply(f":information_source: %t `{"|".join(SPECIAL_TAGS)}`")
+        return await ctx.reply(f":information_source: %t `{"|".join(DISPLAYED_SPECIAL_TAGS)}`")
     tag.lower()
     if tag in SPECIAL_TAGS:
         return await special_tag(ctx, tag, message)
@@ -60,6 +61,8 @@ async def special_tag(ctx, tag, message):
     if tag == "search":
         out = await search_tag(ctx, message[0], 5)
         await ctx.reply(f":information_source: {out}")
+    if tag == "raw":
+        await raw_tag(ctx, message[0])
     if tag == "admin":
         return await admin_tag(ctx, message[0], message[1:])
 
@@ -246,6 +249,19 @@ async def search_tag(ctx, search, amount):
     for k, _ in cloest_match:
         out += f"`{k}`, "
     return out[:-2]
+
+async def raw_tag(ctx, tag):
+    if tag == "": return await ctx.reply(":information_source: %t raw `tag`")
+
+    data, filepath = await get_tag_data(ctx, tag, True, False)
+    if data == False: return
+    file = [discord.File(filepath)]
+    if data["type"] == "code":
+        file.append(discord.File(f"{filepath[:-5]}.py"))
+    if data["type"] == "plaintext":
+        file.append(discord.File(f"{filepath[:-5]}.txt"))
+    return await ctx.reply(f":information_source: Raw data for {tag}.", files=file)
+    
     
 async def create_tag(ctx, tag_name, tag_body, filepath, success_text):
 
