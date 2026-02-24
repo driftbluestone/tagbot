@@ -1,4 +1,4 @@
-# requires external packages discord and levenshtein.
+# requires external packages discord and levenshtein, as well as docker
 import discord, os, re, pathlib
 from discord.ext import commands
 from modules import tags, sed

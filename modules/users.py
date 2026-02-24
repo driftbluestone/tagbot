@@ -9,15 +9,15 @@ with open(f"{DIR}/configs/permissions.json", "r") as file:
 
 # these are different functions because all of them need to be accessed at some point
 async def get_user_profile(user_id):
-  filepath = f"{DIR}/../users/{user_id}.json"
-  if pathlib.Path(filepath).exists():
-    with open(filepath, "r") as file:
-        user = json.load(file)
-    return user
-  else:
-    user = default_user_config
-    user["id"] = user_id
-    return await permissions(user)
+    filepath = f"{DIR}/../users/{user_id}.json"
+    if pathlib.Path(filepath).exists():
+        with open(filepath, "r") as file:
+            user = json.load(file)
+        return user
+    else:
+        user = default_user_config
+        user["id"] = user_id
+        return await permissions(user)
 async def permissions(user):
     for k, v in default_user_permissions.items():
         if k not in user["permissions"].keys():

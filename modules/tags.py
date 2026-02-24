@@ -197,7 +197,7 @@ async def list_all_tags(ctx):
             tag_count+=1
     if tags == "":
         return await ctx.reply("No tags found.")
-    else: tags[:-2]
+    else: tags = tags[:-2]
     if len(tags) >= 2000:
         with open(f"{DIR}/message.txt", "w") as file:
             file.write(tags)
@@ -216,6 +216,7 @@ async def list_user_tags(ctx, user):
         tag_count+=1
     if tags == "":
         return await ctx.reply(f"User <@{user["id"]}> has no tags.")
+    else: tags = tags[:-2]
     if len(tags) >= 2000:
         with open(f"{DIR}/message.txt", "w") as file:
             file.write(tags)
