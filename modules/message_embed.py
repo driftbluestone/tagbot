@@ -11,6 +11,7 @@ async def create_message_embed(link, bot):
     for i in msg.attachments:
         embed.set_image(url=i)
     for i in msg.embeds:
+        if i.url.startswith("https://tenor"): continue
         embed.set_image(url=i.url)
     embed.set_author(name=name, icon_url=pfp)
     
