@@ -1,6 +1,6 @@
 import random
 sonny_list = ["frog", "sonny", "toad"]
-reply_list = [":frog: Sonny the frog here to help!", ":frog: It seems I have been summoned!"]
+reply_list = [":frog: Sonny the frog here to help!", ":frog: It seems I have been summoned!", ":frog: \*Ribbit*"]
 async def sonny(message):
     msg = message.content
     if any(sonny in msg.lower() for sonny in sonny_list):

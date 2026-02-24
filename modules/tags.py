@@ -35,7 +35,7 @@ async def get_tag(ctx, bot, tag, message):
     elif data["type"] == "code":
         return await container(ctx, tag, message)
     elif data["type"] == "plaintext":
-        with open(f"{filepath[:-5]}.txt", "r") as file:
+        with open(f"{filepath[:-5]}.txt", "r", encoding="utf-8") as file:
             content = file.read()
         return await ctx.reply(content)
     elif data["type"] == "alias":
@@ -132,7 +132,6 @@ async def delete_tag(ctx, tag, override = False, silent = False):
     if tag == "": return await ctx.reply(":information_source: %t delete `tag`")
 
     data, filepath = await get_tag_data(ctx, tag, True, False)
-    if data["owner"] != str(ctx.author.id) and not override: return await ctx.reply(f":warning: Tag **{tag}** is owned by <@{data["owner"]}>.")
     if data == False: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
     # make sure all aliases are deleted
     deleted_aliases = ""
@@ -281,14 +280,14 @@ async def create_tag(ctx, tag_name, tag_body, filepath, success_text):
         tag = {"name":tag_name,"type":"code","aliases":[],"owner":str(ctx.author.id)}
         with open(filepath, "w") as file:
             json.dump(tag, file)
-        with open(f"{filepath[:-5]}.py", "w") as file:
+        with open(f"{filepath[:-5]}.py", "w", encoding="utf-8") as file:
             file.write(tag_body)
     # plaintext tags
     else:
         tag = {"name":tag_name,"type":"plaintext","aliases":[],"owner":str(ctx.author.id)}
         with open(filepath, "w") as file:
             json.dump(tag, file)
-        with open(f"{filepath[:-5]}.txt", "w") as file:
+        with open(f"{filepath[:-5]}.txt", "w", encoding="utf-8") as file:
             file.write(tag_body)
 
     user = await users.get_user_profile(str(ctx.author.id))
