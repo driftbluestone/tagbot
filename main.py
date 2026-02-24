@@ -1,7 +1,6 @@
 # requires external packages discord and levenshtein.
 import discord, os, re, pathlib
 from discord.ext import commands
-from dataclasses import asdict
 from modules import tags, sed
 from modules.message_embed import create_message_embed
 bot = commands.Bot(
@@ -60,6 +59,5 @@ async def on_command_error(ctx, error):
         return await tags.context_formatter(ctx, bot)
     else:
         raise error
-
 
 bot.run(TOKEN)

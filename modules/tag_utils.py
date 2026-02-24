@@ -40,4 +40,3 @@ async def check_tag_owner(data, id):
     if data["owner"] != id:
         return False
     else: return True
-        # return await ctx.reply(f":warning: Tag **{tag}** is owned by <@{data["owner"]}>.")

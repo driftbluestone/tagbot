@@ -1,4 +1,4 @@
-import discord, subprocess, uuid, pathlib, json, re, os, Levenshtein, heapq
+import subprocess, uuid, pathlib, json, re, os, Levenshtein, heapq
 from modules import users, config
 from modules.message_embed import create_message_embed
 from modules.tag_utils import get_tag_data, check_creation_permission
