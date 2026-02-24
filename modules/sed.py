@@ -7,7 +7,7 @@ async def sed(message):
         s_content = message.content.split('/')
         pattern = s_content[1]
         for i in message_history:
-            match = re.search(pattern, i.content)
+            match = re.search(pattern, i.content, flags=re.IGNORECASE)
             if i.content.startswith("sed/"):
                 pass
             elif match:
@@ -40,7 +40,7 @@ async def process_sed(message, replied_message):
     if not pattern:
         await message.add_reaction("❌")
     else:
-        sub = re.sub(pattern, replace, reply_content, count)
+        sub = re.sub(pattern, replace, reply_content, count, flags=re.IGNORECASE)
         
         embed = discord.Embed(description=sub, color=0x222222)
         embed.set_author(name=replied_message.author, icon_url=replied_message.author.avatar.url)
