@@ -1,12 +1,11 @@
 # Sonny
-***
 This is the bot used in the [AstroGreg discord](https://discord.gg/dUaZeV6Drp)
+
 Features:
 * Tags
 * Edit & Delete message logging
 * Sed functionality
 * Message link embedding
-***
 ## Usage Guide
 ### Tags
 * Use %t to look at tag information
