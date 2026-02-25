@@ -4,7 +4,7 @@ from discord.ext import commands
 from modules import message_reply, message_reply, tags, logging, editing, message_reply
 from modules.config import *
 bot = commands.Bot(
-    command_prefix="$",
+    command_prefix="%",
     allowed_mentions=discord.AllowedMentions(
         users=False,
         everyone=False,
