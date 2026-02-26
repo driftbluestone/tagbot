@@ -28,7 +28,7 @@ Features:
 3. In default installation settings, add the "bot" scope
 4. The bot requires permissions "Add Reactions", "Attatch Files", "Send Messages", and "View Channels" If the default user permissions in your already allow this, this is not required
 5. Save changes
-6. Copy the discord provided link, and paste it in your browser
+6. Copy the discord provided install link, and paste it in your browser
 7. Add the bot to your server of choice
 8. Set the Install link to None and save changes
 9. In the Bot tab, copy the bot's token and paste it into TOKEN.txt (you will need to create that file)
@@ -36,5 +36,5 @@ Features:
 11. run main.py
 ### Troubleshooting
 * If there are issues with the code tags, try changing the docker function
-1. Change line 304 to "docargs = \['sude', 'docker', 'run',"
+1. Change line 304 to "docargs = \['sudo', 'docker', 'run',"
 2. Change line 310 to 'python', 'python3', f'/data/{tag}.py'\]
