@@ -1,4 +1,3 @@
-# requires external packages discord and levenshtein, as well as docker
 import discord, pathlib
 from discord.ext import commands
 from modules import on_start
@@ -9,7 +8,7 @@ from modules.config import *
 class BOT(commands.Bot):
     def __init__(self):
         super().__init__(
-        command_prefix="%",
+        command_prefix="$",
         allowed_mentions=discord.AllowedMentions(
             users=False,
             everyone=False,
@@ -18,10 +17,10 @@ class BOT(commands.Bot):
         ),
         intents=discord.Intents.all()
         )
-
     async def setup_hook(self):
         pass
 bot = BOT()
+
 DIR = pathlib.Path(__file__).resolve().parent
 channel = 0
 with open(f"{DIR}/TOKEN.txt", "r") as file:

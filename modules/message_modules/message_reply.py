@@ -3,7 +3,7 @@ from modules.message_modules import sonny, message_embed, sed
 
 async def message_reply(message: discord.Message, bot):
     # Keep commands working
-    return
+    # return
     if message.content.startswith(f"{bot.command_prefix}"):
         return await bot.process_commands(message)
     # sonny react
