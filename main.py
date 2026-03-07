@@ -1,34 +1,39 @@
 # requires external packages discord and levenshtein, as well as docker
-import discord, os, pathlib
+import discord, pathlib
 from discord.ext import commands
-from modules import message_reply, message_reply, tags, logging, editing, message_reply
+from modules import on_start
+from modules.tags import tags
+from modules.message_modules import editing, message_reply, logging
 from modules.config import *
-bot = commands.Bot(
-    command_prefix="%",
-    allowed_mentions=discord.AllowedMentions(
-        users=False,
-        everyone=False,
-        roles=False,
-        replied_user=True,
-    ),
-    intents=discord.Intents.all(),
-)
+
+class BOT(commands.Bot):
+    def __init__(self):
+        super().__init__(
+        command_prefix="%",
+        allowed_mentions=discord.AllowedMentions(
+            users=False,
+            everyone=False,
+            roles=False,
+            replied_user=True,
+        ),
+        intents=discord.Intents.all()
+        )
+
+    async def setup_hook(self):
+        pass
+bot = BOT()
 DIR = pathlib.Path(__file__).resolve().parent
 channel = 0
-if not os.path.isdir(f"{DIR}/tags"):
-    os.mkdir(f"{DIR}/tags")
-if not os.path.isdir(f"{DIR}/users"):
-    os.mkdir(f"{DIR}/users")
-if not os.path.isdir(f"{DIR}/history"):
-    os.mkdir(f"{DIR}/history")
-
 with open(f"{DIR}/TOKEN.txt", "r") as file:
     TOKEN = file.read()
 
 @bot.event
 async def on_ready():
+    await on_start.on_ready()
     global channel
-    channel = await bot.fetch_channel(server_config["edit_delete_log_channel"])
+    if channel != 0:
+        channel = await bot.fetch_channel(server_config["edit_delete_log_channel"])
+    await bot.tree.sync()
     print(f"Logged in as {bot.user}.")
 
 @bot.event
