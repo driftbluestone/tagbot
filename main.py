@@ -40,8 +40,8 @@ async def on_message(message: discord.Message):
     
 @bot.event
 async def on_message_edit(previous: discord.Message, current: discord.Message):
-    if previous.author.bot:
-        return
+    if previous.author.bot: return
+    if previous.content == current.content: return
     await logging.edit_message(previous, current, channel)
     await editing.new_edit(current, bot)
     

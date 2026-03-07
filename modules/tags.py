@@ -68,7 +68,7 @@ async def special_tag(ctx, tag, message):
 
 async def admin_tag(ctx, tag, args):
     user = await users.get_user_profile(str(ctx.author.id))
-    if not await users.permission_check(user, "tag_admin") or ctx.author.guild_permissions.administrator: return await ctx.reply(":warning: No permission.")
+    if not (await users.permission_check(user, "tag_admin") or ctx.author.guild_permissions.administrator): return await ctx.reply(":warning: No permission.")
     if tag == "": return await ctx.reply(f":information_source: %t admin `{"|".join(ADMIN_TAGS)}`")
     if tag == "delete":
         await delete_tag(ctx, args[0], True)
