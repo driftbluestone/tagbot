@@ -32,8 +32,7 @@ Features:
 7. Add the bot to your server of choice
 8. Set the Install link to None and save changes
 9. In the Bot tab, copy the bot's token and paste it into TOKEN.txt (you will need to create that file)
-10. In config.json, set the ID of the channel you would like to use for message edit & delete logging, set to 0 to disable
-11. run main.py
+10. run main.py
 ### Troubleshooting
 * If there are issues with the code tags, try changing the docker function
 1. Change line 304 to "docargs = \['sudo', 'docker', 'run',"

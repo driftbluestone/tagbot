@@ -18,7 +18,7 @@ class BOT(commands.Bot):
         intents=discord.Intents.all()
         )
     async def setup_hook(self):
-        pass
+        await self.load_extension("cogs.config")
 bot = BOT()
 
 DIR = pathlib.Path(__file__).resolve().parent
@@ -32,7 +32,12 @@ async def on_ready():
     global channel
     if channel != 0:
         channel = await bot.fetch_channel(server_config["edit_delete_log_channel"])
-    await bot.tree.sync()
+    # sync all commands to discord
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} commands.")
+    except Exception as exception:
+        print(f"Error syncing commands: {exception}")
     print(f"Logged in as {bot.user}.")
 
 @bot.event
