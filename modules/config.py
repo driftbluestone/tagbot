@@ -7,67 +7,6 @@ async def save_server_config():
     with open(f"{DIR}/../config.json", "w") as file:
         json.dump(server_config, file, indent=2)
 
-class PageSelect(discord.ui.Modal, title="Select the channel"):
-    def __init__(self, old_interaction, max_page, return_view, group = None):
-        super().__init__()
-        self.old_interaction = old_interaction
-        self.max_page = max_page
-        self.return_view = return_view
-        self.group = group
-        self.user_input = discord.ui.TextInput(
-            label=f"Enter a number between 1 and {max_page}.",
-            placeholder="",
-            style=discord.TextStyle.short,
-            required=True,
-            max_length=10
-        )
-        self.add_item(self.user_input)
-    
-    async def on_submit(self, interaction: discord.Interaction):
-        value = self.user_input.value
-        old_interaction = self.old_interaction
-        try: value = int(value)
-        except: return await interaction.response.send_message("Error. Must input an integer.",ephemeral=True)
-        if value < 1 or value > self.max_page:
-            return await interaction.response.send_message(f"Page must be between 1 and {self.max_page}.",ephemeral=True)
-        content = ""
-        if self.return_view == "ConfigButton":
-            view = ConfigButton(old_interaction, value)
-        if self.return_view == "NewAction":
-            view = NewAction(old_interaction, value)
-        if self.return_view == "ConfigSubButton":
-            view = ConfigSubButton(old_interaction, self.group, value)
-            if server_config["logs"][self.group][0] == 0: content = "Channel: None"
-            else: content = f"Channel: <#{server_config["logs"][self.group][0]}>"
-
-        await old_interaction.edit_original_response(content=content, view=view)
-        return await interaction.response.defer(ephemeral=True, thinking=False)
-
-class NewLogGroup(discord.ui.Modal, title="Enter group name"):
-    def __init__(self, old_interaction):
-        super().__init__()
-        self.old_interaction = old_interaction
-        self.user_input = discord.ui.TextInput(
-            label=f"Enter group name.",
-            placeholder="",
-            style=discord.TextStyle.short,
-            required=True
-        )
-        self.add_item(self.user_input)
-    
-    async def on_submit(self, interaction: discord.Interaction):
-        value = self.user_input.value
-        old_interaction = self.old_interaction
-        if value in ["new", "page1", "back1", "select", "next1", "last"]:
-            return await interaction.response.send_message("Sorry, that name is reserved.", ephemeral=True)
-        if value in server_config["logs"].keys():
-            return await interaction.response.send_message("Name already in use.", ephemeral=True)
-        server_config["logs"][value] = [0]
-        await save_server_config()
-        view = ConfigSubButton(old_interaction, value)
-        await old_interaction.edit_original_response(content="", view=view)
-        return await interaction.response.defer(ephemeral=True, thinking=False)
-
 class ConfigButton(discord.ui.View):
     def __init__(self, old_interaction, page = 1):
         super().__init__(timeout=1000000000)
@@ -183,6 +122,31 @@ class ConfigSubButton(discord.ui.View):
         await self.old_interaction.edit_original_response(content="Are you sure?",view=view)
         await interaction.response.defer(ephemeral=True, thinking=False)
 
+class NewLogGroup(discord.ui.Modal, title="Enter group name"):
+    def __init__(self, old_interaction):
+        super().__init__()
+        self.old_interaction = old_interaction
+        self.user_input = discord.ui.TextInput(
+            label=f"Enter group name.",
+            placeholder="",
+            style=discord.TextStyle.short,
+            required=True
+        )
+        self.add_item(self.user_input)
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        value = self.user_input.value
+        old_interaction = self.old_interaction
+        if value in ["new", "page1", "back1", "select", "next1", "last"]:
+            return await interaction.response.send_message("Sorry, that name is reserved.", ephemeral=True)
+        if value in server_config["logs"].keys():
+            return await interaction.response.send_message("Name already in use.", ephemeral=True)
+        server_config["logs"][value] = [0]
+        await save_server_config()
+        view = ConfigSubButton(old_interaction, value)
+        await old_interaction.edit_original_response(content="", view=view)
+        return await interaction.response.defer(ephemeral=True, thinking=False)
+
 class DeleteConfirm(discord.ui.View):
     def __init__(self, old_interaction, group, page):
         super().__init__(timeout=1000000000)
@@ -293,3 +257,39 @@ def page_select_buttons(self, page):
         button = discord.ui.Button(label=">>", custom_id="last", row=3)
         button.callback = self.page_selector
         self.add_item(button)
+
+class PageSelect(discord.ui.Modal, title="Select the channel"):
+    def __init__(self, old_interaction, max_page, return_view, group = None):
+        super().__init__()
+        self.old_interaction = old_interaction
+        self.max_page = max_page
+        self.return_view = return_view
+        self.group = group
+        self.user_input = discord.ui.TextInput(
+            label=f"Enter a number between 1 and {max_page}.",
+            placeholder="",
+            style=discord.TextStyle.short,
+            required=True,
+            max_length=10
+        )
+        self.add_item(self.user_input)
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        value = self.user_input.value
+        old_interaction = self.old_interaction
+        try: value = int(value)
+        except: return await interaction.response.send_message("Error. Must input an integer.",ephemeral=True)
+        if value < 1 or value > self.max_page:
+            return await interaction.response.send_message(f"Page must be between 1 and {self.max_page}.",ephemeral=True)
+        content = ""
+        if self.return_view == "ConfigButton":
+            view = ConfigButton(old_interaction, value)
+        if self.return_view == "NewAction":
+            view = NewAction(old_interaction, value)
+        if self.return_view == "ConfigSubButton":
+            view = ConfigSubButton(old_interaction, self.group, value)
+            if server_config["logs"][self.group][0] == 0: content = "Channel: None"
+            else: content = f"Channel: <#{server_config["logs"][self.group][0]}>"
+
+        await old_interaction.edit_original_response(content=content, view=view)
+        return await interaction.response.defer(ephemeral=True, thinking=False)
