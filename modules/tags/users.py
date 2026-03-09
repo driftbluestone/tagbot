@@ -4,8 +4,8 @@ DIR = pathlib.Path(__file__).resolve().parent
 
 with open(f"{DIR}/configs/user.json", "r") as file:
     default_user_config = json.load(file)
-with open(f"{DIR}/configs/permissions.json", "r") as file:
-    default_user_permissions = json.load(file)
+# with open(f"{DIR}/configs/permissions.json", "r") as file:
+#     default_user_permissions = json.load(file)
 with open(f"{DIR}/../../data/static/permissions.json", "r") as file:
     user_permission_equivalent = json.load(file)
 
@@ -21,9 +21,9 @@ def get_user_profile(user_id):
         user["id"] = user_id
         return permissions(user)
 def permissions(user):
-    for k, v in default_user_permissions.items():
+    for k, in user_permission_equivalent.keys():
         if k not in user["permissions"].keys():
-            user["permissions"][k] = v
+            user["permissions"][k] = False
     return save_user_profile(user)
 def save_user_profile(user):
     filepath = f"{DIR}/../../data/tags/users/{user["id"]}.json"
@@ -63,16 +63,16 @@ class PermissionPanel(discord.ui.View):
         self.user: discord.User = user
         self.page = page
         self.user_profile = get_user_profile(user.id)
-        perms = list(default_user_permissions.keys())
+        perms = list(user_permission_equivalent.keys())
         perms = perms[((page-1)*10):(page*10)]
         for perm in perms:
             perm_styled = perm.replace("_", " ").title()
             try:
                 permission = self.user_profile["permissions"][perm]
             except:
-                self.user_profile["permissions"][perm] = default_user_permissions[perm]
+                self.user_profile["permissions"][perm] = False
                 save_user_profile(user)
-                permission = default_user_permissions[perm]
+                permission = False
             if permission:
                 buttonstyle = discord.ButtonStyle.success
             else:
@@ -80,7 +80,7 @@ class PermissionPanel(discord.ui.View):
             button = discord.ui.Button(label = perm_styled, style=buttonstyle, custom_id=perm)
             button.callback = self.open_modal_button_callback
             self.add_item(button)
-        self.max_page = math.ceil(len(default_user_permissions.keys())/10)
+        self.max_page = math.ceil(len(user_permission_equivalent.keys())/10)
 
         config.page_select_buttons(self, page)
     async def page_selector(self, interaction: discord.Interaction):
