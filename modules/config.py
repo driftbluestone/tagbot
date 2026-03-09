@@ -27,7 +27,7 @@ class ConfigButton(discord.ui.View):
         page_select_buttons(self, page)
     # function that is run when button is pressed
     async def open_modal_button_callback(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         group = interaction.data["custom_id"]
         old_interaction = self.old_interaction
 
@@ -40,10 +40,10 @@ class ConfigButton(discord.ui.View):
         await interaction.response.defer(ephemeral=True, thinking=False)
 
     async def page_selector(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
-        await select_page(interaction, self.old_interaction, self.page, self.max_page, "ConfigButton")
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        await select_page(interaction, self.old_interaction, self.page, self.max_page, ConfigButton)
     async def new_group(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         return await interaction.response.send_modal(NewLogGroup(self.old_interaction))
             
 class ConfigSubButton(discord.ui.View):
@@ -73,8 +73,8 @@ class ConfigSubButton(discord.ui.View):
 
         page_select_buttons(self, page)
     async def page_selector(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
-        await select_page(interaction, self.old_interaction, self.page, self.max_page, "ConfigSubButton", self.group)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        await select_page(interaction, self.old_interaction, self.page, self.max_page, ConfigSubButton, self.group)
 
     @discord.ui.select(
         cls=discord.ui.ChannelSelect,
@@ -84,7 +84,7 @@ class ConfigSubButton(discord.ui.View):
         max_values=1
     )
     async def select_callback(self, interaction: discord.Interaction, select: discord.ui.ChannelSelect):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         channel = select.values[0] 
         await interaction.response.defer(ephemeral=True, thinking=False)
         server_config["logs"][self.group][0] = channel.id
@@ -95,7 +95,7 @@ class ConfigSubButton(discord.ui.View):
         await save_server_config()
 
     async def open_modal_button_callback(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         old_interaction = self.old_interaction
         log = interaction.data["custom_id"]
         server_config["logs"][self.group].remove(log)
@@ -112,19 +112,19 @@ class ConfigSubButton(discord.ui.View):
         await interaction.response.defer(ephemeral=True, thinking=False)
     
     async def back(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         view = ConfigButton(self.old_interaction, self.page)
         await self.old_interaction.edit_original_response(content="", view=view)
         await interaction.response.defer(ephemeral=True, thinking=False)
 
     async def new_action(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         view = NewAction(self.old_interaction, self.group)
         await self.old_interaction.edit_original_response(content="", view=view)
         await interaction.response.defer(ephemeral=True, thinking=False)
     
     async def delete(self, interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         view = DeleteConfirm(self.old_interaction, self.group, self.page)
         await self.old_interaction.edit_original_response(content="Are you sure?",view=view)
         await interaction.response.defer(ephemeral=True, thinking=False)
@@ -167,7 +167,7 @@ class DeleteConfirm(discord.ui.View):
         button.callback = self.back
         self.add_item(button)
     async def confirmation(self, interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         for action in server_config["logs"][self.group][1:]:
             server_config["unlogged_actions"].append(action)
             server_config["logged_actions"].pop(action)
@@ -177,7 +177,7 @@ class DeleteConfirm(discord.ui.View):
         await self.old_interaction.edit_original_response(content="", view=view)
         await interaction.response.defer(ephemeral=True, thinking=False)
     async def back(self, interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         view = ConfigSubButton(self.old_interaction, self.group, self.page)
         if server_config["logs"][self.group][0] == 0:
             content = "Channel: None"
@@ -206,11 +206,11 @@ class NewAction(discord.ui.View):
         self.add_item(button)
         page_select_buttons(self, page)
     async def page_selector(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
-        await select_page(interaction, self.old_interaction, self.page, self.max_page, "NewAction")
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        await select_page(interaction, self.old_interaction, self.page, self.max_page, NewAction)
 
     async def open_modal_button_callback(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user, "logmaster"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
+        if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         action = interaction.data["custom_id"]
         
         server_config["unlogged_actions"].remove(action)
@@ -236,16 +236,12 @@ async def select_page(interaction, old_interaction, page, max_page, return_view,
     elif config == "next1": page+=1
     elif config == "last": page = max_page 
     content = ""
-    if return_view == "ConfigButton":
-        view = ConfigButton(old_interaction, page)
-    if return_view == "NewAction":
-        view = NewAction(old_interaction, page)
-    if return_view == "ConfigSubButton":
-        view = ConfigSubButton(old_interaction, group, page)
-        if server_config["logs"][group][0] == 0:
-            content = "Channel: None"
-        else:
-            content = f"Channel: <#{server_config["logs"][group][0]}>"
+    if isinstance(return_view, ConfigSubButton):
+        view = return_view(old_interaction, group, page)
+        if server_config["logs"][group][0] == 0: content = "Channel: None"
+        else: content = f"Channel: <#{server_config["logs"][group][0]}>"
+    else:
+        view = return_view(old_interaction, page)
     await old_interaction.edit_original_response(content=content, view=view)
     return await interaction.response.defer(ephemeral=True, thinking=False)
 
@@ -269,7 +265,7 @@ def page_select_buttons(self, page):
         button.callback = self.page_selector
         self.add_item(button)
 
-class PageSelect(discord.ui.Modal, title="Select the channel"):
+class PageSelect(discord.ui.Modal, title="Select the page"):
     def __init__(self, old_interaction, max_page, return_view, group = None):
         super().__init__()
         self.old_interaction = old_interaction
@@ -293,14 +289,12 @@ class PageSelect(discord.ui.Modal, title="Select the channel"):
         if value < 1 or value > self.max_page:
             return await interaction.response.send_message(f"Page must be between 1 and {self.max_page}.",ephemeral=True)
         content = ""
-        if self.return_view == "ConfigButton":
-            view = ConfigButton(old_interaction, value)
-        if self.return_view == "NewAction":
-            view = NewAction(old_interaction, value)
-        if self.return_view == "ConfigSubButton":
-            view = ConfigSubButton(old_interaction, self.group, value)
+        if isinstance(self.return_view, ConfigSubButton):
+            view = self.return_view(old_interaction, self.group, value)
             if server_config["logs"][self.group][0] == 0: content = "Channel: None"
             else: content = f"Channel: <#{server_config["logs"][self.group][0]}>"
+        else:
+            view = self.return_view(old_interaction, value)
 
         await old_interaction.edit_original_response(content=content, view=view)
         return await interaction.response.defer(ephemeral=True, thinking=False)

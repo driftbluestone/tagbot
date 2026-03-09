@@ -1,4 +1,5 @@
 {
     "tag_admin":"administrator",
-    "logmaster":"administrator"
+    "log_admin":"administrator",
+    "edit_permissions":"administrator"
 }

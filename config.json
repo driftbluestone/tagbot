@@ -7,7 +7,7 @@
       "delete_message"
     ],
     "test": [
-      1440196612361162804,
+      1431912075348803675,
       "create_channel",
       "delete_channel"
     ]
@@ -40,7 +40,7 @@
   "logged_actions": {
     "edit_message": 1440196612361162804,
     "delete_message": 1440196612361162804,
-    "create_channel": 1440196612361162804,
-    "delete_channel": 1440196612361162804
+    "create_channel": 1431912075348803675,
+    "delete_channel": 1431912075348803675
   }
 }
