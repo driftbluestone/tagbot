@@ -2,7 +2,7 @@ import discord, pathlib, json, math
 from modules import config
 DIR = pathlib.Path(__file__).resolve().parent
 
-with open(f"{DIR}/configs/user.json", "r") as file:
+with open(f"{DIR}/../../data/static/user.json", "r") as file:
     default_user_config = json.load(file)
 # with open(f"{DIR}/configs/permissions.json", "r") as file:
 #     default_user_permissions = json.load(file)
