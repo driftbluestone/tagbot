@@ -19,23 +19,26 @@
       "delete_channel",
       "invite_created",
       "invite_deleted"
+    ],
+    "the group": [
+      0
     ]
   },
   "unlogged_actions": [
-    "user_change_roles",
-    "user_change_nick",
-    "user_change_username",
     "user_change_avatar",
     "pardon_user",
     "create_role",
     "delete_role",
     "update_role",
-    "create_soundboard_sound",
     "update_soundboard_sound",
     "delete_soundboard_sound",
     "thread_created",
     "thread_update",
-    "thread_deleted"
+    "thread_deleted",
+    "user_change_roles",
+    "user_change_nick",
+    "user_change_username",
+    "create_soundboard_sound"
   ],
   "logged_actions": {
     "edit_message": 1476069622628487189,

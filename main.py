@@ -2,7 +2,7 @@ import discord, pathlib
 from discord.ext import commands
 from modules import on_start
 from modules.tags import tags
-from modules.message_modules import editing, message_reply, logging
+from modules.message_modules import editing, message_reply
 from modules.config import *
 
 class BOT(commands.Bot):
@@ -19,19 +19,18 @@ class BOT(commands.Bot):
         )
     async def setup_hook(self):
         await self.load_extension("cogs.config")
+        await self.load_extension("cogs.logs")
 bot = BOT()
 
 DIR = pathlib.Path(__file__).resolve().parent
-channel = 0
+
 with open(f"{DIR}/TOKEN.txt", "r") as file:
     TOKEN = file.read()
 
 @bot.event
 async def on_ready():
     await on_start.on_ready()
-    global channel
-    if channel != 0:
-        channel = await bot.fetch_channel(server_config["edit_delete_log_channel"])
+
     # sync all commands to discord
     try:
         synced = await bot.tree.sync()
@@ -51,14 +50,11 @@ async def on_message(message: discord.Message):
 async def on_message_edit(previous: discord.Message, current: discord.Message):
     if previous.author.bot: return
     if previous.content == current.content: return
-    await logging.edit_message(previous, current, channel)
     await editing.new_edit(current, bot)
     
 @bot.event
 async def on_message_delete(message: discord.Message):
-    if message.author.bot:
-        return
-    await logging.delete_message(message, channel)
+    if message.author.bot: return
     await editing.new_edit(message, bot)
     
 @bot.command(name="tag")
