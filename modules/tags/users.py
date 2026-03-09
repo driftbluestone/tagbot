@@ -57,7 +57,7 @@ async def resolve_user(ctx, user):
     return get_user_profile(user_object.id)
 
 class PermissionPanel(discord.ui.View):
-    def __init__(self, old_interaction, user, page = 1):
+    def __init__(self, old_interaction, user: discord.User, page = 1):
         super().__init__(timeout=1000000000)
         self.old_interaction: discord.Interaction = old_interaction
         self.user: discord.User = user
@@ -71,7 +71,7 @@ class PermissionPanel(discord.ui.View):
                 permission = self.user_profile["permissions"][perm]
             except:
                 self.user_profile["permissions"][perm] = False
-                save_user_profile(user)
+                save_user_profile(self.user_profile)
                 permission = False
             if permission:
                 buttonstyle = discord.ButtonStyle.success

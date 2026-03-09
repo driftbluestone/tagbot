@@ -14,10 +14,10 @@ class Config(commands.Cog):
         if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         await interaction.response.send_message(view=config.ConfigButton(interaction))
     @app_commands.command(name="permissions", description="Configure user permissions")
-    async def permissions(self, interaction: discord.Interaction, user: typing.Optional[discord.User]):
+    async def permissions(self, interaction: discord.Interaction, user: typing.Optional[discord.Member]):
         if not await users.permission_check(interaction.user, "edit_permissions"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         if user == None: user = interaction.user
-        await interaction.response.send_message(view=users.PermissionPanel(interaction, user))
+        await interaction.response.send_message(content = f"Permissions for: {user.mention}",view=users.PermissionPanel(interaction, user))
 
 async def setup(bot: commands.Bot) -> None:
     # finally, adding the cog to the bot
