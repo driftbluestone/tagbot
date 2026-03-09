@@ -26,7 +26,7 @@ Features:
 1. Create a new bot by clicking ["New Application"](https://discord.com/developers/applications/)
 2. In the Installation tab, disable "User Install"
 3. In default installation settings, add the "bot" scope
-4. The bot requires permissions "Add Reactions", "Attatch Files", "Send Messages", and "View Channels" If the default user permissions in your already allow this, this is not required
+4. The bot requires permissions "Add Reactions", "Attatch Files", "Send Messages", "View Channels", and "View Audit Log" If the default user permissions in your already allow this, this is not required
 5. Save changes
 6. Copy the discord provided install link, and paste it in your browser
 7. Add the bot to your server of choice

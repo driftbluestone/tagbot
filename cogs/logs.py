@@ -1,25 +1,46 @@
-import discord, pathlib
-from discord import app_commands
+import discord
 from discord.ext import commands
 from modules.message_modules import logging
 from modules.config import server_config
-DIR = pathlib.Path(__file__).parent.absolute()
+
 class Logging(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
+    
+    async def get_channel(self, action):
+        if action not in server_config["logged_actions"]: return False
+        if server_config["logged_actions"][action] == 0: return False
+        channel = await self.bot.fetch_channel(server_config["logged_actions"][action])
+        return channel
+    
     @commands.Cog.listener()
     async def on_message_edit(self, previous: discord.Message, current: discord.Message):
         if previous.author.bot: return
         if previous.content == current.content: return
-        channel = self.bot.fetch_channel(server_config["logged_actions"]["edit_message"])
+        channel = await self.get_channel("edit_message")
+        if channel == False: return
         await logging.edit_message(previous, current, channel)
     
-    @commands.cog.listener()
+    @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message):
-        if message.author.bot:return
-        channel = self.bot.fetch_channel(server_config["logged_actions"]["delete_message"])
+        if message.author.bot: return
+        channel = await self.get_channel("delete_message")
+        if channel == False: return
         await logging.delete_message(message, channel)
+
+    @commands.Cog.listener()
+    async def on_guild_channel_create(self, guild_channel: discord.ChannelType):
+        channel = await self.get_channel("create_channel")
+        if channel == False: return
+        await logging.create_delete_channel(guild_channel, channel, ["Created", "New"])
+    
+    @commands.Cog.listener()
+    async def on_guild_channel_delete(self, guild_channel: discord.ChannelType):
+        channel = await self.get_channel("delete_channel")
+        if channel == False: return
+        await logging.create_delete_channel(guild_channel, channel, ["deleted", "Deleted"])
+
+    
     
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Logging(bot=bot))
