@@ -9,7 +9,7 @@ async def save_server_config():
         json.dump(server_config, file, indent=2)
 
 class ConfigButton(discord.ui.View):
-    def __init__(self, old_interaction, _, page = 1):
+    def __init__(self, old_interaction, _ = None, page = 1):
         super().__init__(timeout=1000000000)
         self.old_interaction: discord.Interaction = old_interaction
         self.page = page
@@ -208,7 +208,7 @@ class NewAction(discord.ui.View):
 
     async def page_selector(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
-        await select_page(interaction, self.old_interaction, self.page, self.max_page, NewAction)
+        await select_page(interaction, self.old_interaction, self.page, self.max_page, NewAction, self.group)
 
     async def open_modal_button_callback(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
@@ -290,14 +290,12 @@ class PageSelect(discord.ui.Modal, title="Go to page"):
         if value < 1 or value > self.max_page:
             return await interaction.response.send_message(f"Page must be between 1 and {self.max_page}.",ephemeral=True)
         content = ""
+        view = self.return_view(old_interaction, self.group, self.page)
         if isinstance(self.return_view, ConfigSubButton):
-            view = self.return_view(old_interaction, self.group, value)
             if server_config["logs"][self.group][0] == 0: content = "Channel: None"
             else: content = f"Channel: <#{server_config["logs"][self.group][0]}>"
-        elif isinstance(self.return_view, NewAction):
-            view = self.return_view(old_interaction, self.group, value)
-        else:
-            view = self.return_view(old_interaction, value)
+
+        await old_interaction.edit_original_response(content=content, view=view)
 
         await old_interaction.edit_original_response(content=content, view=view)
         return await interaction.response.defer(ephemeral=True, thinking=False)

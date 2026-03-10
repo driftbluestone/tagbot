@@ -3,7 +3,8 @@
   "logs": {
     "Message Edit Delete": [
       1476069622628487189,
-      "delete_message"
+      "delete_message",
+      "edit_message"
     ],
     "test": [
       1440196612361162804,
@@ -34,13 +35,13 @@
     "invite_created",
     "invite_deleted",
     "pardon_user",
-    "user_change_avatar",
-    "edit_message"
+    "user_change_avatar"
   ],
   "logged_actions": {
     "delete_message": 1476069622628487189,
     "create_channel": 1440196612361162804,
-    "delete_channel": 1440196612361162804
+    "delete_channel": 1440196612361162804,
+    "edit_message": 1476069622628487189
   },
   "boards": {
     "\ud83d\udc4b": [
