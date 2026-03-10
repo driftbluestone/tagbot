@@ -5,7 +5,7 @@ with open(f"{DIR}/../config.json", "r") as file:
     server_config = json.load(file)
 
 async def save_server_config():
-    with open(f"{DIR}/../config.json", "w") as file:
+    with open(f"{DIR}/../config.json", "w", encoding="utf-8") as file:
         json.dump(server_config, file, indent=2)
 
 class ConfigButton(discord.ui.View):
@@ -129,12 +129,12 @@ class ConfigSubButton(discord.ui.View):
         await self.old_interaction.edit_original_response(content="Are you sure?",view=view)
         await interaction.response.defer(ephemeral=True, thinking=False)
 
-class NewLogGroup(discord.ui.Modal, title="Enter group name"):
+class NewLogGroup(discord.ui.Modal, title="Create new group"):
     def __init__(self, old_interaction):
         super().__init__()
         self.old_interaction = old_interaction
         self.user_input = discord.ui.TextInput(
-            label=f"Enter group name.",
+            label=f"Enter group name",
             placeholder="",
             style=discord.TextStyle.short,
             required=True
@@ -240,6 +240,8 @@ async def select_page(interaction, old_interaction, page, max_page, return_view,
         view = return_view(old_interaction, group, page)
         if server_config["logs"][group][0] == 0: content = "Channel: None"
         else: content = f"Channel: <#{server_config["logs"][group][0]}>"
+    elif isinstance(return_view, NewAction):
+        view = return_view(old_interaction, group, page)
     else:
         view = return_view(old_interaction, page)
     await old_interaction.edit_original_response(content=content, view=view)
@@ -265,7 +267,7 @@ def page_select_buttons(self, page):
         button.callback = self.page_selector
         self.add_item(button)
 
-class PageSelect(discord.ui.Modal, title="Select the page"):
+class PageSelect(discord.ui.Modal, title="Go to page"):
     def __init__(self, old_interaction, max_page, return_view, group = None):
         super().__init__()
         self.old_interaction = old_interaction
@@ -273,8 +275,8 @@ class PageSelect(discord.ui.Modal, title="Select the page"):
         self.return_view = return_view
         self.group = group
         self.user_input = discord.ui.TextInput(
-            label=f"Enter a number between 1 and {max_page}.",
-            placeholder="",
+            label=f"Enter page",
+            placeholder=f"Enter a number between 1 and {max_page}.",
             style=discord.TextStyle.short,
             required=True,
             max_length=10
@@ -293,6 +295,8 @@ class PageSelect(discord.ui.Modal, title="Select the page"):
             view = self.return_view(old_interaction, self.group, value)
             if server_config["logs"][self.group][0] == 0: content = "Channel: None"
             else: content = f"Channel: <#{server_config["logs"][self.group][0]}>"
+        elif isinstance(self.return_view, NewAction):
+            view = self.return_view(old_interaction, self.group, value)
         else:
             view = self.return_view(old_interaction, value)
 

@@ -1,5 +1,6 @@
 {
     "tag_admin":"administrator",
     "log_admin":"administrator",
-    "edit_permissions":"administrator"
+    "edit_permissions":"administrator",
+    "manage_boards":"manage_channels"
 }

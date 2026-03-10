@@ -2,19 +2,17 @@
   "limit_tags_to_admins": false,
   "logs": {
     "Message Edit Delete": [
-      1440196612361162804,
+      1476069622628487189,
       "edit_message",
       "delete_message"
     ],
     "test": [
-      1431912075348803675,
+      1440196612361162804,
       "create_channel",
       "delete_channel"
     ]
   },
   "unlogged_actions": [
-    "user_change_avatar",
-    "pardon_user",
     "create_role",
     "delete_role",
     "update_role",
@@ -35,12 +33,20 @@
     "server_icon_change",
     "server_name_change",
     "invite_created",
-    "invite_deleted"
+    "invite_deleted",
+    "pardon_user",
+    "user_change_avatar"
   ],
   "logged_actions": {
-    "edit_message": 1440196612361162804,
-    "delete_message": 1440196612361162804,
-    "create_channel": 1431912075348803675,
-    "delete_channel": 1431912075348803675
+    "edit_message": 1476069622628487189,
+    "delete_message": 1476069622628487189,
+    "create_channel": 1440196612361162804,
+    "delete_channel": 1440196612361162804
+  },
+  "boards": {
+    "\ud83d\udc4f": [
+      1428076899510259803,
+      10
+    ]
   }
 }

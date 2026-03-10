@@ -31,15 +31,17 @@ def save_user_profile(user):
         json.dump(user, file)
     return user
 
-async def permission_check(user, permission):
+async def permission_check(user: discord.Member, permission):
     user_profile = get_user_profile(user.id)
+    discord_permissions = getattr(user.guild_permissions, user_permission_equivalent[permission], False)
+    if discord_permissions: return discord_permissions
     try:
         profile_permission = user_profile["permissions"][permission]
     except:
         user_profile = permissions(user_profile)
         profile_permission = user_profile["permissions"][permission]
-    discord_permissions = getattr(user.guild_permissions, user_permission_equivalent[permission], False)
-    return discord_permissions or profile_permission
+    
+    return profile_permission
     
 async def resolve_user(ctx, user):
     if user.startswith("<@") and user.endswith(">"):
