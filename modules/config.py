@@ -9,7 +9,7 @@ async def save_server_config():
         json.dump(server_config, file, indent=2)
 
 class ConfigButton(discord.ui.View):
-    def __init__(self, old_interaction, page = 1):
+    def __init__(self, old_interaction, _, page = 1):
         super().__init__(timeout=1000000000)
         self.old_interaction: discord.Interaction = old_interaction
         self.page = page
@@ -205,6 +205,7 @@ class NewAction(discord.ui.View):
         button.callback = self.back
         self.add_item(button)
         page_select_buttons(self, page)
+
     async def page_selector(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         await select_page(interaction, self.old_interaction, self.page, self.max_page, NewAction)
@@ -218,6 +219,7 @@ class NewAction(discord.ui.View):
         server_config["logs"][self.group].append(action)
         await save_server_config()
         await self.back(interaction)
+        
     async def back(self, interaction):
         await interaction.response.defer(ephemeral=True, thinking=False)
         view = ConfigSubButton(self.old_interaction, self.group)
@@ -236,14 +238,11 @@ async def select_page(interaction, old_interaction, page, max_page, return_view,
     elif config == "next1": page+=1
     elif config == "last": page = max_page 
     content = ""
+    view = return_view(old_interaction, group, page)
     if isinstance(return_view, ConfigSubButton):
-        view = return_view(old_interaction, group, page)
         if server_config["logs"][group][0] == 0: content = "Channel: None"
         else: content = f"Channel: <#{server_config["logs"][group][0]}>"
-    elif isinstance(return_view, NewAction):
-        view = return_view(old_interaction, group, page)
-    else:
-        view = return_view(old_interaction, page)
+
     await old_interaction.edit_original_response(content=content, view=view)
     return await interaction.response.defer(ephemeral=True, thinking=False)
 

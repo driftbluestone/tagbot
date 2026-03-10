@@ -2,8 +2,7 @@
   "limit_tags_to_admins": false,
   "logs": {
     "Message Edit Delete": [
-      1428076899510259803,
-      "edit_message",
+      1476069622628487189,
       "delete_message"
     ],
     "test": [
@@ -35,11 +34,11 @@
     "invite_created",
     "invite_deleted",
     "pardon_user",
-    "user_change_avatar"
+    "user_change_avatar",
+    "edit_message"
   ],
   "logged_actions": {
-    "edit_message": 1428076899510259803,
-    "delete_message": 1428076899510259803,
+    "delete_message": 1476069622628487189,
     "create_channel": 1440196612361162804,
     "delete_channel": 1440196612361162804
   },
