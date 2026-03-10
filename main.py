@@ -20,6 +20,7 @@ class BOT(commands.Bot):
     async def setup_hook(self):
         await self.load_extension("cogs.config")
         await self.load_extension("cogs.logs")
+        await self.load_extension("cogs.boards")
 bot = BOT()
 
 DIR = pathlib.Path(__file__).resolve().parent
@@ -42,6 +43,7 @@ async def on_ready():
 @bot.event
 async def on_message(message: discord.Message):
     if message.author.bot:
+        
         if message.reference == None: return
         return await editing.create_reply_json(message.id, message.reference.message_id)
     return await message_reply.message_reply(message, bot)

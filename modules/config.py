@@ -1,7 +1,7 @@
 import discord, json, pathlib, math
 from modules.tags import users
 DIR = pathlib.Path(__file__).resolve().parent
-with open(f"{DIR}/../config.json", "r") as file:
+with open(f"{DIR}/../config.json", "r", encoding='utf-8') as file:
     server_config = json.load(file)
 
 async def save_server_config():

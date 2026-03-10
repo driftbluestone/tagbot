@@ -21,7 +21,7 @@ def get_user_profile(user_id):
         user["id"] = user_id
         return permissions(user)
 def permissions(user):
-    for k, in user_permission_equivalent.keys():
+    for k in user_permission_equivalent.keys():
         if k not in user["permissions"].keys():
             user["permissions"][k] = False
     return save_user_profile(user)
