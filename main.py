@@ -57,7 +57,7 @@ async def on_message_edit(previous: discord.Message, current: discord.Message):
 @bot.event
 async def on_message_delete(message: discord.Message):
     if message.author.bot: return
-    await editing.new_edit(message, bot)
+    await editing.new_edit(message, bot, True)
     
 @bot.command(name="tag")
 async def tag(ctx):
