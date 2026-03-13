@@ -20,7 +20,7 @@ class Logging(commands.Cog):
         channel = await self.get_channel("edit_message")
         if channel == False: return
         await logging.edit_message(previous, current, channel)
-    
+
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message):
         if message.author.bot: return
@@ -39,6 +39,10 @@ class Logging(commands.Cog):
         channel = await self.get_channel("delete_channel")
         if channel == False: return
         await logging.create_delete_channel(guild_channel, channel, ["deleted", "Deleted"])
+
+    @commands.Cog.listener()
+    async def on_audit_log_entry_create(self, entry: discord.AuditLogEntry):
+        await logging.audit_log_entry(entry)
 
     
     

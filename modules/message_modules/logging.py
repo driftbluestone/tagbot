@@ -19,7 +19,7 @@ async def delete_message(message, channel: discord.channel):
 
 async def create_delete_channel(guild_channel, channel: discord.channel.TextChannel, dialogue):
     async for entry in channel.guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_create):
-        entry = entry
+        entry: discord.AuditLogEntry = entry
     creator: discord.User = entry.user
 
     if isinstance(guild_channel, discord.channel.CategoryChannel):
@@ -42,3 +42,6 @@ async def create_delete_channel(guild_channel, channel: discord.channel.TextChan
     embed.timestamp = entry.created_at
     embed.set_author(name=creator.name, icon_url=creator.avatar)
     await channel.send(embed=embed)
+
+async def audit_log_entry(entry: discord.AuditLogEntry):
+    pass

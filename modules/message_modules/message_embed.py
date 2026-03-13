@@ -4,12 +4,15 @@ async def check_link(message, bot):
         link = re.search("https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", message.content)
         link = link.group()
         embed =  await create_message_embed(link, bot)
+        if embed == None: return
         await message.reply(embed=embed)
         
 async def create_message_embed(link, bot):
     link_list = link.split("/")[5:]
     channel = bot.get_channel(int(link_list[0]))
+    if channel == None: return
     msg: discord.Message = await channel.fetch_message(int(link_list[1]))
+
     name = msg.author.name
     pfp = msg.author.avatar
     content = msg.content
