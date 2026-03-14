@@ -10,7 +10,7 @@ class Logging(commands.Cog):
     async def get_channel(self, action):
         if action not in server_config["logged_actions"]: return False
         if server_config["logged_actions"][action] == 0: return False
-        channel = await self.bot.fetch_channel(server_config["logged_actions"][action])
+        channel = self.bot.get_partial_messageable(server_config["logged_actions"][action])
         return channel
     
     @commands.Cog.listener()
@@ -42,7 +42,9 @@ class Logging(commands.Cog):
 
     @commands.Cog.listener()
     async def on_audit_log_entry_create(self, entry: discord.AuditLogEntry):
-        await logging.audit_log_entry(entry)
+        channel = await self.get_channel(entry.action.name)
+        if channel == False: return
+        await logging.audit_log_entry(entry, channel)
 
     
     

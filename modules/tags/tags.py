@@ -28,7 +28,7 @@ async def get_tag(ctx, bot, tag, message):
     data, filepath = await get_tag_data(ctx, tag, True, False)
     if data == False:
         match =  await search_tag(ctx, tag, 1)
-        return await ctx.reply(f"Tag {tag} not found, did you mean {match}?")
+        return await ctx.reply(f"Tag **{tag}** not found, did you mean {match}?")
     if data["type"] == "message":
         link = data["message_link"]
         embed = await message_embed.create_message_embed(link, bot)
@@ -119,7 +119,7 @@ async def add_tag(ctx, tag_name, tag_body, success_text = "Created"):
     await create_tag(ctx, tag_name, tag_body, filepath, success_text)
 
 async def edit_tag(ctx, tag, content):
-    if tag == "": return await ctx.reply(":information_source: %t edit `name` `new_body`")
+    if tag == "": return await ctx.reply(":information_source: %t edit `name` `new body`")
 
     data, filepath = await get_tag_data(ctx, tag, True, True)
     if data["type"] == "code":
@@ -161,7 +161,7 @@ async def delete_tag(ctx, tag, override = False, silent = False):
 async def alias_tag(ctx, new_tag, tag):
     can_create = await check_creation_permission(ctx)
     if not can_create: return
-    if new_tag == "": return await ctx.reply(":information_source: %t alias `new_tag` `existing_tag`")
+    if new_tag == "": return await ctx.reply(":information_source: %t alias `new` `existing`")
     if tag == "": return await ctx.reply(":warning: Please provide a tag to alias to.")
 
     data, filepath = await get_tag_data(ctx, tag, True, False)
