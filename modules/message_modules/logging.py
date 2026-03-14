@@ -48,9 +48,43 @@ async def create_delete_channel(guild_channel, channel: discord.PartialMessageab
     await channel.send(embed=embed)
 
 async def audit_log_entry(entry: discord.AuditLogEntry, channel: discord.PartialMessageable):
-    category: discord.AuditLogActionCategory = entry.category
-    action: discord.AuditLogAction = entry.action
+    category: str = entry.category.name
+
+    if category != "delete":
+        mention: str = entry.target.mention
+    else:
+        mention = entry.before.name
+
+    action: str = entry.action.name
+    component = action.split("_")[0]
+    if component == "overwrite": component = "channel overwrite in"
+
     embed = discord.Embed()
     embed.set_author(name=entry.user.name, icon_url = entry.user.avatar)
+    embed.description = ""
+    if category == "create":
+        embed.title = f"Created new {component} {mention}"
+    if category == "update":
+        embed.title = f"Updated {component} {mention}"
+        await generate_update_table(embed, entry.before, "**Before:**\n")
+        await generate_update_table(embed, entry.after, "**After:**\n")
+
+    if category == "delete":
+        embed.title = f"Deleted {component} '{mention}'"
 
     await channel.send(embed=embed)
+
+async def generate_update_table(embed: discord.Embed, entry: discord.AuditLogEntry.before | discord.AuditLogEntry.after, when):
+    embed.description += when
+    for attribute, value in entry.__dict__.items():
+        if value is None: continue
+        if isinstance(value, discord.Permissions):
+            embed.description+=f"{attribute.title()}: "
+            permissions = []
+            for perm, enabled in value:
+                if enabled: permissions.append(perm.title())
+            permissions = str(permissions)[1:-1].replace("'", "`")
+            embed.description += f"{permissions}\n"
+            
+            continue
+        embed.description+=f"{attribute.title()}: {value}\n"

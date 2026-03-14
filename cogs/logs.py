@@ -17,32 +17,34 @@ class Logging(commands.Cog):
     async def on_message_edit(self, previous: discord.Message, current: discord.Message):
         if previous.author.bot: return
         if previous.content == current.content: return
-        channel = await self.get_channel("edit_message")
+        channel = await self.get_channel("messege_edit")
         if channel == False: return
         await logging.edit_message(previous, current, channel)
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message):
         if message.author.bot: return
-        channel = await self.get_channel("delete_message")
+        channel = await self.get_channel("messege_delete")
         if channel == False: return
         await logging.delete_message(message, channel)
 
-    @commands.Cog.listener()
-    async def on_guild_channel_create(self, guild_channel: discord.ChannelType):
-        channel = await self.get_channel("create_channel")
-        if channel == False: return
-        await logging.create_delete_channel(guild_channel, channel, ["Created", "New"])
+    # @commands.Cog.listener()
+    # async def on_guild_channel_create(self, guild_channel: discord.ChannelType):
+    #     channel = await self.get_channel("channel_create")
+    #     if channel == False: return
+    #     await logging.create_delete_channel(guild_channel, channel, ["Created", "New"])
     
-    @commands.Cog.listener()
-    async def on_guild_channel_delete(self, guild_channel: discord.ChannelType):
-        channel = await self.get_channel("delete_channel")
-        if channel == False: return
-        await logging.create_delete_channel(guild_channel, channel, ["deleted", "Deleted"])
+    # @commands.Cog.listener()
+    # async def on_guild_channel_delete(self, guild_channel: discord.ChannelType):
+    #     channel = await self.get_channel("channel_delete")
+    #     if channel == False: return
+    #     await logging.create_delete_channel(guild_channel, channel, ["deleted", "Deleted"])
 
     @commands.Cog.listener()
     async def on_audit_log_entry_create(self, entry: discord.AuditLogEntry):
+        if entry.action.name == "message_delete": return
         channel = await self.get_channel(entry.action.name)
+        channel = self.bot.get_partial_messageable(1440196612361162804) # TEMP FOR TESTING PURPOSES
         if channel == False: return
         await logging.audit_log_entry(entry, channel)
 

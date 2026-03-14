@@ -38,10 +38,10 @@
     "user_change_avatar"
   ],
   "logged_actions": {
-    "delete_message": 1476069622628487189,
+    "message_delete": 1476069622628487189,
     "channel_create": 1440196612361162804,
     "channel_delete": 1440196612361162804,
-    "edit_message": 1476069622628487189
+    "message_edit": 1476069622628487189
   },
   "boards": {
     "\ud83d\udc4b": [
