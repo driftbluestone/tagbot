@@ -1,6 +1,9 @@
 import re, discord
+from modules.tags import users
 
 async def sed(message):
+    user = users.get_user_profile(message.author.id)
+    if not user["permissions"]["use_sed"]: return
     if message.reference is None:
         replied_message = None
         message_history = [message async for message in message.channel.history(limit=25)]

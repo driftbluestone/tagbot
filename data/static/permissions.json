@@ -1,0 +1,9 @@
+{
+    "tag_admin":"administrator",
+    "log_admin":"administrator",
+    "edit_permissions":"administrator",
+    "manage_boards":"manage_channels",
+    "create_tags":null,
+    "view_tags":null,
+    "use_sed":null
+}
