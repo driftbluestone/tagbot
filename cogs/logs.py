@@ -17,14 +17,14 @@ class Logging(commands.Cog):
     async def on_message_edit(self, previous: discord.Message, current: discord.Message):
         if previous.author.bot: return
         if previous.content == current.content: return
-        channel = await self.get_channel("messege_edit")
+        channel = await self.get_channel("message_edit")
         if channel == False: return
         await logging.edit_message(previous, current, channel)
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message):
         if message.author.bot: return
-        channel = await self.get_channel("messege_delete")
+        channel = await self.get_channel("message_delete")
         if channel == False: return
         await logging.delete_message(message, channel)
 
