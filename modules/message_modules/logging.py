@@ -61,16 +61,16 @@ async def audit_log_entry(entry: discord.AuditLogEntry, channel: discord.Partial
 
     embed = discord.Embed()
     embed.set_author(name=entry.user.name, icon_url = entry.user.avatar)
-    embed.description = ""
     if category == "create":
-        embed.title = f"Created new {component} {mention}"
-    if category == "update":
-        embed.title = f"Updated {component} {mention}"
+        embed.description = f"Created new {component} {mention}"
+
+    elif category == "update":
+        embed.description = f"Updated {component} {mention}"
         await generate_update_table(embed, entry.before, "**Before:**\n")
         await generate_update_table(embed, entry.after, "**After:**\n")
 
-    if category == "delete":
-        embed.title = f"Deleted {component} '{mention}'"
+    elif category == "delete":
+        embed.description = f"Deleted {component} '{mention}'"
 
     await channel.send(embed=embed)
 
