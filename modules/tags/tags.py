@@ -150,6 +150,9 @@ async def edit_tag(ctx, tag, content):
     if tag == "": return await ctx.reply(":information_source: %t edit `name` `new body`")
 
     data, filepath = await get_tag_data(ctx, tag, True, True)
+    if data == False:
+        return await ctx.reply(f":warning: Tag **{tag}** not found.")
+    
     if data["type"] == "code":
         os.remove(f"{filepath[:-5]}.py")
     if data["type"] == "plaintext":

@@ -36,5 +36,5 @@ Features:
 10. run main.py
 ### Troubleshooting
 * If there are issues with the code tags, try changing the docker function in modules/tags/tags.py
-1. Change line 333 to "docargs = \['sudo', 'docker', 'run',"
-2. Change line 339 to 'python', 'python3', f'/data/{tag}.py'\]
+1. Change line 336 to "docargs = \['sudo', 'docker', 'run',"
+2. Change line 342 to 'python', 'python3', f'/data/{tag}.py'\]
