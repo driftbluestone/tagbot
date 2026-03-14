@@ -4,6 +4,7 @@ This is the bot used in the [AstroGreg discord](https://discord.gg/dUaZeV6Drp)
 Features:
 * Tags
 * Edit & Delete message logging
+* Audit log action logging
 * Sed functionality
 * Message link embedding
 ## Usage Guide
@@ -34,6 +35,6 @@ Features:
 9. In the Bot tab, copy the bot's token and paste it into TOKEN.txt (you will need to create that file)
 10. run main.py
 ### Troubleshooting
-* If there are issues with the code tags, try changing the docker function
-1. Change line 304 to "docargs = \['sudo', 'docker', 'run',"
-2. Change line 310 to 'python', 'python3', f'/data/{tag}.py'\]
+* If there are issues with the code tags, try changing the docker function in modules/tags/tags.py
+1. Change line 333 to "docargs = \['sudo', 'docker', 'run',"
+2. Change line 339 to 'python', 'python3', f'/data/{tag}.py'\]

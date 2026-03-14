@@ -4,8 +4,6 @@ DIR = pathlib.Path(__file__).resolve().parent
 
 with open(f"{DIR}/../../data/static/user.json", "r") as file:
     default_user_config = json.load(file)
-# with open(f"{DIR}/configs/permissions.json", "r") as file:
-#     default_user_permissions = json.load(file)
 with open(f"{DIR}/../../data/static/permissions.json", "r") as file:
     user_permission_equivalent = json.load(file)
 
@@ -78,8 +76,10 @@ class PermissionPanel(discord.ui.View):
                 permission = self.user_profile["permissions"][perm]
             except:
                 self.user_profile["permissions"][perm] = False
+                if user_permission_equivalent[perm] == None:
+                    self.user_profile["permissions"][perm] = True
                 save_user_profile(self.user_profile)
-                permission = False
+                permission = self.user_profile["permissions"][perm]
             if permission:
                 buttonstyle = discord.ButtonStyle.success
             else:

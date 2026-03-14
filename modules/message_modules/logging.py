@@ -48,7 +48,7 @@ async def audit_log_entry(entry: discord.AuditLogEntry, channel: discord.Partial
 
     await channel.send(embed=embed)
 
-async def generate_update_table(embed: discord.Embed, entry: discord.AuditLogEntry.before | discord.AuditLogEntry.after, when):
+async def generate_update_table(embed: discord.Embed, entry, when):
     embed.description += when
     for attribute, value in entry.__dict__.items():
         if value is None: continue
