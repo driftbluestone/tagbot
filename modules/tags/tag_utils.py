@@ -22,12 +22,14 @@ async def get_tag_data(ctx, tag, require_exists, require_owned):
         return False, filepath
 
 async def check_creation_permission(ctx):
+    ban = await users.permission_check(ctx.author, "create_tags")
+    if not ban:
+        await ctx.reply(":warning: You are banned from creating tags.")
+        return False
     limit = config.server_config["limit_tags_to_admins"]
-    user = users.get_user_profile(str(ctx.author.id))
-    tag_admin = user["permissions"]["tag_admin"]
-    admin = ctx.author.guild_permissions.administrator
-    if limit and not (tag_admin or admin):
-        await ctx.reply(":information_source: Only admins can create tags")
+    admin = await users.permission_check(ctx.author, "tag_admin")
+    if limit and (not admin):
+        await ctx.reply(":information_source: Only admins can add tags")
         return False
     else:
         return True

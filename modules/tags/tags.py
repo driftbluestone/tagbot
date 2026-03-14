@@ -6,7 +6,7 @@ from modules.tags.tag_utils import get_tag_data, check_creation_permission
 DIR = pathlib.Path(__file__).resolve().parent
 SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search", "admin", "raw"]
 DISPLAYED_SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search"]
-ADMIN_TAGS = ["delete", "promote", "limit"]
+ADMIN_TAGS = ["delete", "promote", "limit", "ban"]
 VALID_NAME_CHARS = set("0123456789abcdefghijklmnopqrstuvwxyz_-")
 
 async def context_formatter(ctx, bot):
@@ -49,36 +49,44 @@ async def special_tag(ctx, tag, message):
 
     if tag == "add":
         await add_tag(ctx, message[0], message[1:])
-    if tag == "edit":
+    elif tag == "edit":
         await edit_tag(ctx, message[0], message[1:])
-    if tag == "delete":
+    elif tag == "delete":
         await delete_tag(ctx, message[0])
-    if tag == "alias":
+    elif tag == "alias":
         await alias_tag(ctx, message[0], message[1])
-    if tag == "list":
+    elif tag == "list":
         await list_tag(ctx, message[0])
-    if tag == "owner":
+    elif tag == "owner":
         await owner_tag(ctx, message[0])
-    if tag == "search":
+    elif tag == "search":
         out = await search_tag(ctx, message[0], 5)
         await ctx.reply(f":information_source: {out}")
-    if tag == "raw":
+    elif tag == "raw":
         await raw_tag(ctx, message[0])
-    if tag == "admin":
+    elif tag == "admin":
         return await admin_tag(ctx, message[0], message[1:])
 
 async def admin_tag(ctx, tag, args):
-    user = users.get_user_profile(str(ctx.author.id))
     if not await users.permission_check(ctx.author, "tag_admin"): return await ctx.reply(":warning: No permission.")
     if tag == "": return await ctx.reply(f":information_source: %t admin `{"|".join(ADMIN_TAGS)}`")
+
+    if args == []:
+        args = ["", ""]
+    elif len(args) == 1:
+        args = [args[0], ""]
+
     if tag == "delete":
         await delete_tag(ctx, args[0], True)
-    if tag == "promote":
+    elif tag == "promote":
         await promote_user(ctx, args[0])
-    if tag == "limit":
+    elif tag == "limit":
         await limit_creation(ctx)
+    elif tag == "ban":
+        await ban_user(ctx, args[0], args[1])
 
 async def promote_user(ctx, user):
+    if user == "": return await ctx.reply(":information_source: %t admin promote `user`")
     user = await users.resolve_user(ctx, user)
     if not user: return await ctx.reply(":warning: Couldn't find user.")
     msg = ":white_check_mark: Sucessfully "
@@ -101,6 +109,26 @@ async def limit_creation(ctx):
         config.server_config["limit_tags_to_admins"] = True
     await config.save_server_config()
     return await ctx.reply(f"{msg} can now create tags.")
+
+async def ban_user(ctx, user, type):
+    if (user == "") or (type == "") or (type not in ["add", "view", "sed"]): return await ctx.reply(":information_source: %t admin ban `user` `add|view|sed`")
+    user = await users.resolve_user(ctx, user)
+    if not user: return await ctx.reply(":warning: Couldn't find user.")
+    user = users.get_user_profile(user["id"])
+    if type == "add":
+        type = "create_tags"
+    elif type == "view":
+        type = "view_tags"
+    elif type == "sed":
+        type = "use_sed"
+    ban = ""
+    if user["permissions"][type]:
+        user["permissions"][type] = False
+    else:
+        ban = "un"
+        user["permissions"][type] = True
+    users.save_user_profile(user)
+    return await ctx.reply(f":white_check_mark: <@{user["id"]}> {ban}banned.")
 
 async def add_tag(ctx, tag_name, tag_body, success_text = "Created"):
     can_create = await check_creation_permission(ctx)
@@ -132,7 +160,7 @@ async def edit_tag(ctx, tag, content):
 async def delete_tag(ctx, tag, override = False, silent = False):
     if tag == "": return await ctx.reply(":information_source: %t delete `tag`")
 
-    data, filepath = await get_tag_data(ctx, tag, True, False)
+    data, filepath = await get_tag_data(ctx, tag, True, not override)
     if data == False: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
     # make sure all aliases are deleted
     deleted_aliases = ""

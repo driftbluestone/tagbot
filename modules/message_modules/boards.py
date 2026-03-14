@@ -121,6 +121,7 @@ class Board(discord.ui.View):
     async def delete(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user, "manage_boards"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         server_config["boards"].pop(self.board)
+        await save_server_config()
         await self.back(interaction)
     async def back(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user, "manage_boards"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)

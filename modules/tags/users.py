@@ -22,8 +22,12 @@ def get_user_profile(user_id):
         return permissions(user)
 def permissions(user):
     for k in user_permission_equivalent.keys():
-        if k not in user["permissions"].keys():
-            user["permissions"][k] = False
+        if k in user["permissions"].keys():
+            continue
+        if user_permission_equivalent[k] == None:
+            user["permissions"][k] = True
+            continue
+        user["permissions"][k] = False
     return save_user_profile(user)
 def save_user_profile(user):
     filepath = f"{DIR}/../../data/tags/users/{user["id"]}.json"
@@ -33,8 +37,9 @@ def save_user_profile(user):
 
 async def permission_check(user: discord.Member, permission):
     user_profile = get_user_profile(user.id)
-    discord_permissions = getattr(user.guild_permissions, user_permission_equivalent[permission], False)
-    if discord_permissions: return discord_permissions
+    if user_permission_equivalent[permission] != None:
+        discord_permissions = getattr(user.guild_permissions, user_permission_equivalent[permission], False)
+        if discord_permissions: return discord_permissions
     try:
         profile_permission = user_profile["permissions"][permission]
     except:

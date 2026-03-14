@@ -28,27 +28,12 @@ class Logging(commands.Cog):
         if channel == False: return
         await logging.delete_message(message, channel)
 
-    # @commands.Cog.listener()
-    # async def on_guild_channel_create(self, guild_channel: discord.ChannelType):
-    #     channel = await self.get_channel("channel_create")
-    #     if channel == False: return
-    #     await logging.create_delete_channel(guild_channel, channel, ["Created", "New"])
-    
-    # @commands.Cog.listener()
-    # async def on_guild_channel_delete(self, guild_channel: discord.ChannelType):
-    #     channel = await self.get_channel("channel_delete")
-    #     if channel == False: return
-    #     await logging.create_delete_channel(guild_channel, channel, ["deleted", "Deleted"])
-
     @commands.Cog.listener()
     async def on_audit_log_entry_create(self, entry: discord.AuditLogEntry):
         if entry.action.name == "message_delete": return
         channel = await self.get_channel(entry.action.name)
-        channel = self.bot.get_partial_messageable(1440196612361162804) # TEMP FOR TESTING PURPOSES
         if channel == False: return
         await logging.audit_log_entry(entry, channel)
 
-    
-    
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Logging(bot=bot))

@@ -1,4 +1,4 @@
-import discord, datetime
+import discord
 
 async def edit_message(previous, current, channel: discord.PartialMessageable):
     prev = previous.content
@@ -19,32 +19,6 @@ async def delete_message(message: discord.Message, channel: discord.PartialMessa
     embed.timestamp = message.created_at
     embed.set_footer(text=f"ID: {message.id}")
     embed.set_author(name=message.author.name, icon_url=message.author.avatar)
-    await channel.send(embed=embed)
-
-async def create_delete_channel(guild_channel, channel: discord.PartialMessageable, dialogue):
-    async for entry in channel.guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_create):
-        entry: discord.AuditLogEntry = entry
-    creator: discord.User = entry.user
-
-    if isinstance(guild_channel, discord.channel.CategoryChannel):
-        instance = "Category"
-    elif isinstance(guild_channel, discord.channel.TextChannel):
-        instance = "Text Channel"
-        if guild_channel.is_news():
-            instance = "Announcement Channel"
-    elif isinstance(guild_channel, discord.channel.VoiceChannel):
-        instance = "Voice Channel"
-    elif isinstance(guild_channel, discord.channel.ForumChannel):
-        instance = "Forums"
-    elif isinstance(guild_channel, discord.channel.StageChannel):
-        instance = "Stage"
-
-    description = f"#{guild_channel.name} {dialogue[0]}"
-    if instance != "Category":
-        description+=f" in category **{guild_channel.category.name}**"
-    embed = discord.Embed(title=f"{dialogue[1]} {instance}", description=description)
-    embed.timestamp = entry.created_at
-    embed.set_author(name=creator.name, icon_url=creator.avatar)
     await channel.send(embed=embed)
 
 async def audit_log_entry(entry: discord.AuditLogEntry, channel: discord.PartialMessageable):
