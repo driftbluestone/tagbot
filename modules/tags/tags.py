@@ -340,7 +340,7 @@ async def container(ctx, tag, message):
                '--memory-swap', '512m',
                '--network', 'none',
                '--rm', '-v', f'{DIR}/../../data/tags/tags:/data/:ro',
-               'python', 'python', f'/data/{tag}.py',
+               'python', 'python3', f'/data/{tag}.py',
             ]
     docargs.extend(args)
     try:
@@ -354,16 +354,16 @@ async def container(ctx, tag, message):
         )
         output = result.stdout
 
-        # output = output.decode(errors="replace")
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as e:
+        output = e.stdout if e.stdout else ""
         # Force kill the container
         subprocess.run(
             ['docker', 'rm', '-f', container_name],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        output = "[PROCESS KILLED: exceeded 5s timeout]"
+        output = f"{output[1900:]}\n[PROCESS KILLED: exceeded 5s timeout]"
     except subprocess.CalledProcessError as e:
         output = e
 
-    await ctx.reply(output)
+    await ctx.reply(output[-1990:])

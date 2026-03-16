@@ -8,7 +8,7 @@ from modules.config import *
 class BOT(commands.Bot):
     def __init__(self):
         super().__init__(
-        command_prefix="%",
+        command_prefix="$",
         allowed_mentions=discord.AllowedMentions(
             users=False,
             everyone=False,
