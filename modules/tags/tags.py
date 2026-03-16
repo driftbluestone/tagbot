@@ -20,6 +20,7 @@ async def context_formatter(ctx, bot):
     await get_tag(ctx, bot, tag, message)
 
 async def get_tag(ctx, bot, tag, message):
+    if not await users.permission_check(ctx.author, "view_tags"): return await ctx.reply(":warning: You have been banned from viewing tags.")
     if tag == None:
         return await ctx.reply(f":information_source: %t `{"|".join(DISPLAYED_SPECIAL_TAGS)}`")
     tag.lower()
@@ -285,7 +286,7 @@ async def raw_tag(ctx, tag):
     if tag == "": return await ctx.reply(":information_source: %t raw `tag`")
 
     data, filepath = await get_tag_data(ctx, tag, True, False)
-    if data == False: return
+    if data == False: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
     file = [discord.File(filepath)]
     if data["type"] == "code":
         file.append(discord.File(f"{filepath[:-5]}.py"))
@@ -293,9 +294,8 @@ async def raw_tag(ctx, tag):
         file.append(discord.File(f"{filepath[:-5]}.txt"))
     return await ctx.reply(f":information_source: Raw data for {tag}.", files=file)
     
-    
 async def create_tag(ctx, tag_name, tag_body, filepath, success_text):
-
+    if tag_body == "": return await ctx.reply(f":warning: Tag body cannot be empty.")
     # message tags
     if re.match("https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", tag_body):
         tag = {"name":tag_name,"type":"message","aliases":[],"message_link":tag_body, "owner":str(ctx.author.id)}
@@ -323,8 +323,9 @@ async def create_tag(ctx, tag_name, tag_body, filepath, success_text):
             file.write(tag_body)
 
     user = users.get_user_profile(str(ctx.author.id))
-    user["tags"].append(tag_name)
-    users.save_user_profile(user)
+    if tag_name not in user["tags"]:
+        user["tags"].append(tag_name)
+        users.save_user_profile(user)
 
     return await ctx.reply(f":white_check_mark: {success_text} tag **{tag_name}**")
 

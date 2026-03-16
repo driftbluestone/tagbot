@@ -8,7 +8,7 @@ async def new_edit(message: discord.Message, bot, deleted = False):
     if pathlib.Path(filepath).exists():
         with open(filepath, "r") as file:
             reply_id = json.load(file)
-        reply: discord.PartialMessage = await message.channel.get_partial_message(reply_id)
+        reply: discord.PartialMessage = message.channel.get_partial_message(reply_id)
         await reply.delete()
         os.remove(filepath)
     if not deleted: await message_reply.message_reply(message, bot)
