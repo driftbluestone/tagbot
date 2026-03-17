@@ -30,7 +30,7 @@ async def get_tag(ctx, tag, message):
         return await action(ctx, message)
     if tag == "admin":
         pass
-
+    
 # elif tag == "raw":
 #     await raw_tag(ctx, message[0])
 # elif tag == "admin":
