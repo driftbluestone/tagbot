@@ -11,7 +11,7 @@ async def tag_add(ctx: commands.Context, message: list):
     "Creates a tag while having safeguards to prevent overwriting"
     if not await tag_utils.check_creation_permission(ctx): return
     tag = message[0]
-    if tag == "": return await ctx.reply(":information_source: %t add `name` `body`")
+    if not tag: return await ctx.reply(":information_source: %t add `name` `body`")
 
     user_id = str(ctx.author.id)
     
@@ -31,7 +31,7 @@ async def tag_edit(ctx: commands.Context, message: list, override: bool = False)
     If override is enabled, it will ignore whether the user owns the tag or not.
     """
     if not await tag_utils.check_creation_permission(ctx): return
-    if tag == "": return await ctx.reply(":information_source: %t edit `name` `new body`")
+    if not tag: return await ctx.reply(":information_source: %t edit `name` `new body`")
 
     # Guiderails to prevent overwriting a tag you do not own.
     user_id = str(ctx.author.id)
@@ -62,7 +62,7 @@ async def tag_delete(ctx: commands.Context, tag: list, override: bool = False, s
     Using silent will stop it from sending a message
     """
     tag = tag[0]
-    if tag == "": return await ctx.reply(":information_source: %t delete `tag`")
+    if not tag: return await ctx.reply(":information_source: %t delete `tag`")
 
     user_id = str(ctx.author.id)
     data, filepath, exists, owned = await tag_utils.get_tag_data(user_id, tag)
@@ -104,8 +104,8 @@ async def tag_alias(ctx: commands.Context, message: list):
 
     new_tag: str = message[0]
     tag: str = message[1]
-    if new_tag == "": return await ctx.reply(":information_source: %t alias `new` `existing`")
-    if tag == "": return await ctx.reply(":warning: Please provide a tag to alias to.")
+    if not new_tag: return await ctx.reply(":information_source: %t alias `new` `existing`")
+    if not tag: return await ctx.reply(":warning: Please provide a tag to alias to.")
 
     user_id = str(ctx.author.id)
     data, filepath, exists, _ = await tag_utils.get_tag_data(user_id, tag)
@@ -154,3 +154,10 @@ async def tag_list(ctx: commands.Context, message: list):
     else:
         if message: return await ctx.reply(f"**<@{user["id"]}>'s tags ({tag_count})**:\n{tags}")
         else: return await ctx.reply(f"**Tags in this server ({tag_count})**:\n{tags}")
+
+async def tag_owner(ctx: commands.Context, message: list):
+    tag: str = message[0]
+    if not tag: return await ctx.reply(":information_source: %t owner `tag`")
+    data = await tag_utils.get_tag_data(ctx, tag, True, False)[0]
+    if not data: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
+    return await ctx.reply(f":information_source: Tag **{tag}** is owned by <@{data["owner"]}>.")
