@@ -31,11 +31,6 @@ async def get_tag(ctx, tag, message):
     if tag == "admin":
         pass
 
-# elif tag == "owner":
-#     await owner_tag(ctx, message[0])
-# elif tag == "search":
-#     out = await search_tag(ctx, message[0], 5)
-#     await ctx.reply(f":information_source: {out}")
 # elif tag == "raw":
 #     await raw_tag(ctx, message[0])
 # elif tag == "admin":

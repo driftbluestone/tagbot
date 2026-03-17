@@ -1,7 +1,9 @@
 import json, re
+from Levenshtein import ratio
 from discord.ext import commands
-from pathlib import Path
 from os import listdir
+import heapq
+from pathlib import Path
 from modules.config import server_config
 from modules.tags.users import permission_check, get_user_profile, save_user_profile, resolve_user
 
@@ -72,3 +74,21 @@ async def create_tag(user_id: str, name: str, body: str, filepath: str):
         save_user_profile(user)
     
     return True
+
+async def search(query: str, amount: int):
+    """
+    Searches for any matching tags
+    """
+
+    tags = listdir(f"{DIR}/data/tags/tags")
+    tags = [tag for tag in tags if tag.endswith(".json")]
+    distances = {}
+    for tag in tags:
+        tag = tag[:-5]
+        distance = ratio(tag, query)
+        distances[tag] = distance
+    closest_match = heapq.nlargest(amount, distances.items(), key=lambda item: item[1])
+    out = ""
+    for k, _ in closest_match:
+        out += f"`{k}`, "
+    return out[:-2]

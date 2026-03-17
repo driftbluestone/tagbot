@@ -161,3 +161,12 @@ async def tag_owner(ctx: commands.Context, message: list):
     data = (await tag_utils.get_tag_data(ctx, tag))[0]
     if not data: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
     return await ctx.reply(f":information_source: Tag **{tag}** is owned by <@{data["owner"]}>.")
+
+async def tag_search(ctx: commands.Context, message: list):
+    "Outputs tag_utils.search to Discord"
+    search = message[0]
+    if not search: return await ctx.reply(":information_source: %t search `query`")
+    try: amount = int(message[1])
+    except: amount = 5
+    out = await tag_utils.search(message[0], amount)
+    await ctx.reply(f":information_source: {out}")
