@@ -5,7 +5,7 @@ from os import listdir
 import heapq
 from pathlib import Path
 from modules.config import server_config
-from modules.tags.users import permission_check, get_user_profile, save_user_profile, resolve_user
+from modules.tags.users import permission_check, get_user_profile, save_user_profile
 
 DIR = Path(__file__).resolve().parent.parent.parent
 
