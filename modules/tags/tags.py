@@ -1,4 +1,4 @@
-import subprocess
+import subprocess, discord, json
 from uuid import uuid4
 from discord.ext import commands
 from pathlib import Path
@@ -71,10 +71,38 @@ async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message = 
     elif tag == "message":
         embed = await create_message_embed(data["link"], ctx.bot)
         return await ctx.reply(embed=embed)
+    with open(f"{filepath[:-5]}.txt") as file:
+        input = file.read()
+    print(input)
+    embed, text = await json_parser(ctx, input)
+    if not embed and not text: return
+    return await ctx.reply(content=text, embed=embed)
 
-
-async def json_parser(input: str):
+async def json_parser(ctx: commands.Context, input: str):
     "Returns an embed, calls a tag, or returns plaintext. data is returned as discord.Embed, text"
+    text = None
+    try:
+        input = json.loads(input)
+        if "call_tag" in input:
+            await execute_tag(ctx, input["call_tag"])
+            return None, None
+        elif "embed" in input:
+            embed = await embed_builder(ctx, input["embed"])
+        if not isinstance(embed, discord.Embed):
+            embed = discord.Embed(description=f"Error creating embed:\n{embed}")
+    except json.JSONDecodeError:
+        embed = None
+        text = input
+    
+    return embed, text
+
+async def embed_builder(ctx: commands.Context, input: dict):
+    "Creates an embed from a dictionary input"
+    try:
+        embed = discord.Embed(**input)
+    except Exception as e:
+        return str(e)
+    return embed
 
 async def container(ctx: commands.Context, tag: str, message: list):
     "Creates a docker container that will execute a code tag"
@@ -117,4 +145,5 @@ async def container(ctx: commands.Context, tag: str, message: list):
     except subprocess.CalledProcessError as e:
         output = e
 
-    await ctx.reply(output[-1990:])
+    embed, text = await json_parser(ctx, output)
+    return await ctx.reply(text=text, embed=embed)

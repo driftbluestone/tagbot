@@ -31,12 +31,13 @@ async def tag_edit(ctx: commands.Context, message: list, override: bool = False)
     If override is enabled, it will ignore whether the user owns the tag or not.
     """
     if not await tag_utils.check_creation_permission(ctx): return
+    tag = message[0]
+    message = message[1:]
     if not tag: return await ctx.reply(":information_source: %t edit `name` `new body`")
 
     # Guiderails to prevent overwriting a tag you do not own.
     user_id = str(ctx.author.id)
-    tag = message[0]
-    message = message[1:]
+
     data, filepath, exists, owned = await tag_utils.get_tag_data(user_id, tag)
     if not exists:
         return await tag_add(ctx, message)
