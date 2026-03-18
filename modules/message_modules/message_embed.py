@@ -7,7 +7,7 @@ async def check_link(message, bot):
         if embed == None: return
         await message.reply(embed=embed)
         
-async def create_message_embed(link, bot):
+async def create_message_embed(link: str, bot):
     link_list = link.split("/")[5:]
     channel = bot.get_channel(int(link_list[0]))
     if channel == None: return

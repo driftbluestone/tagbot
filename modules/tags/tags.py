@@ -2,6 +2,7 @@ import subprocess
 from uuid import uuid4
 from discord.ext import commands
 from pathlib import Path
+from modules.message_modules.message_embed import create_message_embed
 from modules.tags import users, functions, admin_functions
 from modules.tags.tag_utils import get_tag_data
 SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search", "raw"]
@@ -38,7 +39,7 @@ async def get_tag(ctx: commands.Context, tag: str, message: list):
     if not exists:
         search = await functions.tag_search(ctx, [tag, 1])
         return await ctx.reply(f":warning: Tag **{tag}** not found, did you mean {search}?")
-    await tag_parser(ctx, data, filepath)
+    await parse_tag(ctx, data, filepath)
     
 async def admin_tag(ctx: commands.Context, tag: str, message: list):
     if not await users.permission_check(ctx.author, "tag_admin"): return await ctx.reply(":warning: No permission.")
@@ -52,19 +53,34 @@ async def admin_tag(ctx: commands.Context, tag: str, message: list):
     action = getattr(admin_functions, f"admin_{tag}")
     return await action(ctx, message, True)
 
-async def tag_parser(ctx: commands.Context, data: dict, filepath: str):
+async def execute_tag(ctx: commands.Context, tag: str):
+    "Executes tags while ignoring special tags"
+    user_id = str(ctx.author.id)
+    data, filepath, exists, _ = await get_tag_data(user_id, tag)
+    if not exists: return await ctx.reply(f":warning: Tag **{tag}** not found")
+    return await parse_tag(ctx, data, filepath)
+
+async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message = ""):
     "From tag data and filepath, will determine how to parse the tag"
     name = data["name"]
     tag = data["type"]
+    if tag == "code":
+        return await container(ctx, name, message)
+    elif tag == "alias":
+        return await execute_tag(ctx, tag)
+    elif tag == "message":
+        embed = await create_message_embed(data["link"], ctx.bot)
+        return await ctx.reply(embed=embed)
 
-async def tag_executor(ctx: commands.Context, tag):
-    pass
 
+async def json_parser(input: str):
+    "Returns an embed, calls a tag, or returns plaintext. data is returned as discord.Embed, text"
 
-async def container(ctx, tag, message):
+async def container(ctx: commands.Context, tag: str, message: list):
+    "Creates a docker container that will execute a code tag"
     container_name = uuid4().hex
     args = [str(ctx.author.id), ctx.author.name, str(ctx.channel.id)]
-    if not message == None:
+    if message is not None:
         args.extend(message)
     docargs = ['docker', 'run',
                '--name', container_name,
