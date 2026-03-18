@@ -73,7 +73,6 @@ async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message = 
         return await ctx.reply(embed=embed)
     with open(f"{filepath[:-5]}.txt") as file:
         input = file.read()
-    print(input)
     embed, text = await json_parser(ctx, input)
     if not embed and not text: return
     return await ctx.reply(content=text, embed=embed)
@@ -98,10 +97,14 @@ async def json_parser(ctx: commands.Context, input: str):
 
 async def embed_builder(ctx: commands.Context, input: dict):
     "Creates an embed from a dictionary input"
-    try:
-        embed = discord.Embed(**input)
-    except Exception as e:
-        return str(e)
+    embed = discord.Embed()
+    for k, v in input.items():
+        try:
+            if isinstance(v, dict): getattr(embed, k)(**v)
+            else: setattr(embed, k, v) 
+        except Exception as e:
+            return str(e)
+        
     return embed
 
 async def container(ctx: commands.Context, tag: str, message: list):
