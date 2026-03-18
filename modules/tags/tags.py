@@ -28,18 +28,19 @@ async def get_tag(ctx: commands.Context, tag: str, message: list):
     tag.lower()
     if tag in SPECIAL_TAGS:
         if not message: message = ["", ""]
-        message[0].lower
+        message[0].lower()
         action =  getattr(functions, f"tag_{tag}")
         return await action(ctx, message)
     elif tag == "admin":
-        return await admin_tag(ctx, message[0].lower, message[1:])
+        if not message: message = ["", ""]
+        return await admin_tag(ctx, message[0].lower(), message[1:])
     
     user_id = str(ctx.author.id)
     data, filepath, exists, _ = await get_tag_data(user_id, tag)
     if not exists:
         search = await functions.tag_search(ctx, [tag, 1])
         return await ctx.reply(f":warning: Tag **{tag}** not found, did you mean {search}?")
-    await parse_tag(ctx, data, filepath)
+    await parse_tag(ctx, data, filepath, message)
     
 async def admin_tag(ctx: commands.Context, tag: str, message: list):
     if not await users.permission_check(ctx.author, "tag_admin"): return await ctx.reply(":warning: No permission.")
@@ -60,7 +61,7 @@ async def execute_tag(ctx: commands.Context, tag: str):
     if not exists: return await ctx.reply(f":warning: Tag **{tag}** not found")
     return await parse_tag(ctx, data, filepath)
 
-async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message = ""):
+async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: list = []):
     "From tag data and filepath, will determine how to parse the tag"
     name = data["name"]
     tag = data["type"]
@@ -111,7 +112,7 @@ async def container(ctx: commands.Context, tag: str, message: list):
     "Creates a docker container that will execute a code tag"
     container_name = uuid4().hex
     args = [str(ctx.author.id), ctx.author.name, str(ctx.channel.id)]
-    if message is not None:
+    if not message == []:
         args.extend(message)
     docargs = ['docker', 'run',
                '--name', container_name,
@@ -121,7 +122,7 @@ async def container(ctx: commands.Context, tag: str, message: list):
                '--pids-limit', '20',
                '--cap-drop', 'ALL',
                '--network', 'none',
-               '--rm', '-v', f'{DIR}/../../data/tags/tags:/data/:ro',
+               '--rm', '-v', f'{DIR}/data/tags/tags:/data/:ro',
                'python', 'python3', f'/data/{tag}.py',
             ]
     docargs.extend(args)
@@ -144,9 +145,10 @@ async def container(ctx: commands.Context, tag: str, message: list):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        output = f"{output[1900:]}\n[PROCESS KILLED: exceeded 5s timeout]"
+        output = f"{output[:1900]}\n[PROCESS KILLED: exceeded 5s timeout]"
     except subprocess.CalledProcessError as e:
-        output = e
+        output = str(e)
 
     embed, text = await json_parser(ctx, output)
-    return await ctx.reply(text=text, embed=embed)
+    if embed is None and text is None: return
+    return await ctx.reply(content=text, embed=embed)

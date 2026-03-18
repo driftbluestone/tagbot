@@ -72,6 +72,7 @@ async def tag_delete(ctx: commands.Context, tag: list, override: bool = False, s
         return await ctx.reply(f":warning: Tag **{tag}** is owned by <@{data["owner"]}>")
 
     # If the tag is not an alias itself, remove all aliases it has
+    deleted_aliases = ""
     if data["type"] != "alias":
         aliases = data["aliases"]
         for alias in aliases:
