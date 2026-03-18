@@ -1,9 +1,7 @@
-import discord, os
 from discord.ext import commands
 from pathlib import Path
 from modules.config import server_config, save_server_config
 from modules.tags.users import resolve_user, get_user_profile, save_user_profile
-DIR = Path(__file__).resolve().parent.parent.parent
 
 async def admin_promote(ctx: commands.Context, message: str):
     "Gives a user the tag_admin permission"
