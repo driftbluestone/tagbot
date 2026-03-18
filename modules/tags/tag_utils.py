@@ -10,9 +10,7 @@ from modules.tags.users import permission_check, get_user_profile, save_user_pro
 DIR = Path(__file__).resolve().parent.parent.parent
 
 async def get_tag_data(user_id: str, tag: str):
-    """
-    Returns tag metadeta, the filepath to the tag, if the tag exists or not, and if the user owns the tag as a list
-    """
+    "Returns tag metadeta, the filepath to the tag, if the tag exists or not, and if the user owns the tag as a list"
     filepath = f"{DIR}/data/tags/tags/{tag}.json"
     if not Path(filepath).exists():
         return [None, None, False, False]
@@ -37,9 +35,7 @@ async def check_creation_permission(ctx: commands.Context):
     return True
 
 async def create_tag(user_id: str, name: str, body: str, filepath: str):
-    """
-    Creates a tag. Returns a bool based on success
-    """
+    "Creates a tag. Returns a bool based on success"
     if body == "": return False
 
     # message tags
@@ -76,10 +72,7 @@ async def create_tag(user_id: str, name: str, body: str, filepath: str):
     return True
 
 async def search(query: str, amount: int):
-    """
-    Searches for any matching tags
-    """
-
+    "Searches for any matching tags"
     tags = listdir(f"{DIR}/data/tags/tags")
     tags = [tag for tag in tags if tag.endswith(".json")]
     distances = {}

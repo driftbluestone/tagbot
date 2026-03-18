@@ -1,11 +1,11 @@
 from pathlib import Path
 from modules.tags import users, functions, admin_functions
-DIR = Path(__file__).resolve().parent.parent.parent
 
 SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search", "raw"]
 DISPLAYED_SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search"]
 ADMIN_TAGS = ["delete", "promote", "limit", "ban", "edit"]
 DISPLAYED_ADMIN_TAGS = ["delete", "promote", "limit", "ban"]
+DIR = Path(__file__).resolve().parent.parent.parent
 
 async def context_formatter(ctx):
     message = ctx.message.content
