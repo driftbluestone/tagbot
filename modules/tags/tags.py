@@ -4,7 +4,7 @@ from discord.ext import commands
 from pathlib import Path
 from modules.message_modules.message_embed import create_message_embed
 from modules.tags import users, functions, admin_functions
-from modules.tags.tag_utils import get_tag_data
+from modules.tags.tag_utils import get_tag_data, search
 SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search", "raw"]
 DISPLAYED_SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search"]
 ADMIN_TAGS = ["delete", "promote", "limit", "ban", "edit"]
@@ -38,8 +38,8 @@ async def get_tag(ctx: commands.Context, tag: str, message: list):
     user_id = str(ctx.author.id)
     data, filepath, exists, _ = await get_tag_data(user_id, tag)
     if not exists:
-        search = await functions.tag_search(ctx, [tag, 1])
-        return await ctx.reply(f":warning: Tag **{tag}** not found, did you mean {search}?")
+        match = await search(tag, 1)
+        return await ctx.reply(f":warning: Tag **{tag}** not found, did you mean {match}?")
     await parse_tag(ctx, data, filepath, message)
     
 async def admin_tag(ctx: commands.Context, tag: str, message: list):
