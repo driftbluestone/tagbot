@@ -32,5 +32,5 @@ This is the bot used in the [AstroGreg discord](https://discord.gg/dUaZeV6Drp)
 6. Copy the discord provided install link, and paste it in your browser
 7. Add the bot to your server of choice
 8. Set the Install link to None and save changes
-9. In the Bot tab, copy the bot's token and paste it into TOKEN.txt (you will need to create that file)
-10. run main.py
+9. In the Bot tab, copy the bot's token and paste it into TOKEN.txt (You will need to create this file.)
+10. Run main.py

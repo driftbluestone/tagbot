@@ -46,9 +46,9 @@ async def admin_tag(ctx: commands.Context, tag: str, message: list):
     if not await users.permission_check(ctx.author, "tag_admin"): return await ctx.reply(":warning: No permission.")
     if not message: message = ["", ""]
     tag.lower()
-    if (not tag) or ( tag not in ADMIN_TAGS):
+    if (not tag) or (tag not in ADMIN_TAGS):
         return await ctx.reply(f":information_source: %t `{"|".join(DISPLAYED_ADMIN_TAGS)}`")
-    if action in ADMIN_TAGS and action in SPECIAL_TAGS:
+    if tag in ADMIN_TAGS and tag in SPECIAL_TAGS:
         action =  getattr(functions, f"tag_{tag}")
         return await action(ctx, message, True)
     action = getattr(admin_functions, f"admin_{tag}")
