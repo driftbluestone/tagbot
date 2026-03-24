@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from modules.message_modules import editing
 from modules.config import server_config
 
 class Boards(commands.Cog):

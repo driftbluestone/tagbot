@@ -36,6 +36,7 @@ def save_user_profile(user):
     return user
 
 async def permission_check(user: discord.Member, permission):
+    if user.id in config.server_config["bot_admins"]: return True
     user_profile = get_user_profile(user.id)
     if user_permission_equivalent[permission] != None:
         discord_permissions = getattr(user.guild_permissions, user_permission_equivalent[permission], False)

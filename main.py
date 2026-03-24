@@ -5,6 +5,8 @@ from modules.tags import tags
 from modules.message_modules import editing, message_reply
 from modules.config import *
 
+DIR = pathlib.Path(__file__).resolve().parent
+
 class BOT(commands.Bot):
     def __init__(self):
         super().__init__(
@@ -21,9 +23,8 @@ class BOT(commands.Bot):
         await self.load_extension("cogs.config")
         await self.load_extension("cogs.logs")
         await self.load_extension("cogs.boards")
+        await self.load_extension("cogs.extensions")
 bot = BOT()
-
-DIR = pathlib.Path(__file__).resolve().parent
 
 with open(f"{DIR}/TOKEN.txt", "r") as file:
     TOKEN = file.read()

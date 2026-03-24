@@ -25,5 +25,4 @@ class Config(commands.Cog):
         await interaction.response.send_message(view=boards.BoardMaster(interaction))
 
 async def setup(bot: commands.Bot) -> None:
-    # finally, adding the cog to the bot
     await bot.add_cog(Config(bot=bot))

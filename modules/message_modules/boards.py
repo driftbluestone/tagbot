@@ -15,7 +15,7 @@ EMOJI = re.compile(
 
 class BoardMaster(discord.ui.View):
     def __init__(self, old_interaction):
-        super().__init__(timeout=1000000000)
+        super().__init__(timeout=None)
         self.old_interaction: discord.Interaction = old_interaction
         boards = list(server_config["boards"].keys())
         for board in boards:
@@ -83,7 +83,7 @@ class NewBoard(discord.ui.Modal, title="Create New Board"):
 
 class Board(discord.ui.View):
     def __init__(self, old_interaction, board):
-        super().__init__(timeout=1000000000)
+        super().__init__(timeout=None)
         self.old_interaction: discord.Interaction = old_interaction
         self.board = board
 

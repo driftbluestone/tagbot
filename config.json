@@ -72,5 +72,7 @@
     "message_edit"
   ],
   "logged_actions": {},
-  "boards": {}
+  "boards": {},
+  "extensions":{},
+  "bot_admins":[]
 }

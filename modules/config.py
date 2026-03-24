@@ -10,7 +10,7 @@ async def save_server_config():
 
 class ConfigButton(discord.ui.View):
     def __init__(self, old_interaction, _ = None, page = 1):
-        super().__init__(timeout=1000000000)
+        super().__init__(timeout=None)
         self.old_interaction: discord.Interaction = old_interaction
         self.page = page
         groups = list(server_config["logs"].keys())
@@ -48,7 +48,7 @@ class ConfigButton(discord.ui.View):
             
 class ConfigSubButton(discord.ui.View):
     def __init__(self, old_interaction, group, page = 1):
-        super().__init__(timeout=1000000000)
+        super().__init__(timeout=None)
         self.group = group
         self.page = page
         self.old_interaction: discord.Interaction = old_interaction
@@ -156,7 +156,7 @@ class NewLogGroup(discord.ui.Modal, title="Create new group"):
 
 class DeleteConfirm(discord.ui.View):
     def __init__(self, old_interaction, group, page):
-        super().__init__(timeout=1000000000)
+        super().__init__(timeout=None)
         self.old_interaction = old_interaction
         self.group = group
         self.page = page
@@ -188,7 +188,7 @@ class DeleteConfirm(discord.ui.View):
 
 class NewAction(discord.ui.View):
     def __init__(self, old_interaction, group, page = 1):
-        super().__init__(timeout=1000000000)
+        super().__init__(timeout=None)
         self.old_interaction: discord.Interaction = old_interaction
         self.page = page
         self.group = group
