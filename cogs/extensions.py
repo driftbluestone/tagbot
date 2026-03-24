@@ -36,7 +36,7 @@ class Extensions(commands.Cog):
         except subprocess.CalledProcessError as e:
             output = str(e)
         server_config["extensions"][repo_name] = True
-
+        await load_extensions(self.bot)
         return await interaction.response.send_message(content=f"Sucessfully added module {repo_name}!\n{output}")
     
     @app_commands.command(name="extension delete", description="Delete extensions")
@@ -82,10 +82,6 @@ class ExtensionManager(discord.ui.View):
     async def page_selector(self, interaction: discord.Interaction):
         if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         await config.select_page(interaction, self.old_interaction, self.page, self.max_page, ExtensionManager, self.bot)
-    
-    async def add_extension(self, interaction: discord.Interaction):
-        if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
-        pass
 
 async def load_extensions(bot: commands.Bot):
     for i in os.listdir(f"{DIR}/extensions"):
