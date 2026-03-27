@@ -85,4 +85,9 @@ class ExtensionManager(discord.ui.View):
 
 async def load_extensions(bot: commands.Bot):
     for i in os.listdir(f"{DIR}/extensions"):
-        await bot.load_extension(f"extensions.{i}.main")
+        if server_config["extensions"][i]:
+            try: await bot.load_extension(f"extensions.{i}.main")
+            except: pass
+        else:
+            try: await bot.unload_extension(f"extensions.{i}.main")
+            except: pass
