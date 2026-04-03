@@ -10,7 +10,7 @@ DIR = pathlib.Path(__file__).resolve().parent
 class BOT(commands.Bot):
     def __init__(self):
         super().__init__(
-        command_prefix="$",
+        command_prefix="%",
         allowed_mentions=discord.AllowedMentions(
             users=False,
             everyone=False,
@@ -60,11 +60,11 @@ async def on_message_delete(message: discord.Message):
     await editing.new_edit(message, bot, True)
     
 @bot.command(name="tag")
-async def tag(ctx):
+async def tag(ctx, *, args):
     await tags.context_formatter(ctx)
 
 @bot.command(name="t")
-async def t(ctx):
+async def t(ctx, *, args):
     await tags.context_formatter(ctx)
 
 @bot.event

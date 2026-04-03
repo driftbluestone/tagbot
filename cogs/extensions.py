@@ -9,13 +9,13 @@ class Extensions(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name="extension toggle", description="Toggle extensions")
+    @app_commands.command(name="extension-toggle", description="Toggle extensions")
     async def extension_toggle(self, interaction: discord.Interaction):
         if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         view = ExtensionManager(interaction, self.bot)
         return await interaction.response.send_message(view=view)
     
-    @app_commands.command(name="extension add", description="Add extensions")
+    @app_commands.command(name="extension-add", description="Add extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
         if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         if not repo.startswith("https://github.com/"): return await interaction.response.send_message(f":warning: Please specify a git repo",ephemeral=True)
@@ -39,7 +39,7 @@ class Extensions(commands.Cog):
         await load_extensions(self.bot)
         return await interaction.response.send_message(content=f"Sucessfully added module {repo_name}!\n{output}")
     
-    @app_commands.command(name="extension delete", description="Delete extensions")
+    @app_commands.command(name="extension-delete", description="Delete extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str):
         if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         if extension not in server_config["extensions"].keys(): return await interaction.response.send_message(":warning: Extension not found.",ephemeral=True)

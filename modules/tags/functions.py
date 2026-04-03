@@ -80,7 +80,7 @@ async def tag_delete(ctx: commands.Context, tag: list, override: bool = False, s
             await tag_delete(ctx, alias, True, True)
     # If the tag is an alias, remove it from the parent tag
     else:
-        alias_of, alias_filepath = await tag_utils.get_tag_data(ctx, data["alias_of"])
+        alias_of, alias_filepath, _, _ = await tag_utils.get_tag_data(ctx, data["alias_of"])
         alias_of["aliases"].remove(tag)
         with open(alias_filepath, "w") as file:
             dump(alias_of, file)
@@ -108,7 +108,7 @@ async def tag_alias(ctx: commands.Context, message: list):
     tag: str = message[1]
     if not new_tag: return await ctx.reply(":information_source: %t alias `new` `existing`")
     if not tag: return await ctx.reply(":warning: Please provide a tag to alias to.")
-
+    print(message)
     user_id = str(ctx.author.id)
     data, filepath, exists, _ = await tag_utils.get_tag_data(user_id, tag)
     if not exists: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
@@ -125,7 +125,7 @@ async def tag_alias(ctx: commands.Context, message: list):
     new_data = {"name":new_tag,"type":"alias","alias_of":tag, "owner":str(ctx.author.id)}
     with open(new_filepath, "w") as file:
         dump(new_data, file)
-
+    
     user = get_user_profile(str(ctx.author.id))
     user["tags"].append(new_tag)
     save_user_profile(user)

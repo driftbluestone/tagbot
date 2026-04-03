@@ -68,7 +68,7 @@ async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: l
     if tag == "code":
         return await container(ctx, name, message)
     elif tag == "alias":
-        return await execute_tag(ctx, tag)
+        return await execute_tag(ctx, data["alias_of"])
     elif tag == "message":
         embed = await create_message_embed(data["link"], ctx.bot)
         return await ctx.reply(embed=embed)

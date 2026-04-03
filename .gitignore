@@ -4,3 +4,4 @@ users
 history
 !modules/tags
 extensions/*
+__pycache__

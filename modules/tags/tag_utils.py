@@ -13,7 +13,7 @@ async def get_tag_data(user_id: str, tag: str):
     "Returns tag metadeta, the filepath to the tag, if the tag exists or not, and if the user owns the tag as a list"
     filepath = f"{DIR}/data/tags/tags/{tag}.json"
     if not Path(filepath).exists():
-        return [None, None, False, False]
+        return [None, filepath, False, False]
 
     with open(filepath, "r") as file:
         data = json.load(file)
