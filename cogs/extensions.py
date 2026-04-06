@@ -50,6 +50,7 @@ class Extensions(commands.Cog):
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
+    await load_extensions(bot)
 
 class ExtensionManager(discord.ui.View):
     """Manage which extensions are enabled or disabled via /extension toggle"""
@@ -84,10 +85,11 @@ class ExtensionManager(discord.ui.View):
         await config.select_page(interaction, self.old_interaction, self.page, self.max_page, ExtensionManager, self.bot)
 
 async def load_extensions(bot: commands.Bot):
-    for i in os.listdir(f"{DIR}/extensions"):
+    for i in os.listdir(f"{DIR}/../extensions"):
         if server_config["extensions"][i]:
             try: await bot.load_extension(f"extensions.{i}.main")
-            except: pass
+            except Exception as e:
+                raise e
         else:
             try: await bot.unload_extension(f"extensions.{i}.main")
             except: pass

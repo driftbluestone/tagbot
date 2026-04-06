@@ -70,7 +70,7 @@ async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: l
     elif tag == "alias":
         return await execute_tag(ctx, data["alias_of"])
     elif tag == "message":
-        embed = await create_message_embed(data["link"], ctx.bot)
+        embed = await create_message_embed(data["message_link"], ctx.bot)
         return await ctx.reply(embed=embed)
     with open(f"{filepath[:-5]}.txt") as file:
         input = file.read()

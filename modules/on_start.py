@@ -6,6 +6,6 @@ async def on_ready():
         os.mkdir(f"{DIR}/data/tags/tags")
         os.mkdir(f"{DIR}/data/tags/users")
     if not os.path.isdir(f"{DIR}/data/history"):
-        os.mkdir(f"{DIR}/data/tags/history")
+        os.mkdir(f"{DIR}/data/history")
     if not os.path.isdir(f"{DIR}/extensions"):
         os.mkdir(f"{DIR}/extensions")
