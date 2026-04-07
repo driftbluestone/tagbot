@@ -54,12 +54,12 @@ async def admin_tag(ctx: commands.Context, tag: str, message: list):
     action = getattr(admin_functions, f"admin_{tag}")
     return await action(ctx, message, True)
 
-async def execute_tag(ctx: commands.Context, tag: str):
+async def execute_tag(ctx: commands.Context, tag: str, message: list = []):
     "Executes tags while ignoring special tags"
     user_id = str(ctx.author.id)
     data, filepath, exists, _ = await get_tag_data(user_id, tag)
     if not exists: return await ctx.reply(f":warning: Tag **{tag}** not found")
-    return await parse_tag(ctx, data, filepath)
+    return await parse_tag(ctx, data, filepath, message)
 
 async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: list = []):
     "From tag data and filepath, will determine how to parse the tag"
@@ -84,7 +84,8 @@ async def json_parser(ctx: commands.Context, input: str):
     try:
         input = json.loads(input)
         if "call_tag" in input:
-            await execute_tag(ctx, input["call_tag"])
+            if "args" in input: await execute_tag(ctx, input["call_tag"], input["args"])
+            else: await execute_tag(ctx, input["call_tag"])
             return None, None
         elif "embed" in input:
             embed = await embed_builder(ctx, input["embed"])
