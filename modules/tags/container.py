@@ -48,18 +48,19 @@ async def container(ctx: commands.Context, tag: str, message: list) -> str:
         output = str(e)
     return output
 
-async def create_args(ctx: commands.context, message: list) -> dict:
+async def create_args(ctx: commands.Context, message: list) -> dict:
     args = {}
-    args["user"] = [str(ctx.author.id), ctx.author.name]
-    args["server"] = [str(ctx.guild.id), ctx.guild.name]
-    args["channel"] = [str(ctx.channel.id), ctx.channel.name]
+    args["user"] = [ctx.author.id, ctx.author.name, ctx.author.global_name, ctx.author.nick, ctx.author.avatar.url]
+    args["server"] = [ctx.guild.id, ctx.guild.name, ctx.guild.icon.url, ctx.guild.banner.url]
+    args["channel"] = [ctx.channel.id, ctx.channel.name, ctx.channel.category.id, ctx.channel.category.name]
     # Message history
     args["message_history"] = []
     message_history = [message async for message in ctx.message.channel.history(limit=25)]
     for i in message_history:
         i: discord.Message
-        args["message_history"].append([str(i.id), i.content, str(i.author.id), i.author.name])
+        args["message_history"].append([str(i.id), i.content, str(i.author.id), i.author.name, i.author.global_name, i.author.nick, ctx.author.avatar.url])
     # Message that was replied to, if any
+    args["reference"] = []
     if ctx.message.reference:
         i = ctx.message.reference
         args["reference"] = [[str(i.id), i.content, str(i.author.id), i.author.name]]
