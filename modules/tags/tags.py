@@ -73,7 +73,7 @@ async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: l
     name = data["name"]
     tag = data["type"]
     if tag == "code":
-        return await container(ctx, name, message)
+        return await execute_code_tag(ctx, name, message)
     elif tag == "alias":
         return await execute_tag(ctx, data["alias_of"])
     elif tag == "message":

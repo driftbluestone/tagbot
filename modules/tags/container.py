@@ -1,11 +1,11 @@
-import discord, json, subprocess
+import discord, json, asyncio
 from uuid import uuid4
 from discord.ext import commands
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent.parent
 
 async def container(ctx: commands.Context, tag: str, message: list) -> str:
-    "Creates a docker container that will execute a code tag"
+    """Creates a docker container that will execute a code tag"""
     container_name = uuid4().hex
 
     # Create the args that are passed into the container
@@ -21,37 +21,33 @@ async def container(ctx: commands.Context, tag: str, message: list) -> str:
                '--network', 'none',
                '--rm', '-v', f'{DIR}/data/tags/tags:/data/:ro',
                'python', 'python3', f'/data/{tag}.py',
+               args
             ]
-    
-    docargs.append(args)
     try:
-        result = subprocess.run(
-            docargs,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            timeout=5
+        result = await asyncio.create_subprocess_exec(
+            *docargs,
+            stdout=asyncio.subprocess.PIPE  , 
+            stderr=asyncio.subprocess.STDOUT,
         )
-        output = result.stdout
-
-    except subprocess.TimeoutExpired as e:
-        output = e.stdout if e.stdout else ""
+        stdout, _ = await asyncio.wait_for(result.communicate(), timeout=5.0)
+        output = stdout.decode()
+    except asyncio.TimeoutError as e:
         # Force kill the container
-        subprocess.run(
-            ['docker', 'rm', '-f', container_name],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+        kill_proc = await asyncio.create_subprocess_exec(
+            'docker', 'rm', '-f', container_name,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
         )
-        output = f"{output[:1900]}\n[PROCESS KILLED: exceeded 5s timeout]"
-    except subprocess.CalledProcessError as e:
+        await kill_proc.wait()
+        output = "[PROCESS KILLED: exceeded 5s timeout]"
+    except Exception as e:
         output = str(e)
     return output
 
 async def create_args(ctx: commands.Context, message: list) -> dict:
     args = {}
-    args["user"] = [ctx.author.id, ctx.author.name, ctx.author.global_name, ctx.author.nick, ctx.author.avatar.url]
-    args["server"] = [ctx.guild.id, ctx.guild.name, ctx.guild.icon.url, ctx.guild.banner.url]
+    args["user"] = [ctx.author.id, ctx.author.name, ctx.author.global_name, ctx.author.nick, ctx.author.display_avatar.url]
+    args["server"] = [ctx.guild.id, ctx.guild.name]
     args["channel"] = [ctx.channel.id, ctx.channel.name, ctx.channel.category.id, ctx.channel.category.name]
     # Message history
     args["message_history"] = []
