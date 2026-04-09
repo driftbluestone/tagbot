@@ -5,3 +5,4 @@ history
 !modules/tags
 extensions/*
 __pycache__
+config.json

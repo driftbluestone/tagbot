@@ -86,22 +86,25 @@ async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: l
 
 async def json_parser(ctx: commands.Context, input: str):
     "Returns an embed, calls a tag, or returns plaintext. data is returned as discord.Embed, text"
-    text = None
     try:
-        input = json.loads(input)
-        if "call_tag" in input:
-            if "args" in input: await execute_tag(ctx, input["call_tag"], input["args"])
-            else: await execute_tag(ctx, input["call_tag"])
+        json_input = json.loads(input)
+        
+        if not isinstance(json_input, dict):
+            return None, input
+        if "call_tag" in json_input:
+            if "args" in json_input: await execute_tag(ctx, json_input["call_tag"], json_input["args"])
+            else: await execute_tag(ctx, json_input["call_tag"])
             return None, None
-        elif "embed" in input:
+        elif "embed" in json_input:
             embed = await embed_builder(ctx, input["embed"])
+        else:
+            return None, input
         if not isinstance(embed, discord.Embed):
             embed = discord.Embed(description=f"Error creating embed:\n{embed}")
+
     except json.JSONDecodeError:
         embed = None
-        text = input
-    
-    return embed, text
+    return embed, input
 
 async def embed_builder(ctx: commands.Context, input: dict):
     "Creates an embed from a dictionary input"
@@ -125,7 +128,7 @@ async def container(ctx: commands.Context, tag: str, message: list):
     args["server"] = [str(ctx.guild.id), ctx.guild.name]
     args["channel"] = [str(ctx.channel.id), ctx.channel.name]
     args["args"] = message
-    args = (json.dumps(args)).split(" ")
+    args = json.dumps(args)
     docargs = ['docker', 'run',
                '--name', container_name,
                '--memory', '512m',
@@ -138,7 +141,7 @@ async def container(ctx: commands.Context, tag: str, message: list):
                'python', 'python3', f'/data/{tag}.py',
             ]
     
-    docargs.extend(args)
+    docargs.append(args)
     try:
         result = subprocess.run(
             docargs,

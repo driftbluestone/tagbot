@@ -1,9 +1,10 @@
 import re, discord
+from modules.config import server_config
 from modules.tags import users
 
 async def sed(message):
     user = users.get_user_profile(message.author.id)
-    if not user["permissions"]["use_sed"]: return
+    if (not user["permissions"]["use_sed"]) and (not user["id"] in server_config["bot_admins"]): return
     if message.reference is None:
         replied_message = None
         message_history = [message async for message in message.channel.history(limit=25)]
