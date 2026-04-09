@@ -63,6 +63,12 @@ async def execute_tag(ctx: commands.Context, tag: str, message: list = []):
 
 async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: list = []):
     "From tag data and filepath, will determine how to parse the tag"
+
+    # Set a recursion limit for code tag calling
+    setattr(ctx, "recursion", getattr(ctx, "recursion", 0)+1)
+    if ctx.recursion >= 5:
+        return await ctx.reply(":warning: Tag recursion limit reached.")
+    
     name = data["name"]
     tag = data["type"]
     if tag == "code":
@@ -112,9 +118,14 @@ async def embed_builder(ctx: commands.Context, input: dict):
 async def container(ctx: commands.Context, tag: str, message: list):
     "Creates a docker container that will execute a code tag"
     container_name = uuid4().hex
-    args = [str(ctx.author.id), ctx.author.name, str(ctx.channel.id)]
-    if not message == []:
-        args.extend(message)
+    
+    # Create the args that are passed into the container
+    args = {}
+    args["user"] = [str(ctx.author.id), ctx.author.name]
+    args["server"] = [str(ctx.guild.id), ctx.guild.name]
+    args["channel"] = [str(ctx.channel.id), ctx.channel.name]
+    args["args"] = message
+    args = (json.dumps(args)).split(" ")
     docargs = ['docker', 'run',
                '--name', container_name,
                '--memory', '512m',
@@ -126,6 +137,7 @@ async def container(ctx: commands.Context, tag: str, message: list):
                '--rm', '-v', f'{DIR}/data/tags/tags:/data/:ro',
                'python', 'python3', f'/data/{tag}.py',
             ]
+    
     docargs.extend(args)
     try:
         result = subprocess.run(
