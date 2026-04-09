@@ -60,15 +60,15 @@ async def on_message_delete(message: discord.Message):
     await editing.new_edit(message, bot, True)
     
 @bot.command(name="tag")
-async def tag(ctx):
+async def tag(ctx: commands.Context):
     await tags.context_formatter(ctx)
 
 @bot.command(name="t")
-async def t(ctx):
+async def t(ctx: commands.Context):
     await tags.context_formatter(ctx)
 
 @bot.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx: commands.Context, error):
     if (isinstance(error, commands.ExpectedClosingQuoteError)
      or isinstance(error, commands.InvalidEndOfQuotedStringError)
      or isinstance(error, commands.UnexpectedQuoteError)):

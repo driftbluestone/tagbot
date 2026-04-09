@@ -1,9 +1,8 @@
-import subprocess, discord, json
-from uuid import uuid4
+import discord, json
 from discord.ext import commands
 from pathlib import Path
 from modules.message_modules.message_embed import create_message_embed
-from modules.tags import users, functions, admin_functions
+from modules.tags import users, functions, admin_functions, container
 from modules.tags.tag_utils import get_tag_data, search
 SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search", "raw"]
 DISPLAYED_SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search"]
@@ -11,7 +10,7 @@ ADMIN_TAGS = ["delete", "promote", "limit", "ban", "edit"]
 DISPLAYED_ADMIN_TAGS = ["delete", "promote", "limit", "ban"]
 DIR = Path(__file__).resolve().parent.parent.parent
 
-async def context_formatter(ctx):
+async def context_formatter(ctx: commands.Context):
     message = ctx.message.content
     message = message.split(" ")
     if len(message) != 1:
@@ -55,14 +54,14 @@ async def admin_tag(ctx: commands.Context, tag: str, message: list):
     return await action(ctx, message, True)
 
 async def execute_tag(ctx: commands.Context, tag: str, message: list = []):
-    "Executes tags while ignoring special tags"
+    """Executes tags while ignoring special tags"""
     user_id = str(ctx.author.id)
     data, filepath, exists, _ = await get_tag_data(user_id, tag)
     if not exists: return await ctx.reply(f":warning: Tag **{tag}** not found")
     return await parse_tag(ctx, data, filepath, message)
 
 async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: list = []):
-    "From tag data and filepath, will determine how to parse the tag"
+    """From tag data and filepath, will determine how to parse the tag"""
 
     # Set a recursion limit for code tag calling
     setattr(ctx, "recursion", getattr(ctx, "recursion", 0)+1)
@@ -85,7 +84,7 @@ async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: l
     return await ctx.reply(content=text, embed=embed)
 
 async def json_parser(ctx: commands.Context, input: str):
-    "Returns an embed, calls a tag, or returns plaintext. data is returned as discord.Embed, text"
+    """Returns an embed, calls a tag, or returns plaintext. data is returned as discord.Embed, text"""
     text = None
     try:
         json_input = json.loads(input)
@@ -119,64 +118,8 @@ async def embed_builder(ctx: commands.Context, input: dict):
         
     return embed
 
-async def container(ctx: commands.Context, tag: str, message: list):
-    "Creates a docker container that will execute a code tag"
-    container_name = uuid4().hex
-    
-    # Create the args that are passed into the container
-    args = {}
-    args["user"] = [str(ctx.author.id), ctx.author.name]
-    args["server"] = [str(ctx.guild.id), ctx.guild.name]
-    args["channel"] = [str(ctx.channel.id), ctx.channel.name]
-    # Message history
-    args["message_history"] = []
-    message_history = [message async for message in ctx.message.channel.history(limit=25)]
-    for i in message_history:
-        i: discord.Message
-        args["message_history"].append([str(i.id), i.content, str(i.author.id), i.author.name])
-    # Message that was replied to, if any
-    if ctx.message.reference:
-        i = ctx.message.reference
-        args["reference"] = [[str(i.id), i.content, str(i.author.id), i.author.name]]
-    # User supplied arguments
-    args["args"] = message
-    args = json.dumps(args)
-    docargs = ['docker', 'run',
-               '--name', container_name,
-               '--memory', '512m',
-               '--memory-swap', '512m',
-               '--user', '1000:1000',
-               '--pids-limit', '20',
-               '--cap-drop', 'ALL',
-               '--network', 'none',
-               '--rm', '-v', f'{DIR}/data/tags/tags:/data/:ro',
-               'python', 'python3', f'/data/{tag}.py',
-            ]
-    
-    docargs.append(args)
-    try:
-        result = subprocess.run(
-            docargs,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            timeout=5
-        )
-        output = result.stdout
-
-    except subprocess.TimeoutExpired as e:
-        output = e.stdout if e.stdout else ""
-        # Force kill the container
-        subprocess.run(
-            ['docker', 'rm', '-f', container_name],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        output = f"{output[:1900]}\n[PROCESS KILLED: exceeded 5s timeout]"
-    except subprocess.CalledProcessError as e:
-        output = str(e)
-
+async def execute_code_tag(ctx: commands.Context, tag: str, message: list):
+    output = await container.container(ctx, tag, message)
     embed, text = await json_parser(ctx, output)
     if embed is None and text is None: return
     return await ctx.reply(content=text, embed=embed)
