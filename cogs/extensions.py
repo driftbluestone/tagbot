@@ -8,14 +8,14 @@ DIR = pathlib.Path(__file__).resolve().parent
 class Extensions(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    @app_commands.command(name="extension-toggle", description="Toggle extensions")
+    extension = app_commands.Group(name="extension", description="Magage Extenions")
+    @extension.command(name="toggle")
     async def extension_toggle(self, interaction: discord.Interaction):
         if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         view = ExtensionManager(interaction, self.bot)
         return await interaction.response.send_message(view=view)
     
-    @app_commands.command(name="extension-add", description="Add extensions")
+    @extension.command(name="add")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
         if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         if not repo.startswith("https://github.com/"): return await interaction.response.send_message(f":warning: Please specify a git repo",ephemeral=True)
@@ -39,7 +39,7 @@ class Extensions(commands.Cog):
         await load_extensions(self.bot)
         return await interaction.response.send_message(content=f"Sucessfully added module {repo_name}!\n{output}")
     
-    @app_commands.command(name="extension-delete", description="Delete extensions")
+    @extension.command(name="delete")
     async def extension_delete(self, interaction: discord.Interaction, extension: str):
         if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         if extension not in server_config["extensions"].keys(): return await interaction.response.send_message(":warning: Extension not found.",ephemeral=True)
@@ -47,7 +47,6 @@ class Extensions(commands.Cog):
         shutil.rmtree(f'{DIR}/../extensions/{extension}')
         return await interaction.response.send_message(f":white_check_mark: Extension {extension} deleted.")
         
-
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
     await load_extensions(bot)
