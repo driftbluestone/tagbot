@@ -10,7 +10,7 @@ VALID_NAME_CHARS = set("0123456789abcdefghijklmnopqrstuvwxyz_-")
 async def tag_add(ctx: commands.Context, message: list):
     "Creates a tag while having safeguards to prevent overwriting"
     if not await tag_utils.check_creation_permission(ctx): return
-    tag = message[0]
+    tag = message[0].lower()
     if not tag: return await ctx.reply(":information_source: %t add `name` `body`")
 
     user_id = str(ctx.author.id)
