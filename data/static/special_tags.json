@@ -1,0 +1,6 @@
+{
+    "SPECIAL_TAGS":["add", "edit", "delete", "alias", "list", "owner", "search", "raw"],
+    "DISPLAYED_SPECIAL_TAGS":["add", "edit", "delete", "alias", "list", "owner", "search"],
+    "ADMIN_TAGS":["delete", "promote", "limit", "ban", "edit"],
+    "DISPLAYED_ADMIN_TAGS":["delete", "promote", "limit", "ban"]
+}

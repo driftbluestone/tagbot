@@ -1,10 +1,11 @@
-import discord, os
+import discord, os, json
 from discord.ext import commands
 from pathlib import Path
-from json import dump
 from modules.tags import tag_utils
 from modules.tags.users import get_user_profile, save_user_profile, resolve_user
 DIR = Path(__file__).resolve().parent.parent.parent
+with open(f"{DIR}/data/static/special_tags.json", "r") as file:
+    SPECIAL_TAGS, DISPLAYED_SPECIAL_TAGS, ADMIN_TAGS, DISPLAYED_ADMIN_TAGS = json.load(file).values()
 VALID_NAME_CHARS = set("0123456789abcdefghijklmnopqrstuvwxyz_-")
 
 async def tag_add(ctx: commands.Context, message: list):
@@ -16,6 +17,8 @@ async def tag_add(ctx: commands.Context, message: list):
     user_id = str(ctx.author.id)
     
     message = message[1:]
+    if tag in SPECIAL_TAGS or tag == "admin":
+        return await ctx.reply(":warning: That tag is reserved.")
     data, _, exists, _ = await tag_utils.get_tag_data(user_id, tag)
     if exists:
         return await ctx.reply(f":warning: Tag {tag} already exists and is owned by <@{data["owner"]}>")
@@ -83,7 +86,7 @@ async def tag_delete(ctx: commands.Context, tag: list, override: bool = False, s
         alias_of, alias_filepath, _, _ = await tag_utils.get_tag_data(ctx, data["alias_of"])
         alias_of["aliases"].remove(tag)
         with open(alias_filepath, "w") as file:
-            dump(alias_of, file)
+            json.dump(alias_of, file)
     
     # Remove other files from other tag types
     if data["type"] == "code":
@@ -118,13 +121,13 @@ async def tag_alias(ctx: commands.Context, message: list):
 
     with open(filepath, "w") as file:
         data["aliases"].append(new_tag)
-        dump(data, file)
+        json.dump(data, file)
     new_data, new_filepath, exists, _  = await tag_utils.get_tag_data(ctx, new_tag)
     if exists: return await ctx.reply(f":warning: Tag {new_tag} already exists and is owned by <@{new_data["owner"]}>")
 
     new_data = {"name":new_tag,"type":"alias","alias_of":tag, "owner":str(ctx.author.id)}
     with open(new_filepath, "w") as file:
-        dump(new_data, file)
+        json.dump(new_data, file)
     
     user = get_user_profile(str(ctx.author.id))
     user["tags"].append(new_tag)
@@ -177,7 +180,8 @@ async def tag_raw(ctx: commands.Context, message: list):
     "Returns the files for a tag"
     tag = message[0]
     if tag == "": return await ctx.reply(":information_source: %t raw `tag`")
-
+    if tag in SPECIAL_TAGS or tag == "admin":
+        return await ctx.reply(f"{tag} is a special tag.")
     data, filepath, exists, _ = await tag_utils.get_tag_data(ctx, tag)
     if not exists: return await ctx.reply(f":warning: Tag **{tag}** does not exist.")
     file = [discord.File(filepath)]

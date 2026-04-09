@@ -4,11 +4,13 @@ from pathlib import Path
 from modules.message_modules.message_embed import create_message_embed
 from modules.tags import users, functions, admin_functions, container
 from modules.tags.tag_utils import get_tag_data, search
-SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search", "raw"]
-DISPLAYED_SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search"]
-ADMIN_TAGS = ["delete", "promote", "limit", "ban", "edit"]
-DISPLAYED_ADMIN_TAGS = ["delete", "promote", "limit", "ban"]
+# SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search", "raw"]
+# DISPLAYED_SPECIAL_TAGS = ["add", "edit", "delete", "alias", "list", "owner", "search"]
+# ADMIN_TAGS = ["delete", "promote", "limit", "ban", "edit"]
+# DISPLAYED_ADMIN_TAGS = ["delete", "promote", "limit", "ban"]
 DIR = Path(__file__).resolve().parent.parent.parent
+with open(f"{DIR}/data/static/special_tags.json", "r") as file:
+    SPECIAL_TAGS, DISPLAYED_SPECIAL_TAGS, ADMIN_TAGS, DISPLAYED_ADMIN_TAGS = json.load(file).values()
 
 async def context_formatter(ctx: commands.Context):
     message = ctx.message.content
