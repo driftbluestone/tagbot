@@ -2,7 +2,7 @@ import re, discord
 from modules.config import server_config
 from modules.tags import users
 
-async def sed(message):
+async def sed(message: discord.Message):
     user = users.get_user_profile(message.author.id)
     if (not user["permissions"]["use_sed"]) and (not user["id"] in server_config["bot_admins"]): return
     if message.reference is None:

@@ -86,9 +86,9 @@ async def parse_tag(ctx: commands.Context, data: dict, filepath: str, message: l
 
 async def json_parser(ctx: commands.Context, input: str):
     "Returns an embed, calls a tag, or returns plaintext. data is returned as discord.Embed, text"
+    text = None
     try:
         json_input = json.loads(input)
-        
         if not isinstance(json_input, dict):
             return None, input
         if "call_tag" in json_input:
@@ -104,7 +104,8 @@ async def json_parser(ctx: commands.Context, input: str):
 
     except json.JSONDecodeError:
         embed = None
-    return embed, input
+        text = input[:1995]
+    return embed, text
 
 async def embed_builder(ctx: commands.Context, input: dict):
     "Creates an embed from a dictionary input"
@@ -127,6 +128,17 @@ async def container(ctx: commands.Context, tag: str, message: list):
     args["user"] = [str(ctx.author.id), ctx.author.name]
     args["server"] = [str(ctx.guild.id), ctx.guild.name]
     args["channel"] = [str(ctx.channel.id), ctx.channel.name]
+    # Message history
+    args["message_history"] = []
+    message_history = [message async for message in ctx.message.channel.history(limit=25)]
+    for i in message_history:
+        i: discord.Message
+        args["message_history"].append([str(i.id), i.content, str(i.author.id), i.author.name])
+    # Message that was replied to, if any
+    if ctx.message.reference:
+        i = ctx.message.reference
+        args["reference"] = [[str(i.id), i.content, str(i.author.id), i.author.name]]
+    # User supplied arguments
     args["args"] = message
     args = json.dumps(args)
     docargs = ['docker', 'run',
