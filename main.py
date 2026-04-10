@@ -72,7 +72,9 @@ async def on_command_error(ctx: commands.Context, error):
         return await tags.context_formatter(ctx)
     elif isinstance(error, commands.CommandInvokeError):
         if isinstance(error.original, RecursionError):
-            return  await ctx.reply("Error: Recursion limit reached.")
+            return await ctx.reply("Error: Recursion limit reached.")
+        else:
+            raise error
     else:
         raise error
 
