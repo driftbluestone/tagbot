@@ -11,6 +11,7 @@ class BOT(commands.Bot):
     def __init__(self):
         super().__init__(
         command_prefix="$",
+        case_insensitive=True,
         allowed_mentions=discord.AllowedMentions(
             users=False,
             everyone=False,
@@ -58,12 +59,8 @@ async def on_message_edit(previous: discord.Message, current: discord.Message):
 async def on_message_delete(message: discord.Message):
     if message.author.bot: return
     await editing.new_edit(message, bot, True)
-    
-@bot.command(name="tag")
-async def tag(ctx: commands.Context):
-    await tags.context_formatter(ctx)
 
-@bot.command(name="t")
+@bot.command(name="t", aliases=["tag"])
 async def t(ctx: commands.Context):
     await tags.context_formatter(ctx)
 

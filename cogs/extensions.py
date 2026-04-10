@@ -1,4 +1,4 @@
-import discord, pathlib, os, math, subprocess, shutil
+import discord, pathlib, os, math, subprocess, shutil, stat
 from discord import app_commands
 from discord.ext import commands
 from modules import config
@@ -44,12 +44,19 @@ class Extensions(commands.Cog):
         if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         if extension not in server_config["extensions"].keys(): return await interaction.response.send_message(":warning: Extension not found.",ephemeral=True)
         server_config["extensions"].pop(extension)
-        shutil.rmtree(f'{DIR}/../extensions/{extension}')
-        return await interaction.response.send_message(f":white_check_mark: Extension {extension} deleted.")
-        
+        try: await self.bot.unload_extension(f"extensions.{extension}.main")
+        except: pass
+        shutil.rmtree(f'{DIR}/../extensions/{extension}', onexc=remove_readonly)
+        await interaction.response.send_message(f":white_check_mark: Extension **{extension}** deleted.")
+
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
     await load_extensions(bot)
+
+def remove_readonly(func, path, _):
+    """Clear the read-only and hidden attributes and retry removal."""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 class ExtensionManager(discord.ui.View):
     """Manage which extensions are enabled or disabled via /extension toggle"""
@@ -74,7 +81,7 @@ class ExtensionManager(discord.ui.View):
         old_interaction = self.old_interaction
         extension = interaction.data["custom_id"]
         server_config["extensions"][extension] = not server_config["extensions"][extension]
-        view = ExtensionManager(old_interaction, None, self.page)
+        view = ExtensionManager(old_interaction, self.bot, self.page)
         await old_interaction.edit_original_response(view=view)
         await load_extensions(self.bot)
         await interaction.response.defer(ephemeral=True, thinking=False)
