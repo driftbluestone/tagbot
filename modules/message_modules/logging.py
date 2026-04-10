@@ -34,15 +34,14 @@ async def audit_log_entry(entry: discord.AuditLogEntry, channel: discord.Partial
     if component == "overwrite": component = "channel overwrite in"
 
     embed = discord.Embed()
-    embed.set_author(name=entry.user.name, icon_url = entry.user.avatar)
+    embed.set_author(name = entry.user.name, icon_url = entry.user.avatar)
+
     if category == "create":
         embed.description = f"Created new {component} {mention}\n"
-
     elif category == "update":
         embed.description = f"Updated {component} {mention}\n"
         await generate_update_table(embed, entry.before, "**Before:**\n")
         await generate_update_table(embed, entry.after, "**After:**\n")
-
     elif category == "delete":
         embed.description = f"Deleted {component} '{mention}'\n"
 
@@ -51,14 +50,14 @@ async def audit_log_entry(entry: discord.AuditLogEntry, channel: discord.Partial
 async def generate_update_table(embed: discord.Embed, entry, when):
     embed.description += when
     for attribute, value in entry.__dict__.items():
-        if value is None: continue
-        if isinstance(value, discord.Permissions):
-            embed.description+=f"{attribute.title()}: "
+        if value is None: 
+            continue
+        elif isinstance(value, discord.Permissions):
+            embed.description += f"{attribute.title()}: "
             permissions = []
             for perm, enabled in value:
                 if enabled: permissions.append(perm.title())
             permissions = str(permissions)[1:-1].replace("'", "`")
             embed.description += f"{permissions}\n"
-            
-            continue
-        embed.description+=f"{attribute.title()}: {value}\n"
+        else:
+            embed.description+=f"{attribute.title()}: {value}\n"

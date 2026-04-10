@@ -9,6 +9,7 @@ class Extensions(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     extension = app_commands.Group(name="extension", description="Magage Extenions")
+
     @extension.command(name="toggle")
     async def extension_toggle(self, interaction: discord.Interaction):
         if not interaction.user.id in server_config["bot_admins"]: return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
@@ -94,8 +95,12 @@ async def load_extensions(bot: commands.Bot):
     for i in os.listdir(f"{DIR}/../extensions"):
         if server_config["extensions"][i]:
             try: await bot.load_extension(f"extensions.{i}.main")
-            except Exception as e:
-                raise e
+            except: pass
         else:
             try: await bot.unload_extension(f"extensions.{i}.main")
             except: pass
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} commands.")
+    except Exception as exception:
+        print(f"Error syncing commands: {exception}")
