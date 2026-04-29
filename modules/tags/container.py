@@ -55,11 +55,6 @@ async def create_args(ctx: commands.Context, message: list) -> dict:
     for i in message_history:
         i: discord.Message
         args["message_history"].append([str(i.id), i.content, str(i.author.id), i.author.name, i.author.global_name, i.author.nick, ctx.author.avatar.url])
-    # Message that was replied to, if any
-    args["reference"] = []
-    if ctx.message.reference:
-        i = ctx.message.reference
-        args["reference"] = [[str(i.id), i.content, str(i.author.id), i.author.name]]
     # User supplied arguments
     args["args"] = message
     return args

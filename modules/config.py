@@ -123,7 +123,7 @@ class ConfigSubButton(discord.ui.View):
         await self.old_interaction.edit_original_response(content="", view=view)
         await interaction.response.defer(ephemeral=True, thinking=False)
     
-    async def delete(self, interaction):
+    async def delete(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user, "log_admin"): return await interaction.response.send_message(":warning: No permission.",ephemeral=True)
         view = DeleteConfirm(self.old_interaction, self.group, self.page)
         await self.old_interaction.edit_original_response(content="Are you sure?",view=view)
