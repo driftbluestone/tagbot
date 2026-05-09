@@ -1,9 +1,1 @@
-{
-    "tag_admin":"administrator",
-    "log_admin":"administrator",
-    "edit_permissions":"administrator",
-    "manage_boards":"manage_channels",
-    "create_tags":null,
-    "view_tags":null,
-    "use_sed":null
-}
+{"edit_permissions": "administrator", "sonny_logging:log_admin": "administrator", "sonny_sed:sed": null, "sonny_starboard:manage_boards": "manage_channels", "sonny_tags:view": null, "sonny_tags:create": null, "sonny_tags:admin": "administrator"}
