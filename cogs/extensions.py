@@ -36,9 +36,10 @@ class Extensions(commands.Cog):
         if os.path.isdir(f"{DIR}/../extensions/{repo_name}"):
             return await interaction.response.send_message("Extension already installed.")
         os.mkdir(f"{DIR}/extensions/{repo_name}")
+        await interaction.response.send_message("Installing...")
         output = await Installer(interaction, repo).install_extension()
         await load_extensions(bot)
-        return await interaction.response.send_message(content=f"Sucessfully added module {repo_name}!\n{output}")
+        return await interaction.edit_original_response(content=f"Sucessfully added module {repo_name}!\n{output}")
     
     @extension.command(name="delete", description = "Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str):
@@ -64,34 +65,24 @@ class Installer:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.STDOUT
             )
-            stdout, _ = await asyncio.wait_for(result.communicate())
+            stdout, _ = await result.communicate()
             output = stdout.decode()
         except Exception as e:
             output = str(e)
         return output
     
     async def install_extension(self):
-        msg = f"Extension dependency {self.extension} found. Installing..."
-        self.output.append(msg)
-        self.output_full.append(msg)
-        await self.interaction.edit_original_response("\n".join(self.output))
 
         args = ["git", "clone", self.repo, f"{DIR}/extensions/{self.extension}"]
         msg = await self.subprocess(args)
         self.output_full.append(msg)
         
-        msg = f"Extension dependency {self.extension} found. Installed."
-        self.output[-1] = msg
-        self.output_full.append(msg)
-        await self.interaction.edit_original_response("\n".join(self.output))
-        
         await self.dependencies()
     
-    async def dependencies(self):
+    async def dependencies(self):   
         filepath = f"{DIR}/extensions/{self.extension}/dependencies.json"
-        filepath = f"{DIR}/dependencies.json"
         if not os.path.exists(filepath):
-            return await self.interaction.edit_original_response("\n".join(self.output))
+            return await self.interaction.edit_original_response(content="\n".join(self.output))
         
         with open(filepath, "r") as file:
             requirements = json.load(file)
@@ -102,36 +93,48 @@ class Installer:
         if "extension" in requirements:
             for extension in requirements["extension"]:
                 self.extension = extension
+                msg = f"Extension dependency {self.extension} found. Installing..."
+                self.output.append(msg)
+                self.output_full.append(msg)
+                await self.interaction.edit_original_response(content="\n".join(self.output))
+
                 await self.install_extension()
+
+                msg = f"Extension dependency {self.extension} found. Installed."
+                self.output[-1] = msg
+                self.output_full.append(msg)
+                await self.interaction.edit_original_response(content="\n".join(self.output))
             self.output = self.output[:-len(requirements["extension"])]
         if "other" in requirements:
             for other in requirements["other"]:
                 msg = f"Other dependency {other} found. Manual installation required."
                 self.output.append(msg)
                 self.output_full.append(msg)
-            await self.interaction.edit_original_response("\n".join(self.output))
+            await self.interaction.edit_original_response(content="\n".join(self.output))
 
-        msg = [f"Installed {self.ext} from {self.repo}."]
+        msg = f"Installed {self.ext} from {self.repo}."
         self.output[0] = msg
         self.output_full.append(msg)
-        await self.interaction.edit_original_response("\n".join(self.output))
-        with open(f"{DIR}/data/logs/{self.ext}.txt", "w") as file:
-            file.write(self.output_full)
+        await self.interaction.edit_original_response(content="\n".join(self.output))
+        with open(f"{DIR}/data/install_logs/{self.ext}.txt", "w") as file:
+            file.write("\n".join(self.output_full))
     
     async def install_pip(self, pip: str):
         msg = f"Pip dependency {pip} found. Installing..."
         self.output.append(msg)
         self.output_full.append(msg)
-        await self.interaction.edit_original_response("\n".join(self.output))
+        await self.interaction.edit_original_response(content="\n".join(self.output))
 
         args = ['python3', '-m', 'pip', 'install', pip]
         msg = await self.subprocess(args)
         self.output_full.append(msg)
 
         msg = f"Pip dependency {pip} found. Installed."
+        print(self.output)
+        print(self.output[-1])
         self.output[-1] = msg
         self.output_full.append(msg)
-        await self.interaction.edit_original_response("\n".join(self.output))
+        await self.interaction.edit_original_response(content="\n".join(self.output))
 
 class ExtensionManager(gui.MenuGUI):
     """Manage which extensions are enabled or disabled via /extension toggle"""
