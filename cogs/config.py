@@ -18,12 +18,20 @@ class Config(commands.Cog):
         if user == None: user = interaction.user
         await interaction.response.send_message(content = f"Permissions for: {user.mention}",view=PermissionPanel(interaction, user))
     
-    dianostics = app_commands.Group(name="diagnostics", description="View bot information")
+    diagnostics = app_commands.Group(name="diagnostics", description="View bot information")
 
-    @dianostics.command(name="ram")
+    @diagnostics.command(name="ram")
     async def ram(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"{psutil.Process(os.getpid()).memory_info().rss /1024**2:.2f} MB")
     
-    @dianostics.command(name="cogs")
+    @diagnostics.command(name="cogs")
     async def cogs(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"{self.bot.cogs}")
+    
+    @diagnostics.command(name="member-count")
+    async def member_count(self, interaction: discord.Interaction):
+        await interaction.response.send_message(interaction.guild.member_count)
+    
+    @diagnostics.command(name="commands")
+    async def commands(self, interaction: discord.Interaction):
+        await interaction.response.send_message(self.bot.commands)

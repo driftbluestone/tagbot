@@ -16,6 +16,6 @@ class _BOT(commands.Bot):
         intents=discord.Intents.all()
         )
     async def setup_hook(self):
-        await self.load_extension("cogs.extensions")
         await self.load_extension("cogs.config")
+        await self.load_extension("cogs.extensions")
 bot = _BOT()
