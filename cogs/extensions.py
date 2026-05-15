@@ -23,7 +23,7 @@ class Extensions(commands.Cog):
     async def extension_toggle(self, interaction: discord.Interaction):
         if not interaction.user.id in server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        view = ExtensionManager(interaction, bot)
+        view = ExtensionManager(interaction)
         return await interaction.response.send_message(view=view)
 
     @extension.command(name="add", description = "Install extensions")
@@ -47,7 +47,7 @@ class Extensions(commands.Cog):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if extension not in server_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
-        uninstall_extension.uninstall(interaction, bot, extension)
+        await uninstall_extension.uninstall(interaction, bot, extension)
 
 class Installer:
     def __init__(self, interaction: discord.Interaction, repo: str):
@@ -126,10 +126,11 @@ class ExtensionManager(gui.MenuGUI):
         server_config["extensions"][extension] = not server_config["extensions"][extension]
         state = "enabled" if server_config["extensions"][extension] else "disabled"
         view = ExtensionManager(self.interaction, self.page)
+        await interaction.response.defer(ephemeral=True, thinking=False)
         await self.interaction.edit_original_response(view=view)
         await load_extensions(bot)
-        await interaction.response.defer(ephemeral=True, thinking=False)
         await log(f"Extension '{extension}' {state}.")
+        save_server_config()
 
 async def load_extensions(bot: commands.Bot):
     for i in os.listdir(f"{DIR}/extensions"):

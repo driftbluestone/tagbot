@@ -34,4 +34,7 @@ class Config(commands.Cog):
     
     @diagnostics.command(name="commands")
     async def commands(self, interaction: discord.Interaction):
-        await interaction.response.send_message(self.bot.commands)
+        commands = [command.name for command in list(self.bot.commands)]
+        commands.remove("help")
+        commands += [command.name for command in self.bot.tree.walk_commands()]
+        await interaction.response.send_message(commands)

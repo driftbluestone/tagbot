@@ -7,3 +7,4 @@ extensions/*
 __pycache__
 config.json
 .vscode
+.log
