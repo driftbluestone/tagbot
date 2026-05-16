@@ -1,6 +1,6 @@
 {
-  "command_prefix":"%",
-  "bot_admins":[],
-  "extensions":{}
+  "command_prefix": "%",
+  "bot_admins": [],
+  "extensions": {}
   
 }
