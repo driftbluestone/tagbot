@@ -20,19 +20,19 @@ class Config(commands.Cog):
     
     diagnostics = app_commands.Group(name="diagnostics", description="View bot information")
 
-    @diagnostics.command(name="ram")
+    @diagnostics.command(name="ram", description=diagnostics.description)
     async def ram(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"{psutil.Process(os.getpid()).memory_info().rss /1024**2:.2f} MB")
     
-    @diagnostics.command(name="cogs")
+    @diagnostics.command(name="cogs", description=diagnostics.description)
     async def cogs(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"{self.bot.cogs}")
     
-    @diagnostics.command(name="member-count")
+    @diagnostics.command(name="member-count", description=diagnostics.description)
     async def member_count(self, interaction: discord.Interaction):
         await interaction.response.send_message(interaction.guild.member_count)
     
-    @diagnostics.command(name="commands")
+    @diagnostics.command(name="commands", description=diagnostics.description)
     async def commands(self, interaction: discord.Interaction):
         commands = [command.name for command in list(self.bot.commands)]
         commands.remove("help")
