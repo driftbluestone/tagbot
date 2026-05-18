@@ -6,5 +6,11 @@ history
 extensions/*
 __pycache__
 config.json
+!data/static/*
 .vscode
 .log
+run.spec
+build
+bundler
+dist
+data

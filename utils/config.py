@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 
-with open(f"{DIR}/config.json", "r", encoding='utf-8') as file:
+with open(f"{DIR}/data/static/config.json", "r", encoding='utf-8') as file:
     server_config = json.load(file)
 def save_server_config():
     with open(f"{DIR}/config.json", "w", encoding="utf-8") as file:

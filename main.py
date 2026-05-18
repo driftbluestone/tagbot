@@ -1,11 +1,13 @@
-import discord, pathlib
+import discord, pathlib, os
 from discord.ext import commands
 from modules.bot import bot
 from modules import editing
-from utils import message_embed
+from utils import message_embed, config
 
 DIR = pathlib.Path(__file__).resolve().parent
-
+if not os.path.exists(f"{DIR}/TOKEN.txt"):
+    with open(f"{DIR}/TOKEN.txt", "w") as file:
+        file.write(input("Paste bot token: "))
 with open(f"{DIR}/TOKEN.txt", "r") as file:
     TOKEN = file.read()
 
@@ -17,9 +19,10 @@ async def on_ready():
         print(f"Synced {len(synced)} commands.")
     except Exception as exception:
         print(f"Error syncing commands: {exception}")
-    # for owner_id in bot.owner_ids:
-    #     if owner_id not in config.server_config:
-    #         config.server_config["bot_admins"]
+    for owner_id in bot.owner_ids:
+        if owner_id not in config.server_config:
+            config.server_config["bot_admins"].append(owner_id)
+            config.save_server_config()
     print(f"Logged in as {bot.user}.")
 
 @bot.event
