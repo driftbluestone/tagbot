@@ -25,11 +25,11 @@ except ModuleNotFoundError:
     print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psutil"])))
 
 vinf = sys.version_info
-REQUIRED_VER = (3, 14, 3)
-VER = (vinf.major, vinf.minor, vinf.micro)
+REQUIRED_VER = (3, 14)
+VER = (vinf.major, vinf.minor)
 
 print(f"Python version:   {vinf.major}.{vinf.minor}.{vinf.micro}")
-print(f"Required version: 3.14.3+")
+print(f"Required version: 3.14+")
 if VER < REQUIRED_VER:
-    print("Warning: Version lower than required, errors may arise.")
+    raise RuntimeError("Bot requires Python 3.14+")
 import main

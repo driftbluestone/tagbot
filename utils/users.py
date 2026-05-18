@@ -13,16 +13,14 @@ def get_user_profile(user_id: int) -> dict:
         return user
     else:
         with open(f"{DIR}/data/static/user.json", "r") as file:
-            user = json.load(file)
+            user = json.load(file)  
         user["id"] = user_id
         return permissions(user)
 def permissions(user):
-    with open(f"{DIR}/data/static/permissions.json", "r") as file:
-        user_permission_equivalent = json.load(file)
-    for k in user_permission_equivalent.keys():
+    for k in config.permissions_config.keys():
         if k in user["permissions"].keys():
             continue
-        if user_permission_equivalent[k] == None:
+        if config.permissions_config[k] == None:
             user["permissions"][k] = True
             continue
         user["permissions"][k] = False
@@ -39,13 +37,11 @@ async def permission_check(user_id: int, permission: str):
     if user_id in config.server_config["bot_admins"]:
         return True
     user_profile = get_user_profile(user_id)
-    with open(f"{DIR}/data/static/permissions.json", "r") as file:
-        user_permission_equivalent = json.load(file)
-    if permission not in user_permission_equivalent:
+    if permission not in config.permissions_config:
         raise KeyError("Permission not found.")
-    if user_permission_equivalent[permission] != None:
+    if config.permissions_config[permission] != None:
         user: discord.Member = bot.guilds[0].get_member(user_id)
-        discord_permissions = getattr(user.guild_permissions, user_permission_equivalent[permission], False)
+        discord_permissions = getattr(user.guild_permissions, config.permissions_config[permission], False)
         if discord_permissions:
             return discord_permissions
     try:
