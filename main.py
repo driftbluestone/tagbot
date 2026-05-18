@@ -17,6 +17,9 @@ async def on_ready():
         print(f"Synced {len(synced)} commands.")
     except Exception as exception:
         print(f"Error syncing commands: {exception}")
+    # for owner_id in bot.owner_ids:
+    #     if owner_id not in config.server_config:
+    #         config.server_config["bot_admins"]
     print(f"Logged in as {bot.user}.")
 
 @bot.event
