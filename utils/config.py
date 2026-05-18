@@ -1,6 +1,21 @@
-import json
+import json, os
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
+
+if not os.path.isdir(f"{DIR}/data"):
+    os.mkdir(f"{DIR}/data")
+if not os.path.isdir(f"{DIR}/data/static"):
+    os.mkdir(f"{DIR}/data/static")
+
+if not os.path.exists(f"{DIR}/data/static/user.json"):
+    with open(f"{DIR}/data/static/user.json", "w") as file:
+        json.dump({"id": "", "permissions": {}}, file)
+if not os.path.exists(f"{DIR}/data/static/permissions.json"):
+    with open(f"{DIR}/data/static/permissions.json", "w") as file:
+        json.dump({"edit_permissions": "administrator"}, file)
+if not os.path.exists(f"{DIR}/data/static/config.json"):
+    with open(f"{DIR}/data/static/config.json", "w") as file:
+        json.dump({"command_prefix": "%", "extensions": {}, "bot_admins": []}, file)
 
 with open(f"{DIR}/data/static/config.json", "r", encoding='utf-8') as file:
     server_config = json.load(file)

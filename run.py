@@ -1,4 +1,4 @@
-import asyncio, sys, os
+import asyncio, sys
 
 async def run(args):
     try:
@@ -24,6 +24,12 @@ except ModuleNotFoundError:
     print("Module 'psutil' not found. Installing")
     print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psutil"])))
 
-REQUIRED_VER = (3, 14, 3)
 vinf = sys.version_info
+REQUIRED_VER = (3, 14, 3)
+VER = (vinf.major, vinf.minor, vinf.micro)
+
+print(f"Python version:   {vinf.major}.{vinf.minor}.{vinf.micro}")
+print(f"Required version: 3.14.3+")
+if VER < REQUIRED_VER:
+    print("Warning: Version lower than required, errors may arise.")
 import main
