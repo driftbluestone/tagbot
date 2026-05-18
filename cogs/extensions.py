@@ -4,7 +4,7 @@ from discord.ext import commands
 from modules import uninstall_extension
 from modules.bot import bot
 from api import gui
-from utils.server_config import server_config, save_server_config
+from utils.config import server_config, save_server_config
 from utils.logger import log
 
 from pathlib import Path

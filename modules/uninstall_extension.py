@@ -1,6 +1,6 @@
 import discord, os, stat, shutil, json
 from discord.ext import commands
-from utils.server_config import server_config, save_server_config
+from utils.config import server_config, save_server_config
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 

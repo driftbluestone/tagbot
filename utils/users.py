@@ -1,5 +1,5 @@
 import discord, json
-from utils import server_config
+from utils import config
 from modules.bot import bot
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
@@ -36,7 +36,7 @@ def save_user_profile(user):
 async def permission_check(user_id: int, permission: str):
     if permission is None:
         return True
-    if user_id in server_config.server_config["bot_admins"]:
+    if user_id in config.server_config["bot_admins"]:
         return True
     user_profile = get_user_profile(user_id)
     with open(f"{DIR}/data/static/permissions.json", "r") as file:

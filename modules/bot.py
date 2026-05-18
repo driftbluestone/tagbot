@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from modules import on_start
-from utils.server_config import server_config
+from utils.config import server_config
 
 class _BOT(commands.Bot):
     def __init__(self):

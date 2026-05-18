@@ -1,7 +1,7 @@
 import json, discord
 from api import _ext as ext
 from pathlib import Path
-from utils import users
+from utils import users, config
 from modules.bot import bot
 DIR = Path(__file__).resolve().parent.parent
 
@@ -15,13 +15,11 @@ def new_data_field(name: str | list[str], data_type: type | list[type]) -> bool:
     If any data fields are already in the user config file, the registration will fail and the function will return False.
     """
     extension = ext()
-    with open(f"{DIR}/data/static/user.json", "r") as file:
-        user: dict = json.load(file)
     
     def _register(name: str, data_type: type) -> bool:
         id = f"{extension}:{name}"
-        if id not in user:
-            user[id] = data_type()
+        if id not in config.user_config:
+            config.user_config[id] = data_type()
             return True
         return False
     
@@ -30,8 +28,7 @@ def new_data_field(name: str | list[str], data_type: type | list[type]) -> bool:
             if not _register(nm, dt): return False
     else:
         if not _register(name, data_type): return False
-    with open(f"{DIR}/data/static/user.json", "w") as file:
-        json.dump(user, file)
+    config.save_user_config()
     return True
 
 async def has_permission(user_id: int, permission: str) -> bool:
