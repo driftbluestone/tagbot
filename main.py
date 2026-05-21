@@ -11,7 +11,7 @@ if not os.path.exists(f"{DIR}/TOKEN.txt"):
 if len(config.server_config["bot_admins"]) == 0:
     admin = input("Paste user id for bot admin (optional): ")
     try:
-        admin = int(input)
+        admin = int(admin)
         config.server_config["bot_admins"].append(admin)
         config.save_server_config()
     except:

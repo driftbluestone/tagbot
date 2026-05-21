@@ -1,12 +1,12 @@
 import discord, pathlib, typing, os, psutil
 from discord import app_commands
 from discord.ext import commands
-from utils import users
+from utils import users, config
 from modules.permission_panel import PermissionPanel
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Config(bot=bot))
 
-DIR = pathlib.Path(__file__).parent.absolute()
+DIR = pathlib.Path(__file__).absolute().parent.parent
 class Config(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -38,3 +38,10 @@ class Config(commands.Cog):
         commands.remove("help")
         commands += [command.name for command in self.bot.tree.walk_commands()]
         await interaction.response.send_message(commands)
+
+    @diagnostics.command(name="logs", description=diagnostics.description)
+    async def logs(self, interaction: discord.Interaction):
+        if not interaction.user.id in config.server_config["bot_admins"]:
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        file = discord.File(f"{DIR}/data/.log")
+        await interaction.response.send_message(file=file)
