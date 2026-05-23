@@ -2,7 +2,7 @@ import discord, pathlib, typing, os, psutil
 from discord import app_commands
 from discord.ext import commands
 from utils import users, config
-from modules.permission_panels import PermissionPanel, RolePanel
+from modules.permission_panels import UserPermissionPanel, RolePanel
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Config(bot=bot))
 
@@ -19,7 +19,7 @@ class Config(commands.Cog):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if target == None:
             target = interaction.user
-        await interaction.response.send_message(content = f"Permissions for: {target.mention}",view=PermissionPanel(interaction, target))
+        await interaction.response.send_message(content = f"Permissions for: {target.mention}",view=UserPermissionPanel(interaction, target))
     
     @permissions.command(name="roles", description="Configure role permissions")
     async def roles(self, interaction: discord.Interaction):

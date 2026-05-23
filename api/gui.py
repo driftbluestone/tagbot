@@ -27,7 +27,12 @@ async def create_message_embed(link: str):
 
 class MenuGUI(discord.ui.View):
     """
-    This class should be inherited. The following variables must be declared using super().__init__():
+    This object must be inherited.
+    
+    This class implements page scrolling buttons in a discord View, the buttons are added on row 3,
+    leaving 10 places above for elements, and space below for action buttons. (i.e. "Create")
+
+    The following variables must be declared using super().__init__():
     - interaction: the discord interaction object that triggered the view being sent
     - element_count: number of elements in the gui
     - page: the current page
@@ -70,20 +75,20 @@ class MenuGUI(discord.ui.View):
             self.add_item(button)
 
     async def page_selector(self: MenuGUI, interaction: discord.Interaction):
-            if not await users.has_permission(interaction.user.id, self.interaction_permission):
-                return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-            
-            config = interaction.data["custom_id"]
+        if not await users.has_permission(interaction.user.id, self.interaction_permission):
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         
-            if config == "select": return await interaction.response.send_modal(self._PageSelect(self))
-            elif config == "page1": self.page = 1
-            elif config == "back1": self.page-=1
-            elif config == "next1": self.page+=1
-            elif config == "last": self.page = self.max_page 
-            await interaction.response.defer(ephemeral=True, thinking=False)
-            view = self.__class__(self.interaction, self.data_transfer, self.page)
+        config = interaction.data["custom_id"]
+    
+        if config == "select": return await interaction.response.send_modal(self._PageSelect(self))
+        elif config == "page1": self.page = 1
+        elif config == "back1": self.page-=1
+        elif config == "next1": self.page+=1
+        elif config == "last": self.page = self.max_page 
+        await interaction.response.defer(ephemeral=True, thinking=False)
+        view = self.__class__(self.interaction, self.data_transfer, self.page)
 
-            await self.interaction.edit_original_response(content=self.text, embed=self.embed, view=view)
+        await self.interaction.edit_original_response(content=self.text, embed=self.embed, view=view)
 
     class _PageSelect(discord.ui.Modal, title="Go to page"):
         def __init__(self, view: MenuGUI): 
