@@ -5,7 +5,6 @@ from utils.config import server_config
 
 class _BOT(commands.Bot):
     def __init__(self):
-        on_start.on_ready()
         super().__init__(
         command_prefix=server_config["command_prefix"],
         case_insensitive=True,

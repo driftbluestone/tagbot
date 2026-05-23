@@ -1,4 +1,4 @@
-import pathlib, os, json
+import pathlib, os
 DIR = pathlib.Path(__file__).resolve().parent.parent
 
 def on_ready():
@@ -12,3 +12,5 @@ def on_ready():
         os.mkdir(f"{DIR}/data/extensions")
     if not os.path.isdir(f"{DIR}/extensions"):
         os.mkdir(f"{DIR}/extensions")
+
+on_ready()
