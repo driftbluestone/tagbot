@@ -2,7 +2,7 @@ import discord, pathlib, typing, os, psutil
 from discord import app_commands
 from discord.ext import commands
 from utils import users, config
-from modules.permission_panel import PermissionPanel
+from modules.permission_panel import PermissionPanel, RolePanel
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Config(bot=bot))
 
@@ -11,12 +11,14 @@ class Config(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name="permissions", description="Configure user permissions")
-    async def permissions(self, interaction: discord.Interaction, user: typing.Optional[discord.Member]):
+    @app_commands.command(name="permissions", description="Configure permissions")
+    async def permissions(self, interaction: discord.Interaction, target: typing.Optional[typing.Union[discord.Member, discord.Role]]):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        if user == None: user = interaction.user
-        await interaction.response.send_message(content = f"Permissions for: {user.mention}",view=PermissionPanel(interaction, user))
+        if target == None:
+            target = interaction.user
+        if isinstance(target, discord.abc.User):
+            await interaction.response.send_message(content = f"Permissions for: {target.mention}",view=PermissionPanel(interaction, target))
     
     diagnostics = app_commands.Group(name="diagnostics", description="View bot information")
 

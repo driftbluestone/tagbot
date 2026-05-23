@@ -12,5 +12,7 @@ def on_ready():
         os.mkdir(f"{DIR}/data/extensions")
     if not os.path.isdir(f"{DIR}/extensions"):
         os.mkdir(f"{DIR}/extensions")
+    if not os.path.isdir(f"{DIR}/data/roles"):
+        os.mkdir(f"{DIR}/data/roles")
 
 on_ready()
