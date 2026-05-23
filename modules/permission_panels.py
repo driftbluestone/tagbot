@@ -9,7 +9,7 @@ DIR = Path(__file__).resolve().parent.parent
 class UserPermissionPanel(gui.MenuGUI):
     def __init__(self, interaction: discord.Interaction, user: discord.Member, page: int = 1):
         perms = list(config.permissions_config.keys())
-        super().__init__(interaction=interaction, data_transfer=user, page=page, element_count=len(perms))
+        super().__init__(interaction=interaction, interaction_permission="edit_permissions", data_transfer=user, page=page, element_count=len(perms))
         self.user: discord.User = user
         self.user_profile = get_user_profile(user.id)
         
@@ -44,7 +44,7 @@ class UserPermissionPanel(gui.MenuGUI):
 class RolePanel(gui.MenuGUI):
     def __init__(self, interaction: discord.Interaction, _ = None, page: int = 1):
         roles = [[role.id, role.name] for role in bot.guilds[0].roles]
-        super().__init__(interaction=interaction, page=page, element_count=len(roles))
+        super().__init__(interaction=interaction, interaction_permission="edit_permissions", page=page, element_count=len(roles))
 
         roles = roles[((self.page-1)*10):(self.page*10)]
         for role in roles:
@@ -69,7 +69,7 @@ class RolePanel(gui.MenuGUI):
 class RolePermissionPanel(gui.MenuGUI):
     def __init__(self, interaction: discord.Interaction, data_transfer: int, page: int = 1):
         perms = list(config.permissions_config.keys())
-        super().__init__(interaction=interaction, data_transfer=data_transfer, page=page, element_count=len(perms))
+        super().__init__(interaction=interaction, interaction_permission="edit_permissions", data_transfer=data_transfer, page=page, element_count=len(perms))
 
         perms = perms[((self.page-1)*10):(self.page*10)]
 
