@@ -30,6 +30,7 @@ class MenuGUI(discord.ui.View):
     This class should be inherited. The following variables must be declared using super().__init__():
     - interaction: the discord interaction object that triggered the view being sent
     - element_count: number of elements in the gui
+    - page: the current page
 
     The rest are not required, but have uses:
     - interaction_permission: the permission required to interact with the view
@@ -80,7 +81,7 @@ class MenuGUI(discord.ui.View):
             elif config == "next1": self.page+=1
             elif config == "last": self.page = self.max_page 
             await interaction.response.defer(ephemeral=True, thinking=False)
-            view = self.__class__(interaction=self.interaction, data_transfer=self.data_transfer, page = self.page)
+            view = self.__class__(self.interaction, self.data_transfer, self.page)
 
             await self.interaction.edit_original_response(content=self.text, embed=self.embed, view=view)
 
