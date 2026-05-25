@@ -12,7 +12,8 @@ if not os.path.exists(f"{DIR}/data/static/user.json"):
         json.dump({"id": "", "permissions": {}}, file)
 if not os.path.exists(f"{DIR}/data/static/permissions.json"):
     with open(f"{DIR}/data/static/permissions.json", "w") as file:
-        json.dump({"edit_permissions": "administrator"}, file)
+        json.dump({"edit_permissions": {"display_name": "Edit Permission", "discord_equivalent": "administrator",
+                   "toggleable": True, "default_enabled": False, "role_assignable": True}}, file)
 if not os.path.exists(f"{DIR}/data/static/config.json"):
     with open(f"{DIR}/data/static/config.json", "w") as file:
         json.dump({"command_prefix": "%", "extensions": {}, "bot_admins": []}, file)

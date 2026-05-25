@@ -4,19 +4,20 @@ from utils import users, config
 from api import _ext as ext
 DIR = Path(__file__).resolve().parent.parent
 
-def create(name: str | list, discord_equivalent: None|str | list[None|str]) -> bool:
+def create(name: str, display_name: str, discord_equivalent: str = None, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True) -> bool:
     """
     Register a new permission, setting discord_equivalent to None will also make the permission enabled by default
     """
     extension = ext()
     
-    if isinstance(name, list):
-        for nm, eq in zip(name, discord_equivalent, strict=True):
-            id = f"{extension}:{nm}"
-            config.permissions_config[id] = eq
-    else:
-        id = f"{extension}:{nm}"
-        config.permissions_config[id] = discord_equivalent
+    id = f"{extension}:{name}"
+    config.permissions_config[id] = {
+        "display_name": display_name,
+        "discord_equivalent": discord_equivalent,
+        "toggleable": toggleable,
+        "default_enabled": default_enabled,
+        "role_assignable": role_assignable
+    }
     config.save_permisions_config()
     return True
 
