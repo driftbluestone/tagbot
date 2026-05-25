@@ -15,7 +15,6 @@ class UserPermissionPanel(gui.MenuGUI):
         
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
-            perm_styled = perm.replace("_", " ").title()
             try:
                 permission = self.user_profile["permissions"][perm]
             except:
@@ -28,17 +27,20 @@ class UserPermissionPanel(gui.MenuGUI):
                 buttonstyle = discord.ButtonStyle.success
             else:
                 buttonstyle = discord.ButtonStyle.danger
-            button = discord.ui.Button(label = perm_styled, style=buttonstyle, custom_id=perm)
+            button = discord.ui.Button(label = config.permissions_config[perm]["display_name"], style=buttonstyle, custom_id=perm)
             button.callback = self.callback
             self.add_item(button)
 
     async def callback(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.defer(ephemeral=True, thinking=False)
         perm = interaction.data["custom_id"]
-        self.user_profile["permissions"][perm] = not self.user_profile["permissions"][perm]
+        if config.permissions_config[perm]["toggleable"] or self.user_profile["id"] in config.server_config["bot_admins"]:
+            self.user_profile["permissions"][perm] = not self.user_profile["permissions"][perm]
+        else:
+            return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
         users.save_user_profile(self.user_profile)
+        await interaction.response.defer(ephemeral=True, thinking=False)
         await self.interaction.edit_original_response(view=UserPermissionPanel(self.interaction, self.user))
 
 class RolePanel(gui.MenuGUI):
@@ -72,7 +74,7 @@ class RolePermissionPanel(gui.MenuGUI):
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
             buttonstyle = discord.ButtonStyle.success if role[perm] else discord.ButtonStyle.danger
-            button = discord.ui.Button(label=perm, style=buttonstyle, custom_id=str(perm))
+            button = discord.ui.Button(label=config.permissions_config[perm]["display_bame"], style=buttonstyle, custom_id=str(perm))
             button.callback = self.callback
             self.add_item(button)
         
@@ -90,13 +92,17 @@ class RolePermissionPanel(gui.MenuGUI):
     async def callback(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.defer(ephemeral=True, thinking=False)
+        
         perm = interaction.data["custom_id"]
         filepath = f"{DIR}/data/roles/{self.data_transfer}"
         with open(filepath, "r") as file:
             role = json.load(file)
-        role[perm] = not role[perm]
+        if config.permissions_config[perm]["toggleable"] or interaction.user.id in config.server_config["bot_admins"]:
+            role[perm] = not role[perm]
+        else:
+            return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
         with open(filepath, "w") as file:
-                json.dump(role, file, indent=2)
+            json.dump(role, file, indent=2)
         view = RolePermissionPanel(self.interaction, self.data_transfer)
+        await interaction.response.defer(ephemeral=True, thinking=False)
         await self.interaction.edit_original_response(view=view)

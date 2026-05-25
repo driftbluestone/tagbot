@@ -27,7 +27,7 @@ def override(namespace: str, permission: str, new_equiv: str) -> bool:
     """
     namespaces, perms = zip(*[x.split(":") for x in config.permissions_config.keys()])
     if namespace in namespaces and permission in perms:
-        config.permissions_config[f"{namespace}:{permission}"] = new_equiv
+        config.permissions_config[f"{namespace}:{permission}"]["discord_equivalent"] = new_equiv
         config.save_permisions_config()
         return True
     return False
