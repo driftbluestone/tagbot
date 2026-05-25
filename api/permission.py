@@ -35,7 +35,4 @@ async def check(user_id: int, permission: str) -> bool:
     """
     User permission check
     """
-    if ":" not in permission:
-        extension = ext()
-        permission = f"{extension}:{permission}"
     return await users.permission_check(user_id, permission)
