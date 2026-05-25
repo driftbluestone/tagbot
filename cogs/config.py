@@ -23,7 +23,7 @@ class Config(commands.Cog):
     
     @permissions.command(name="roles", description="Configure role permissions")
     async def roles(self, interaction: discord.Interaction):
-        await interaction.response.send_message(view=RolePanel(interaction))
+        await interaction.response.send_message(content="THIS COMMAND IS NOT FINISHED!", view=RolePanel(interaction))
 
     diagnostics = app_commands.Group(name="diagnostics", description="View bot information")
 
