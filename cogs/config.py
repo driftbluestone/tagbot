@@ -25,7 +25,7 @@ class Config(commands.Cog):
     async def roles(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.send_message(content="THIS COMMAND IS NOT FINISHED!", view=RolePanel(interaction))
+        await interaction.response.send_message(view=RolePanel(interaction))
 
     diagnostics = app_commands.Group(name="diagnostics", description="View bot information")
 

@@ -19,19 +19,19 @@ if not os.path.exists(f"{DIR}/data/static/config.json"):
         json.dump({"command_prefix": "%", "extensions": {}, "bot_admins": []}, file)
 
 with open(f"{DIR}/data/static/config.json", "r", encoding='utf-8') as file:
-    server_config = json.load(file)
+    server_config: dict = json.load(file)
 def save_server_config():
     with open(f"{DIR}/data/static/config.json", "w", encoding="utf-8") as file:
         json.dump(server_config, file, indent=2)
 
 with open(f"{DIR}/data/static/user.json", "r", encoding='utf-8') as file:
-    user_config = json.load(file)
+    user_config: dict= json.load(file)
 def save_user_config():
     with open(f"{DIR}/data/static/user.json", "w", encoding="utf-8") as file:
         json.dump(user_config, file, indent=2)
 
 with open(f"{DIR}/data/static/permissions.json", "r", encoding='utf-8') as file:
-    permissions_config = json.load(file)
+    permissions_config: dict = json.load(file)
 def save_permisions_config():
     with open(f"{DIR}/data/static/permissions.json", "w", encoding="utf-8") as file:
         json.dump(permissions_config, file, indent=2)
