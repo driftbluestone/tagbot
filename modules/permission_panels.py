@@ -1,4 +1,4 @@
-import discord, os, json
+import discord, json
 from api import gui
 from modules.bot import bot
 from utils import users
@@ -74,7 +74,7 @@ class RolePermissionPanel(gui.MenuGUI):
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
             buttonstyle = discord.ButtonStyle.success if role[perm] else discord.ButtonStyle.danger
-            button = discord.ui.Button(label=config.permissions_config[perm]["display_bame"], style=buttonstyle, custom_id=str(perm))
+            button = discord.ui.Button(label=config.permissions_config[perm]["display_name"], style=buttonstyle, custom_id=str(perm))
             button.callback = self.callback
             self.add_item(button)
         
