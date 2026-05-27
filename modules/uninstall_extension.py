@@ -1,4 +1,4 @@
-import discord, os, stat, shutil, json
+import discord, os, shutil, json
 from discord.ext import commands
 from utils.config import server_config, save_server_config
 from pathlib import Path
@@ -13,8 +13,8 @@ async def uninstall(interaction: discord.Interaction, bot: commands.Bot, extensi
     except:
         pass
 
-    # remove permissions
-    if save_data:
+    if not save_data:
+        # remove permissions
         with open(f"{DIR}/data/static/permissions.json", "r") as file:
             permissions: dict = json.load(file)
         permission_keys: list[str] = list(permissions.keys())
@@ -37,12 +37,8 @@ async def uninstall(interaction: discord.Interaction, bot: commands.Bot, extensi
         shutil.rmtree(f'{DIR}/data/extensions/{extension}', onexc=_remove_readonly)
     shutil.rmtree(f'{DIR}/extensions/{extension}', onexc=_remove_readonly)
     
-
     await interaction.followup.send(f":white_check_mark: Extension **{extension}** deleted.")
 
 def _remove_readonly(func, path, _):
-    """
-    Clear the read-only and hidden attributes and retry removal.
-    """
-    os.chmod(path, stat.S_IWRITE)
+    os.chmod(path, 128)
     func(path)

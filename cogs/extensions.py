@@ -17,16 +17,16 @@ async def setup(bot: commands.Bot) -> None:
 class Extensions(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    extension = app_commands.Group(name="extension", description="Manage Extenions")
+    extension = app_commands.Group(name="extension", description="Manage extensions")
 
-    @extension.command(name="toggle", description = "Toggle extensions")
+    @extension.command(name="toggle", description="Toggle extensions")
     async def extension_toggle(self, interaction: discord.Interaction):
         if not interaction.user.id in server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         view = ExtensionManager(interaction)
         return await interaction.response.send_message(view=view)
 
-    @extension.command(name="add", description = "Install extensions")
+    @extension.command(name="add", description="Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
         if not interaction.user.id in server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
@@ -40,8 +40,9 @@ class Extensions(commands.Cog):
         await interaction.response.send_message("Installing...")
         await Installer(interaction, repo).install_extension()
         await load_extensions(bot)
+        
 
-    @extension.command(name="delete", description = "Uninstall extensions")
+    @extension.command(name="delete", description="Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: bool):
         if not interaction.user.id in server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
@@ -105,6 +106,7 @@ class Installer:
         output = await self.subprocess(["python3", "-m", "pip", "install", pip])
         await log(output.strip(), self.interaction)
         await log(f"Pip dependency installed: {pip}.", self.interaction)
+    
 
 class ExtensionManager(gui.MenuGUI):
     """Manage which extensions are enabled or disabled via /extension toggle"""
@@ -116,10 +118,10 @@ class ExtensionManager(gui.MenuGUI):
             buttonstyle = discord.ButtonStyle.danger
             if server_config["extensions"][extension]: buttonstyle = discord.ButtonStyle.success
             button = discord.ui.Button(label = extension, style=buttonstyle, custom_id=extension)
-            button.callback = self.open_modal_button_callback
+            button.callback = self.button_callback
             self.add_item(button)
 
-    async def open_modal_button_callback(self, interaction: discord.Interaction):
+    async def button_callback(self, interaction: discord.Interaction):
         if not interaction.user.id in server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission." ,ephemeral=True)
         extension = interaction.data["custom_id"]
@@ -136,7 +138,10 @@ async def load_extensions(bot: commands.Bot):
     for i in os.listdir(f"{DIR}/extensions"):
         if i not in server_config["extensions"]:
             server_config["extensions"][i] = True
-            os.mkdir(f"{DIR}/data/extensions/{i}")
+            try:
+                os.mkdir(f"{DIR}/data/extensions/{i}")
+            except FileExistsError:
+                pass
             if os.path.exists(f"{DIR}/extensions/{i}/init.py"):
                 importlib.import_module(f"extensions.{i}.init")
             save_server_config()
