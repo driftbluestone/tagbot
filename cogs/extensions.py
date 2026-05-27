@@ -42,12 +42,12 @@ class Extensions(commands.Cog):
         await load_extensions(bot)
 
     @extension.command(name="delete", description = "Uninstall extensions")
-    async def extension_delete(self, interaction: discord.Interaction, extension: str):
+    async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: bool):
         if not interaction.user.id in server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if extension not in server_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
-        await uninstall_extension.uninstall(interaction, bot, extension)
+        await uninstall_extension.uninstall(interaction, bot, extension, save_data)
 
 class Installer:
     def __init__(self, interaction: discord.Interaction, repo: str):
