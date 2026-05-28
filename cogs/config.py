@@ -54,3 +54,4 @@ class Config(commands.Cog):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         file = discord.File(f"{DIR}/data/.log")
         await interaction.response.send_message(file=file)
+    
