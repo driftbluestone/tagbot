@@ -150,7 +150,6 @@ async def load_extensions(bot: commands.Bot):
         if server_config["extensions"][i]:
             try:
                 await bot.load_extension(f"extensions.{i}.main")
-                await bot.reload_extension(f"extensions.{i}.main")
                 await log(f"Loaded extension: {i}.")
             except Exception as e:
                 await log(f"Failed to load extension {i}: {e}")
