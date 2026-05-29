@@ -1,4 +1,4 @@
-import discord, os, asyncio, importlib, json
+import discord, os, asyncio, importlib, json, sys
 from discord import app_commands
 from discord.ext import commands
 from modules import uninstall_extension
@@ -12,7 +12,7 @@ DIR = Path(__file__).resolve().parent.parent
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
-    await load_extensions(bot)
+    await load_extensions()
 
 class Extensions(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -39,7 +39,7 @@ class Extensions(commands.Cog):
         os.mkdir(f"{DIR}/extensions/{repo_name}")
         await interaction.response.send_message("Installing...")
         await Installer(interaction, repo).install_extension()
-        await load_extensions(bot)
+        await load_extensions()
         
 
     @extension.command(name="delete", description="Uninstall extensions")
@@ -115,8 +115,7 @@ class ExtensionManager(gui.MenuGUI):
         extensions = list(server_config["extensions"].keys())
         extensions = extensions[((self.page-1)*10):(self.page*10)]
         for extension in extensions:
-            buttonstyle = discord.ButtonStyle.danger
-            if server_config["extensions"][extension]: buttonstyle = discord.ButtonStyle.success
+            buttonstyle = discord.ButtonStyle.success if server_config["extensions"][extension] else discord.ButtonStyle.danger
             button = discord.ui.Button(label = extension, style=buttonstyle, custom_id=extension)
             button.callback = self.button_callback
             self.add_item(button)
@@ -130,11 +129,18 @@ class ExtensionManager(gui.MenuGUI):
         view = ExtensionManager(self.interaction, self.page)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await self.interaction.edit_original_response(view=view)
-        await load_extensions(bot)
+
+        if server_config["extensions"][extension]:
+            await reload_modules(extension)
+            await bot.load_extension(f"extensions.{extension}.main")
+        else:
+            await bot.unload_extension(f"extensions.{extension}.main")
+        await resync_commands()
+
         await log(f"Extension '{extension}' {state}.")
         save_server_config()
 
-async def load_extensions(bot: commands.Bot):
+async def load_extensions():
     for i in os.listdir(f"{DIR}/extensions"):
         if i not in server_config["extensions"]:
             server_config["extensions"][i] = True
@@ -149,6 +155,7 @@ async def load_extensions(bot: commands.Bot):
 
         if server_config["extensions"][i]:
             try:
+                await reload_modules(i)
                 await bot.load_extension(f"extensions.{i}.main")
                 await log(f"Loaded extension: {i}.")
             except Exception as e:
@@ -159,9 +166,19 @@ async def load_extensions(bot: commands.Bot):
                 await log(f"Unloaded extension: {i}.")
             except:
                 pass
+    await resync_commands()
 
+async def resync_commands():
     try:
         synced = await bot.tree.sync()
         await log(f"Synced {len(synced)} commands.")
     except Exception as e:
         await log(f"Failed to sync commands: {e}")
+
+async def reload_modules(extension_name: str):
+    extension_prefix = f"extensions.{extension_name}"
+    for module_name in list(sys.modules.keys()):
+        if module_name == f"{extension_prefix}.main":
+            continue
+        elif module_name.startswith(extension_prefix):
+            sys.modules.pop(module_name, None)

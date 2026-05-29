@@ -1,4 +1,4 @@
-import discord, pathlib, typing, os, psutil
+import discord, pathlib, typing, os, psutil, shutil
 from discord import app_commands
 from discord.ext import commands
 from utils import users, config
@@ -55,3 +55,4 @@ class Config(commands.Cog):
         file = discord.File(f"{DIR}/data/.log")
         await interaction.response.send_message(file=file)
     
+        
