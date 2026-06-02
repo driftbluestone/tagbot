@@ -55,4 +55,6 @@ class Config(commands.Cog):
         file = discord.File(f"{DIR}/data/.log")
         await interaction.response.send_message(file=file)
     
-        
+    @diagnostics.command(name="ping", description=diagnostics.description)
+    async def ping(self, interaction: discord.Interaction):
+        interaction.response.send_message(f"Ping: {self.bot.latency*1000} ms")
