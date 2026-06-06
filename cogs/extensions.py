@@ -110,7 +110,7 @@ class Installer:
 
 class ExtensionManager(gui.MenuGUI):
     """Manage which extensions are enabled or disabled via /extension toggle"""
-    def __init__(self, interaction, page = 1):
+    def __init__(self, interaction, _, page = 1):
         super().__init__(interaction=interaction, element_count=len(server_config["extensions"].keys()), page=page)
         extensions = list(server_config["extensions"].keys())
         extensions = extensions[((self.page-1)*10):(self.page*10)]

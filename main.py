@@ -2,7 +2,7 @@ import discord, pathlib, os
 from discord.ext import commands
 from modules.bot import bot
 from modules import editing
-from utils import message_embed, config
+from utils import message_embed, config, logger
 
 DIR = pathlib.Path(__file__).resolve().parent
 if not os.path.exists(f"{DIR}/TOKEN.txt"):
@@ -53,8 +53,10 @@ async def on_command_error(ctx: commands.Context, error):
         if isinstance(error.original, RecursionError):
             return await ctx.reply("Error: Recursion limit reached.")
         else:
+            await logger.log(str(error))
             raise error
     else:
+        await logger.log(str(error))
         raise error
 
 bot.run(TOKEN)
