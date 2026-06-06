@@ -65,7 +65,7 @@ def toggle_permission(user_id: int, permission) -> bool:
         json.dump(user, file)
     return user["permissions"][permission]
 
-async def resolve_user(user: str | int) -> tuple[dict, discord.User] | False:
+async def resolve_user(user: str | int) -> tuple[dict, discord.Member] | False:
     if user.startswith("<@") and user.endswith(">"):
         user = user[2:-1]
         user_object = await bot.guilds[0].get_member(user)
