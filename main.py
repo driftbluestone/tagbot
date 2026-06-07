@@ -1,4 +1,4 @@
-import discord, pathlib, os
+import discord, pathlib, os, traceback
 from discord.ext import commands
 from modules.bot import bot
 from modules import editing
@@ -48,15 +48,15 @@ async def on_message_delete(message: discord.Message):
     await editing.new_edit(message, True)
 
 @bot.event
-async def on_command_error(ctx: commands.Context, error):
+async def on_command_error(ctx: commands.Context, error: Exception):
     if isinstance(error, commands.CommandInvokeError):
         if isinstance(error.original, RecursionError):
             return await ctx.reply("Error: Recursion limit reached.")
         else:
-            await logger.log(str(error))
+            await logger.log("".join(traceback.format_exception(error)))
             raise error
     else:
-        await logger.log(str(error))
+        await logger.log("".join(traceback.format_exception(error)))
         raise error
 
 bot.run(TOKEN)
