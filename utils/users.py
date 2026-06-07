@@ -21,7 +21,7 @@ def permissions(user):
     for k in config.permissions_config:
         if k in user["permissions"]:
             continue
-        user["permissions"][k] = config.permissions_config[k]["default_enabled"]
+        user["permissions"][k] = None # config.permissions_config[k]["default_enabled"]
     return save_user_profile(user)
 
 def save_user_profile(user):
@@ -66,7 +66,7 @@ async def permission_check(user_id: int, permission: str) -> bool:
     return False
             
 def update_role(role_id):
-    filepath = f"{DIR}/data/roles/{role_id}"
+    filepath = f"{DIR}/data/roles/{role_id}.json"
     if os.path.exists(filepath):
         with open(filepath, "r") as file:
             role = json.load(file)
@@ -76,7 +76,7 @@ def update_role(role_id):
         if not permission["role_assignable"]:
             continue
         if name not in role:
-            role[name] = permission["default_enabled"]
+            role[name] = None # permission["default_enabled"]
     with open(filepath, "w") as file:
-                json.dump(role, file, indent=2)
+        json.dump(role, file, indent=2)
     return role

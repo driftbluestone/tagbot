@@ -6,6 +6,12 @@ from utils import config
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 
+colors = {
+    False: discord.ButtonStyle.danger,
+    None: discord.ButtonStyle.primary,
+    True: discord.ButtonStyle.success
+}
+
 class UserPermissionPanel(gui.MenuGUI):
     def __init__(self, interaction: discord.Interaction, user: discord.Member, page: int = 1):
         perms = list(config.permissions_config.keys())
@@ -17,8 +23,8 @@ class UserPermissionPanel(gui.MenuGUI):
         for perm in perms:
             try:
                 permission = self.user_profile["permissions"][perm]
-            except:
-                self.user_profile["permissions"][perm] = False
+            except:                                            
+                self.user_profile["permissions"][perm] = False # this whole thing needs a rewrite
                 if config.permissions_config[perm] == None:
                     self.user_profile["permissions"][perm] = True
                 users.save_user_profile(self.user_profile)
@@ -62,18 +68,18 @@ class RolePanel(gui.MenuGUI):
         role = bot.guilds[0].get_role(role)
         users.update_role(role.id)
         view = RolePermissionPanel(self.interaction, role.id)
-        await self.interaction.edit_original_response(view=view)
+        await self.interaction.edit_original_response(content=f"Permissions for {role.mention}:", view=view)
 
 class RolePermissionPanel(gui.MenuGUI):
     def __init__(self, interaction: discord.Interaction, data_transfer: int, page: int = 1):
         perms = list(config.permissions_config.keys())
         super().__init__(interaction=interaction, interaction_permission="edit_permissions", data_transfer=data_transfer, page=page, element_count=len(perms))
 
-        with open(f"{DIR}/data/roles/{data_transfer}", "r") as file:
+        with open(f"{DIR}/data/roles/{data_transfer}.json", "r") as file:
             role = json.load(file)
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
-            buttonstyle = discord.ButtonStyle.success if role[perm] else discord.ButtonStyle.danger
+            buttonstyle = colors[role[perm]]
             button = discord.ui.Button(label=config.permissions_config[perm]["display_name"], style=buttonstyle, custom_id=str(perm))
             button.callback = self.callback
             self.add_item(button)
@@ -87,14 +93,14 @@ class RolePermissionPanel(gui.MenuGUI):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.defer(ephemeral=True, thinking=False)
         view = RolePanel(self.interaction)
-        await self.interaction.edit_original_response(view=view)
+        await self.interaction.edit_original_response(content="", view=view)
     
     async def callback(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         
         perm = interaction.data["custom_id"]
-        filepath = f"{DIR}/data/roles/{self.data_transfer}"
+        filepath = f"{DIR}/data/roles/{self.data_transfer}.json"
         with open(filepath, "r") as file:
             role = json.load(file)
         if config.permissions_config[perm]["toggleable"] or interaction.user.id in config.server_config["bot_admins"]:
