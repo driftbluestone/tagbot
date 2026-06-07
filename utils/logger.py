@@ -30,3 +30,8 @@ async def log(msg: str, interaction: discord.Interaction | None = None):
             _lines[id] = []
         _lines[id].append(line)
         await interaction.edit_original_response(content="\n".join(_lines[id]))
+
+def log_sync(msg: str):
+    line = _format(msg)
+    print(line)
+    _write_file(line)
