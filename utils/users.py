@@ -55,10 +55,8 @@ async def permission_check(user_id: int, permission: str) -> bool:
         return profile_permission
     
     # role layer
-    user: discord.Member = bot.guilds[0].get_member(user_id)
-    roles = list(reversed(user.roles)) 
-    for role in roles:
-        filepath = f"{DIR}/data/roles/{role.id}"
+    for role in reversed(user_profile["roles"]):
+        filepath = f"{DIR}/data/roles/{role}"
         if not os.path.exists(filepath):
             continue
         with open(filepath, "r") as file:
