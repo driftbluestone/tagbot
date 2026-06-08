@@ -35,8 +35,8 @@ async def permission_check(user_id: int, permission: str) -> bool:
     if permission is None:
         return True
     # Bot admin bypass check
-    # if user_id in config.server_config["bot_admins"]:
-    #     return True
+    if user_id in config.server_config["bot_admins"]:
+        return True
     
     # Ensure permission exists
     if permission not in config.permissions_config:
