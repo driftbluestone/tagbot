@@ -9,7 +9,7 @@ if not os.path.isdir(f"{DIR}/data/static"):
 
 if not os.path.exists(f"{DIR}/data/static/user.json"):
     with open(f"{DIR}/data/static/user.json", "w") as file:
-        json.dump({"id": "", "permissions": {}}, file)
+        json.dump({"id": "", "permissions": {}, "roles": []}, file)
 if not os.path.exists(f"{DIR}/data/static/permissions.json"):
     with open(f"{DIR}/data/static/permissions.json", "w") as file:
         json.dump({"edit_permissions": {"display_name": "Edit Permission", "toggleable": False,

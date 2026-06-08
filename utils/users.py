@@ -15,6 +15,8 @@ def get_user_profile(user_id: int) -> dict:
         with open(f"{DIR}/data/static/user.json", "r") as file:
             user = json.load(file)  
         user["id"] = user_id
+        dc_user: discord.Member = bot.guilds[0].get_member(user_id)
+        user["roles"] = [role.id for role in dc_user.roles]
         return permissions(user)
     
 def permissions(user: dict):
