@@ -24,7 +24,7 @@ def permissions(user: dict):
         user["permissions"][k] = None # config.permissions_config[k]["default_enabled"]
     return save_user_profile(user)
 
-def save_user_profile(user):
+def save_user_profile(user: dict) -> dict:
     filepath = f"{DIR}/data/users/{user["id"]}.json"
     with open(filepath, "w") as file:
         json.dump(user, file, indent=2)

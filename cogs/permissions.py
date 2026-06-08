@@ -14,6 +14,14 @@ class Permissions(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
+    @commands.Cog.listener() # Store roles internally to save API calls
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        if before.roles == after.roles:
+            return
+        profile = users.get_user_profile(after.id)
+        profile["roles"] = [role.id for role in after.roles]
+        users.save_user_profile(profile)
+
     permissions = app_commands.Group(name="permissions", description=".")
 
     @permissions.command(name="default", description="Manage default permissions")

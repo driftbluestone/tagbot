@@ -18,5 +18,7 @@ class _BOT(commands.Bot):
         )
     async def setup_hook(self):
         await self.load_extension("cogs.config")
+        await self.load_extension("cogs.permissions")
         await self.load_extension("cogs.extensions")
+
 bot = _BOT()
