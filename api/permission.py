@@ -1,10 +1,9 @@
-import json
 from pathlib import Path
 from utils import users, config
 from api import _ext as ext
 DIR = Path(__file__).resolve().parent.parent
 
-def create(name: str, display_name: str, discord_equivalent: str = None, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True) -> bool:
+def create(name: str, display_name: str, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True) -> bool:
     """
     Register a new permission, setting discord_equivalent to None will also make the permission enabled by default
     """
@@ -13,7 +12,6 @@ def create(name: str, display_name: str, discord_equivalent: str = None, togglea
     id = f"{extension}:{name}"
     config.permissions_config[id] = {
         "display_name": display_name,
-        "discord_equivalent": discord_equivalent,
         "toggleable": toggleable,
         "default_enabled": default_enabled,
         "role_assignable": role_assignable
