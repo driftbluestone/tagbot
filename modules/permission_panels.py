@@ -18,6 +18,29 @@ next_perm = {
     True: False
 }
 
+class DefaultPermissionPanel(gui.MenuGUI):
+    def __init__(self, interaction: discord.Interaction, _: None, page: int = 1):
+        perms = list(config.permissions_config.keys())
+        super().__init__(interaction=interaction, interaction_permission="edit_permissions", page=page, element_count=len(perms))
+        perms = perms[((self.page-1)*10):(self.page*10)]
+        for perm in perms:
+            permission = config.permissions_config[perm]["default_enabled"]
+            button = discord.ui.Button(label = config.permissions_config[perm]["display_name"], style=colors[permission], custom_id=perm)
+            button.callback = self.callback
+            self.add_item(button)
+    
+    async def callback(self, interaction: discord.Interaction):
+        if not await users.permission_check(interaction.user.id, "edit_permissions"):
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        perm = interaction.data["custom_id"]
+        if config.permissions_config[perm]["toggleable"] or interaction.user.id in config.server_config["bot_admins"]:
+            config.permissions_config[perm]["default_enabled"] = not config.permissions_config[perm]["default_enabled"]
+            config.save_permisions_config()
+        else:
+            return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
+        await interaction.response.defer(ephemeral=True, thinking=False)
+        await self.interaction.edit_original_response(view=DefaultPermissionPanel(self.interaction))
+
 class UserPermissionPanel(gui.MenuGUI):
     def __init__(self, interaction: discord.Interaction, user: discord.Member, page: int = 1):
         perms = list(config.permissions_config.keys())

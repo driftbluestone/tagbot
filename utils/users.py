@@ -31,30 +31,39 @@ def save_user_profile(user):
     return user
 
 ternary = bool | None
-async def permission_check(user_id: int, permission: ternary) -> bool:
+async def permission_check(user_id: int, permission: str) -> bool:
     if permission is None:
         return True
+    # Bot admin bypass check
     if user_id in config.server_config["bot_admins"]:
         return True
+    
     user_profile = get_user_profile(user_id)
+
+    # Ensure permission exists
     if permission not in config.permissions_config:
         raise KeyError("Permission not found.")
     
+    # user layer
+    # discord eqivalent permissions
     if config.permissions_config[permission]["discord_equivalent"] != None:
         user: discord.Member = bot.guilds[0].get_member(user_id)
-        discord_permissions = getattr(user.guild_permissions, config.permissions_config[permission]["discord_equivalent"], False)
-        if discord_permissions:
+        discord_permissions = getattr(user.guild_permissions, config.permissions_config[permission]["discord_equivalent"], None)
+        if discord_permissions is not None:
             return discord_permissions
-        
+    
+    # sonny permissions
     try:
         profile_permission = user_profile["permissions"][permission]
     except:
         user_profile = permissions(user_profile)
         profile_permission = user_profile["permissions"][permission]
-    if profile_permission:
-        return True
+    if profile_permission is not None:
+        return profile_permission
     
-    for role in user.roles:
+    # role layer
+    roles = list(reversed(user.roles)) 
+    for role in roles:
         filepath = f"{DIR}/data/roles/{role.id}"
         if not os.path.exists(filepath):
             continue
@@ -62,9 +71,11 @@ async def permission_check(user_id: int, permission: ternary) -> bool:
             role = json.load(file)
         if permission not in role:
             role = update_role()
-        if role[permission]:
-            return True
-    return False
+        if role[permission] is not None:
+            return role[permission]
+    
+    # default layer
+    return config.permissions_config[permission]["default_enabled"]
             
 def update_role(role_id):
     filepath = f"{DIR}/data/roles/{role_id}.json"

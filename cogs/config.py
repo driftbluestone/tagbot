@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 from api import gui
 from utils import users, config
-from modules.permission_panels import UserPermissionPanel, RolePanel
+from modules.permission_panels import UserPermissionPanel, RolePanel, DefaultPermissionPanel
 from pathlib import Path
 DIR = Path(__file__).absolute().parent.parent
 
@@ -14,7 +14,13 @@ class Config(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    permissions = app_commands.Group(name="permissions", description=".")
+    permissions = app_commands.Group(name="permissions", description=".", )
+
+    @app_commands.command(name="permissions", description="Manage default permissions")
+    async def permissions(self, interaction: discord.Interaction):
+        if not await users.permission_check(interaction.user.id, "edit_permissions"):
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        await interaction.response.send_message(view=DefaultPermissionPanel(interaction))
 
     @permissions.command(name="user", description="Configure user permissions")
     async def user(self, interaction: discord.Interaction, target: typing.Optional[discord.Member]):
