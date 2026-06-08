@@ -54,6 +54,11 @@ async def permission_check(user_id: int, permission: str) -> bool:
     if profile_permission is not None:
         return profile_permission
     
+    # safety
+    if "roles" not in user_profile:
+        user_profile["roles"] = [role.id for role in bot.guilds[0].get_member(user_id).roles]
+        save_user_profile(user_profile)
+    
     # role layer
     for role in reversed(user_profile["roles"]):
         filepath = f"{DIR}/data/roles/{role}"
