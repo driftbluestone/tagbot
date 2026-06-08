@@ -19,7 +19,7 @@ next_perm = {
 }
 
 class DefaultPermissionPanel(gui.MenuGUI):
-    def __init__(self, interaction: discord.Interaction, _: None, page: int = 1):
+    def __init__(self, interaction: discord.Interaction, _ = None, page: int = 1):
         perms = list(config.permissions_config.keys())
         super().__init__(interaction=interaction, interaction_permission="edit_permissions", page=page, element_count=len(perms))
         perms = perms[((self.page-1)*10):(self.page*10)]
