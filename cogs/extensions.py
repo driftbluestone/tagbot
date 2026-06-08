@@ -32,8 +32,10 @@ class Extensions(commands.Cog):
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         repo_name = repo.split("/")[-1]
+        await log(f"Updating extension {repo_name} from {repo}.", interaction)
         await uninstall(interaction, repo_name, True, True)
         await self.download_repo(interaction, repo, True)
+        await log(f"Updated extension {repo_name} from {repo}.", interaction)
 
     @extension.command(name="add", description="Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
