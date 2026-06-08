@@ -8,7 +8,7 @@ from utils.logger import log
 
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
-typing.Op
+
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
     await load_extensions()
@@ -32,7 +32,8 @@ class Extensions(commands.Cog):
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         repo_name = repo.split("/")[-1]
-        await log(f"Updating extension {repo_name} from {repo}.", interaction)
+        await interaction.response.send_message(f"Updating extension {repo_name} from {repo}.")
+        await log(f"Updating extension {repo_name} from {repo}.")
         await uninstall(interaction, repo_name, True, True)
         await self.download_repo(interaction, repo, True)
         await log(f"Updated extension {repo_name} from {repo}.", interaction)
