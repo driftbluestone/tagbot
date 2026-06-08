@@ -17,7 +17,7 @@ def get_user_profile(user_id: int) -> dict:
         user["id"] = user_id
         return permissions(user)
     
-def permissions(user):
+def permissions(user: dict):
     for k in config.permissions_config:
         if k in user["permissions"]:
             continue
@@ -30,7 +30,8 @@ def save_user_profile(user):
         json.dump(user, file, indent=2)
     return user
 
-async def permission_check(user_id: int, permission: str) -> bool:
+ternary = bool | None
+async def permission_check(user_id: int, permission: ternary) -> bool:
     if permission is None:
         return True
     if user_id in config.server_config["bot_admins"]:

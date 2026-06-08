@@ -1,5 +1,10 @@
 # Sonny
-This is the bot used in the [AstroGreg discord](https://discord.gg/dUaZeV6Drp)
+This is the bot used in the [AstroGreg discord](https://discord.gg/dUaZeV6Drp) and the [StarT: Beyond discord](https://discord.gg/2fUC7csVn9)
+
+## Features:
+* Message link embedding
+* Extension framework to easily add your own features
+* Custom permissions system that integrates with discords roles
 
 ## Usage Guide
 ### Permissions
@@ -12,9 +17,9 @@ This is the bot used in the [AstroGreg discord](https://discord.gg/dUaZeV6Drp)
 * Bot admins can only be created by adding the user id to the bot admins list in config.json
 * NEVER give this permission to people you do not trust, this permission gives them access to download and execute arbitrary github repositories
 ### Extensions
-* A system for adding to bot functionality without interfering with the core bot logic
+* A system for adding to bot functionality without
 * Extensions can *only* be managed by bot admins
-* Using /extension-add requires that you paste a github link in, which will then install the extension from that repo
+* Using `/extension add` requires that you paste a github link in, which will then install the extension from that repo
 
 ## Setup Guide
 ### Requirements
