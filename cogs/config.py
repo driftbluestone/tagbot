@@ -1,9 +1,8 @@
-import discord, typing, os, psutil
+import discord, os, psutil
 from discord import app_commands
 from discord.ext import commands
 from api import gui
-from utils import users, config
-from modules.permission_panels import UserPermissionPanel, RolePanel, DefaultPermissionPanel
+from utils import config
 from pathlib import Path
 DIR = Path(__file__).absolute().parent.parent
 
@@ -13,28 +12,6 @@ async def setup(bot: commands.Bot) -> None:
 class Config(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    permissions = app_commands.Group(name="permissions", description=".")
-
-    @permissions.command(name="default", description="Manage default permissions")
-    async def default(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user.id, "edit_permissions"):
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.send_message(view=DefaultPermissionPanel(interaction))
-
-    @permissions.command(name="user", description="Configure user permissions")
-    async def user(self, interaction: discord.Interaction, target: typing.Optional[discord.Member]):
-        if not await users.permission_check(interaction.user.id, "edit_permissions"):
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        if target == None:
-            target = interaction.user
-        await interaction.response.send_message(content = f"Permissions for: {target.mention}",view=UserPermissionPanel(interaction, target))
-    
-    @permissions.command(name="roles", description="Configure role permissions")
-    async def roles(self, interaction: discord.Interaction):
-        if not await users.permission_check(interaction.user.id, "edit_permissions"):
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.send_message(view=RolePanel(interaction))
 
     diagnostics = app_commands.Group(name="diagnostics", description="View bot information")
 
