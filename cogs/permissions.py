@@ -7,7 +7,13 @@ from modules.bot import bot
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(Permissions(bot=bot))
+
 class Permissions(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+    
     permissions = app_commands.Group(name="permissions", description=".")
 
     @permissions.command(name="default", description="Manage default permissions")
