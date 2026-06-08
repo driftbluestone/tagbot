@@ -35,8 +35,8 @@ async def permission_check(user_id: int, permission: str) -> bool:
     if permission is None:
         return True
     # Bot admin bypass check
-    if user_id in config.server_config["bot_admins"]:
-        return True
+    # if user_id in config.server_config["bot_admins"]:
+    #     return True
     
     user_profile = get_user_profile(user_id)
 
@@ -46,6 +46,7 @@ async def permission_check(user_id: int, permission: str) -> bool:
     
     # user layer
     # discord eqivalent permissions
+    user = None
     if config.permissions_config[permission]["discord_equivalent"] != None:
         user: discord.Member = bot.guilds[0].get_member(user_id)
         discord_permissions = getattr(user.guild_permissions, config.permissions_config[permission]["discord_equivalent"], None)
@@ -62,6 +63,8 @@ async def permission_check(user_id: int, permission: str) -> bool:
         return profile_permission
     
     # role layer
+    if user is None:
+        user: discord.Member = bot.guilds[0].get_member(user_id)
     roles = list(reversed(user.roles)) 
     for role in roles:
         filepath = f"{DIR}/data/roles/{role.id}"
