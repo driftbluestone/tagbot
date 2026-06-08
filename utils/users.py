@@ -38,22 +38,12 @@ async def permission_check(user_id: int, permission: str) -> bool:
     # if user_id in config.server_config["bot_admins"]:
     #     return True
     
-    user_profile = get_user_profile(user_id)
-
     # Ensure permission exists
     if permission not in config.permissions_config:
         raise KeyError("Permission not found.")
     
-    # user layer
-    # discord eqivalent permissions
-    user = None
-    if config.permissions_config[permission]["discord_equivalent"] != None:
-        user: discord.Member = bot.guilds[0].get_member(user_id)
-        discord_permissions = getattr(user.guild_permissions, config.permissions_config[permission]["discord_equivalent"], None)
-        if discord_permissions is not None:
-            return discord_permissions
-    
-    # sonny permissions
+    # local user layer
+    user_profile = get_user_profile(user_id)
     try:
         profile_permission = user_profile["permissions"][permission]
     except:
@@ -61,6 +51,14 @@ async def permission_check(user_id: int, permission: str) -> bool:
         profile_permission = user_profile["permissions"][permission]
     if profile_permission is not None:
         return profile_permission
+    
+    # discord eqivalent permissions
+    user = None
+    if config.permissions_config[permission]["discord_equivalent"] != None:
+        user: discord.Member = bot.guilds[0].get_member(user_id)
+        discord_permissions = getattr(user.guild_permissions, config.permissions_config[permission]["discord_equivalent"], None)
+        if discord_permissions is True:
+            return True
     
     # role layer
     if user is None:
