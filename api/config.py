@@ -56,7 +56,6 @@ def set(field: str, data):
     with open(f"{DIR}/data/extensions/{extension}/config.json", "w") as file:
         json.dump(cfg, file, indent=2)
 
-
 def overwrite(data: dict) -> None:
     """
     Overwrite all config data
@@ -64,3 +63,10 @@ def overwrite(data: dict) -> None:
     extension = ext()
     with open(f"{DIR}/data/extensions/{extension}/config.json", "w") as file:
         json.dump(data, file, indent=2)
+
+def datadir() -> Path:
+    """
+    Get the direct path to the /data/extension/name folder
+    """
+    extension = ext()
+    return Path(f"{DIR}/data/extensions/{extension}")
