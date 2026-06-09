@@ -4,11 +4,10 @@ from typing import Any
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 
-def create_field(name: str | list[str], data: type|Any | list[type|Any]) -> bool:
+def create_field(name: str, data: type|Any) -> bool:
     """
     Define a new field for storing data in the extension config file.
     data must be (of) a json compatible type.
-    To register multiple data fields at once, both name and data must be lists, and must be equal in length
     """
     extension = ext()
     path = Path(f"{DIR}/data/extensions/{extension}")
@@ -27,11 +26,8 @@ def create_field(name: str | list[str], data: type|Any | list[type|Any]) -> bool
             return True
         return False
     
-    if isinstance(name, list):
-        for nm, dt in zip(name, data, strict=True):
-            if not _register(nm, dt): return False
-    else:
-        if not _register(name, data): return False
+    if not _register(name, data):
+        return False
     with open(path, "w") as file:
         json.dump(config, file, indent=2)
     return True
