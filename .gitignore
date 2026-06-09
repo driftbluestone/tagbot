@@ -2,16 +2,13 @@ TOKEN.txt
 tags
 users
 history
-!modules/tags
 extensions/*
 __pycache__
-config.json
-!data/static/*
+data
 .vscode
 .log
 run.spec
 build
 bundler
 dist
-data
 readme.txt

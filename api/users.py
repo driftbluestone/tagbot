@@ -5,16 +5,17 @@ from utils import users, config
 from modules.bot import bot
 DIR = Path(__file__).resolve().parent.parent
 
-def new_data_field(name: str | list[str], data_type: type | list[type]) -> bool:
+def new_data_field(name: str, data_type: type) -> bool:
     """
     Define a new field for storing data in user json files.
     data_type must be a json compatible type.
 
-    To register multiple data fields at once, both name and data_type must be lists, and must be equal in length.
-
     If any data fields are already in the user config file, the registration will fail and the function will return False.
     """
-    extension = ext()
+    if ":" not in name:
+        extension = ext()
+    else:
+        extension, name = name.split(":")
     
     def _register(name: str, data_type: type) -> bool:
         id = f"{extension}:{name}"
@@ -23,11 +24,8 @@ def new_data_field(name: str | list[str], data_type: type | list[type]) -> bool:
             return True
         return False
     
-    if isinstance(name, list):
-        for nm, dt in zip(name, data_type, strict=True):
-            if not _register(nm, dt): return False
-    else:
-        if not _register(name, data_type): return False
+    if not _register(name, data_type):
+        return False
     config.save_user_config()
     return True
 
