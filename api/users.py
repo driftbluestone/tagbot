@@ -33,7 +33,7 @@ def new_data_field(name: str | list[str], data_type: type | list[type]) -> bool:
 
 async def has_permission(user_id: int, permission: str) -> bool:
     """
-    User permission check
+    User permission check, permission must be formatted as `namespace:permission`
     """
     return await users.permission_check(user_id, permission)
 

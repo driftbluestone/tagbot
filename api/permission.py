@@ -32,6 +32,6 @@ def override(namespace: str, permission: str, new_equiv: str) -> bool:
 
 async def check(user_id: int, permission: str) -> bool:
     """
-    User permission check
+    User permission check, permission must be formatted as `namespace:permission`
     """
     return await users.permission_check(user_id, permission)
