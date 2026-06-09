@@ -1,37 +1,69 @@
 import discord
-from datetime import datetime
+import logging
 from pathlib import Path
+from typing import Optional
+import inspect
 
 DIR = Path(__file__).resolve().parent.parent
-LOG_FILE = DIR / "data" / ".log"
 
-_file_initialized = False
-_lines: dict[int, list[str]] = {}
+class Logger:
+    def __init__(self):
+        logging.basicConfig(
+            filename=f"{DIR}/data/.log",
+            level=logging.DEBUG,
+            filemode='w'
+        )
+        self.logger = logging.getLogger(__name__)
+        self.buffers = {}
 
-def _format(msg: str) -> str:
-    now = datetime.now()
-    return f"{now.strftime('%Y-%m-%d %H:%M:%S')}.{now.microsecond // 1000:03d} - {msg}"
+    def _get_buffer(self, interaction: Optional[discord.Interaction]) -> list:
+        if not interaction:
+            return None
+        if interaction.id not in self.buffers:
+            self.buffers[interaction.id] = []
+        return self.buffers[interaction.id]
 
-def _write_file(line: str):
-    global _file_initialized
-    mode = "a" if _file_initialized else "w"
-    _file_initialized = True
-    with open(LOG_FILE, mode) as f:
-        f.write(line + "\n")
+    async def _log_to_discord(self, msg: str, interaction: Optional[discord.Interaction] = None) -> None:
+        if not interaction:
+            return
+        try:
+            buffer = self._get_buffer(interaction)
+            buffer.append(msg)
+            content = "\n".join(buffer)
+            await interaction.edit_original_response(content=content)
+        except discord.errors.NotFound:
+            self.logger.warning("Interaction not found or has expired")
+        except Exception as e:
+            self.logger.error(f"Failed to log to Discord: {e}")
 
-async def log(msg: str, interaction: discord.Interaction | None = None):
-    line = _format(msg)
-    if interaction is None:
-        print(line)
-        _write_file(line)
-    else:
-        id = interaction.id
-        if id not in _lines:
-            _lines[id] = []
-        _lines[id].append(line)
-        await interaction.edit_original_response(content="\n".join(_lines[id]))
+    async def _log(
+        self,
+        msg: str,
+        level: int,
+        interaction: Optional[discord.Interaction] = None
+    ) -> None:
+        self.logger.log(level, msg, stacklevel=5)
+        if interaction:
+            await self._log_to_discord(msg, interaction)
 
-def log_sync(msg: str):
-    line = _format(msg)
-    print(line)
-    _write_file(line)
+    async def debug(self, msg: str, i: Optional[discord.Interaction] = None) -> None:
+        await self._log(msg, logging.DEBUG, i)
+
+    async def info(self, msg: str, i: Optional[discord.Interaction] = None) -> None:
+        await self._log(msg, logging.INFO, i)
+
+    async def warning(self, msg: str, i: Optional[discord.Interaction] = None) -> None:
+        await self._log(msg, logging.WARNING, i)
+
+    async def warn(self, msg: str, i: Optional[discord.Interaction] = None) -> None:
+        await self.warning(msg, i)
+
+    async def error(self, msg: str, i: Optional[discord.Interaction] = None) -> None:
+        await self._log(msg, logging.ERROR, i)
+
+    async def critical(self, msg: str, i: Optional[discord.Interaction] = None) -> None:
+        await self._log(msg, logging.CRITICAL, i)
+
+    def clear_buffer(self, interaction: discord.Interaction) -> None:
+        if interaction.id in self.buffers:
+            del self.buffers[interaction.id]
