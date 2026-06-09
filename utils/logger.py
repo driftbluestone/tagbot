@@ -13,7 +13,7 @@ class Logger:
             level=logging.DEBUG,
             filemode='w'
         )
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger("")
         self.buffers = {}
 
     def _get_buffer(self, interaction: Optional[discord.Interaction]) -> list:
@@ -36,12 +36,7 @@ class Logger:
         except Exception as e:
             self.logger.error(f"Failed to log to Discord: {e}")
 
-    async def _log(
-        self,
-        msg: str,
-        level: int,
-        interaction: Optional[discord.Interaction] = None
-    ) -> None:
+    async def _log(self, msg: str, level: int, interaction: Optional[discord.Interaction] = None ) -> None:
         self.logger.log(level, msg, stacklevel=5)
         if interaction:
             await self._log_to_discord(msg, interaction)

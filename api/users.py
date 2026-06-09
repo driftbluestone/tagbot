@@ -69,6 +69,12 @@ def set_field(user_id: int, field, data):
     with open(f"{DIR}/data/users/{user_id}.json", "w") as file:
         json.dump(user, file, indent=2)
 
+def overwrite(user: dict) -> dict:
+    """
+    Overwrite all data for this user
+    """
+    return users.save_user_profile(user)
+
 def toggle_permission(user_id: int, permission) -> bool:
     """
     Toggle user permission. Returns the updated value.
