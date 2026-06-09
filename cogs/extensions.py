@@ -4,7 +4,8 @@ from discord.ext import commands
 from modules.bot import bot
 from api import gui
 from utils.config import server_config, save_server_config
-from utils.logger import log
+from utils.logger import Logger
+LOGGER = Logger()
 
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
@@ -35,10 +36,10 @@ class Extensions(commands.Cog):
         if repo_name not in server_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await interaction.response.send_message(f"Updating extension {repo_name} from {repo}.")
-        await log(f"Updating extension {repo_name} from {repo}.")
+        await LOGGER.info(f"Updating extension {repo_name} from {repo}.")
         await uninstall(interaction, repo_name, True, True)
         await self.download_repo(interaction, repo, True)
-        await log(f"Updated extension {repo_name} from {repo}.", interaction)
+        await LOGGER.info(f"Updated extension {repo_name} from {repo}.", interaction)
 
     @extension.command(name="add", description="Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
@@ -51,15 +52,12 @@ class Extensions(commands.Cog):
     async def download_repo(self, interaction: discord.Interaction, repo: str, silent: bool = False):
         repo_name = repo.split("/")[-1]
         if os.path.isdir(f"{DIR}/extensions/{repo_name}"):
-            return await log("Extension already installed.")
+            return await LOGGER.warn("Extension already installed.")
         os.mkdir(f"{DIR}/extensions/{repo_name}")
-        if not silent:
-            await interaction.response.send_message("Installing...")
-            await Installer(interaction, repo).install_extension()
-        else:
-            await Installer(None, repo).install_extension()
+        await interaction.response.send_message("Installing...")
+        await Installer(None if silent else interaction, repo).install_extension()
         await load_extensions()
-        
+
     @extension.command(name="delete", description="Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
         if not interaction.user.id in server_config["bot_admins"]:
@@ -88,15 +86,19 @@ class Installer:
             return str(e)
 
     async def install_extension(self):
-        await log(f"Cloning {self.extension} from {self.repo}...", self.interaction)
+        # await log(f"Cloning {self.extension} from {self.repo}...", self.interaction)
         output = await self.subprocess(["git", "clone", self.repo, f"{DIR}/extensions/{self.extension}"])
-        await log(output.strip(), self.interaction)
+        await LOGGER.info(output.strip(), self.interaction)
+        if os.path.exists(Path(f"{DIR}/extensions/{self.extension}/main.py")):
+            await LOGGER.info(f"Installed {self.extension}", self.interaction)
+        else:
+            await LOGGER.error(f"Failed to install {self.extension}", self.interaction)
+            await uninstall(self.interaction, self.extension)
         await self.dependencies()
 
     async def dependencies(self):
         filepath = f"{DIR}/extensions/{self.extension}/dependencies.json"
         if not os.path.exists(filepath):
-            await log(f"Installed {self.ext}.", self.interaction)
             return
 
         with open(filepath, "r") as file:
@@ -109,22 +111,22 @@ class Installer:
         if "extension" in requirements:
             for extension in requirements["extension"]:
                 self.extension = extension
-                await log(f"Extension dependency found: {extension}. Installing...", self.interaction)
+                await LOGGER.info(f"Extension dependency found: {extension}. Installing...", self.interaction)
                 await self.install_extension()
-                await log(f"Extension dependency installed: {extension}.", self.interaction)
+                await LOGGER.info(f"Extension dependency installed: {extension}.", self.interaction)
 
         if "other" in requirements:
             for other in requirements["other"]:
-                await log(f"Other dependency '{other}' requires manual installation.", self.interaction)
+                await LOGGER.warn(f"Other dependency '{other}' requires manual installation.", self.interaction)
 
-        await log(f"Installed {self.ext} from {self.repo}.", self.interaction)
+        await LOGGER.info(f"Installed {self.ext} from {self.repo}.", self.interaction)
 
     async def install_pip(self, pip: str):
-        await log(f"Installing pip dependency: {pip}...", self.interaction)
+        await LOGGER.info(f"Installing pip dependency: {pip}...", self.interaction)
         output = await self.subprocess(["python3", "-m", "pip", "install", pip])
-        await log(output.strip(), self.interaction)
-        await log(f"Pip dependency installed: {pip}.", self.interaction)
-    
+        await LOGGER.info(output.strip(), self.interaction)
+        await LOGGER.info(f"Pip dependency installed: {pip}.", self.interaction)
+
 class ExtensionManager(gui.MenuGUI):
     """Manage which extensions are enabled or disabled via /extension toggle"""
     def __init__(self, interaction, _ = None, page = 1):
@@ -154,7 +156,7 @@ class ExtensionManager(gui.MenuGUI):
             await bot.unload_extension(f"extensions.{extension}.main")
         await resync_commands()
 
-        await log(f"Extension '{extension}' {state}.")
+        await LOGGER.info(f"Extension '{extension}' {state}.")
         save_server_config()
 
 async def load_extensions():
@@ -167,20 +169,20 @@ async def load_extensions():
                 pass
             if os.path.exists(f"{DIR}/extensions/{i}/init.py"):
                 importlib.import_module(f"extensions.{i}.init")
-            save_server_config()
-            await log(f"Registered new extension: {i}.")
+                save_server_config()
+                await LOGGER.info(f"Registered new extension: {i}.")
 
         if server_config["extensions"][i]:
             try:
                 await reload_modules(i)
                 await bot.load_extension(f"extensions.{i}.main")
-                await log(f"Loaded extension: {i}.")
+                await LOGGER.info(f"Loaded extension: {i}.")
             except Exception as e:
-                await log(f"Failed to load extension {i}: {e}")
+                await LOGGER.error(f"Failed to load extension {i}: {e}")
         else:
             try:
                 await bot.unload_extension(f"extensions.{i}.main")
-                await log(f"Unloaded extension: {i}.")
+                await LOGGER.info(f"Unloaded extension: {i}.")
             except:
                 pass
     await resync_commands()
@@ -188,9 +190,9 @@ async def load_extensions():
 async def resync_commands():
     try:
         synced = await bot.tree.sync()
-        await log(f"Synced {len(synced)} commands.")
+        await LOGGER.info(f"Synced {len(synced)} commands.")
     except Exception as e:
-        await log(f"Failed to sync commands: {e}")
+        await LOGGER.error(f"Failed to sync commands: {e}")
 
 async def reload_modules(extension_name: str):
     extension_prefix = f"extensions.{extension_name}"
@@ -224,7 +226,7 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
                 permissions.pop(k)
         with open(f"{DIR}/data/static/permissions.json", "w") as file:
             json.dump(permissions, file)
-        
+
         # remove user fields
         with open(f"{DIR}/data/static/user.json", "r") as file:
             users: dict = json.load(file)
@@ -239,4 +241,4 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
     shutil.rmtree(f'{DIR}/extensions/{extension}', onexc=_remove_readonly)
     if not silent:
         await interaction.followup.send(f":white_check_mark: Extension **{extension}** deleted.")
-
+        await LOGGER.info(f"Uninstalled {extension}")

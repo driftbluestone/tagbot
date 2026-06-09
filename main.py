@@ -4,6 +4,8 @@ from modules.bot import bot
 from modules import editing
 from utils import message_embed, config, logger
 
+LOGGER = logger.Logger()
+
 DIR = pathlib.Path(__file__).resolve().parent
 if not os.path.exists(f"{DIR}/TOKEN.txt"):
     with open(f"{DIR}/TOKEN.txt", "w") as file:
@@ -35,13 +37,13 @@ async def on_message(message: discord.Message):
         if message.reference == None: return
         return await editing.create_reply_json(message.id, message.reference.message_id)
     return await message_embed.message_reply(message)
-    
+
 @bot.event
 async def on_message_edit(previous: discord.Message, current: discord.Message):
     if previous.author.bot: return
     if previous.content == current.content: return
     await editing.new_edit(current)
-    
+
 @bot.event
 async def on_message_delete(message: discord.Message):
     if message.author.bot: return
@@ -53,10 +55,10 @@ async def on_command_error(ctx: commands.Context, error: Exception):
         if isinstance(error.original, RecursionError):
             return await ctx.reply("Error: Recursion limit reached.")
         else:
-            await logger.log("".join(traceback.format_exception(error)))
+            await LOGGER.error("".join(traceback.format_exception(error)))
             raise error
     else:
-        await logger.log("".join(traceback.format_exception(error)))
+        await LOGGER.error("".join(traceback.format_exception(error)))
         raise error
 
 bot.run(TOKEN)
