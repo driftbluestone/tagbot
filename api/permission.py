@@ -1,6 +1,7 @@
-from pathlib import Path
+import asyncio
 from utils import users, config
 from api import _ext as ext
+from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 
 def create(name: str, display_name: str, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True) -> bool:
@@ -32,6 +33,10 @@ def override(namespace: str, permission: str, new_equiv: str) -> bool:
 
 async def check(user_id: int, permission: str) -> bool:
     """
-    User permission check, permission must be formatted as `namespace:permission`
+    User permission check.
+    This function must be called using await.
     """
-    return await users.permission_check(user_id, permission)
+    if ":" not in permission:
+        extension = ext()
+        permission = f"{extension}:{permission}"
+    return asyncio.create_task(users.permission_check(user_id, permission))

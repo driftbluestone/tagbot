@@ -1,4 +1,4 @@
-import json, discord, os
+import json, discord, os, asyncio
 from api import _ext as ext
 from pathlib import Path
 from utils import users, config
@@ -30,21 +30,26 @@ def new_data_field(name: str, data_type: type) -> bool:
     config.save_user_config()
 
     # update existing user files
-    filepath = f"{DIR}/data/users"
+    filepath = Path(f"{DIR}/data/users")
     for file in os.listdir(filepath):
-        with open(f"{filepath}/{file}", "r") as file:
+        with open(f"{filepath}/{file}", "r", encoding="utf-8") as file:
             user = json.load(file)
         user[id] = data_type()
-        with open(f"{filepath}/{file}", "w") as file:
+        with open(f"{filepath}/{file}", "w", encoding="utf-8") as file:
             json.dump(user, file)
 
     return True
 
-async def has_permission(user_id: int, permission: str) -> bool:
+def has_permission(user_id: int, permission: str) -> bool:
     """
-    User permission check, permission must be formatted as `namespace:permission`
+    User permission check.
+    This function must be called using await.
     """
-    return await users.permission_check(user_id, permission)
+    if ":" not in permission:
+        extension = ext()
+        permission = f"{extension}:{permission}"
+    return asyncio.create_task(users.permission_check(user_id, permission))
+    
 
 def get(user_id: int) -> dict:
     """
