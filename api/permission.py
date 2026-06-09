@@ -5,7 +5,7 @@ DIR = Path(__file__).resolve().parent.parent
 
 def create(name: str, display_name: str, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True) -> bool:
     """
-    Register a new permission, setting discord_equivalent to None will also make the permission enabled by default
+    Register a new permission
     """
     extension = ext()
     
