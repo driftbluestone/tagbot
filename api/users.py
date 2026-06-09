@@ -1,4 +1,4 @@
-import json, discord
+import json, discord, os
 from api import _ext as ext
 from pathlib import Path
 from utils import users, config
@@ -17,16 +17,27 @@ def new_data_field(name: str, data_type: type) -> bool:
     else:
         extension, name = name.split(":")
     
-    def _register(name: str, data_type: type) -> bool:
-        id = f"{extension}:{name}"
+    def _register(id: str, data_type: type) -> bool:
         if id not in config.user_config:
             config.user_config[id] = data_type()
             return True
         return False
     
-    if not _register(name, data_type):
+    id = f"{extension}:{name}"
+    if not _register(id, data_type):
         return False
+    
     config.save_user_config()
+
+    # update existing user files
+    filepath = f"{DIR}/data/users"
+    for file in os.listdir(filepath):
+        with open(f"{filepath}/{file}", "r") as file:
+            user = json.load(file)
+        user[id] = data_type()
+        with open(f"{filepath}/{file}", "w") as file:
+            json.dump(user, file)
+
     return True
 
 async def has_permission(user_id: int, permission: str) -> bool:
