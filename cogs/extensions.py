@@ -32,6 +32,8 @@ class Extensions(commands.Cog):
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         repo_name = repo.split("/")[-1]
+        if repo_name not in server_config["extensions"].keys():
+            return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await interaction.response.send_message(f"Updating extension {repo_name} from {repo}.")
         await log(f"Updating extension {repo_name} from {repo}.")
         await uninstall(interaction, repo_name, True, True)
