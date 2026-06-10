@@ -45,13 +45,16 @@ def has_permission(user_id: int, permission: str) -> bool:
     User permission check.
     This function must be called using await.
     """
+    # i hate async i hate async i hate async
     if permission is None:
-        return True
+        future = asyncio.get_running_loop().create_future()
+        future.set_result(True)
+        return future
     if ":" not in permission:
         extension = ext()
         permission = f"{extension}:{permission}"
     return asyncio.create_task(users.permission_check(user_id, permission))
-    
+
 def get(user_id: int) -> dict:
     """
     Get sonny user profile
