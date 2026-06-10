@@ -54,7 +54,8 @@ class Extensions(commands.Cog):
         if os.path.isdir(f"{DIR}/extensions/{repo_name}"):
             return await LOGGER.warn("Extension already installed.")
         os.mkdir(f"{DIR}/extensions/{repo_name}")
-        await interaction.response.send_message("Installing...")
+        if not silent:
+            await interaction.response.send_message("Installing...")
         await Installer(None if silent else interaction, repo).install_extension()
         await load_extensions()
 
