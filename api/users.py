@@ -45,6 +45,8 @@ def has_permission(user_id: int, permission: str) -> bool:
     User permission check.
     This function must be called using await.
     """
+    if permission is None:
+        return True
     if ":" not in permission:
         extension = ext()
         permission = f"{extension}:{permission}"
