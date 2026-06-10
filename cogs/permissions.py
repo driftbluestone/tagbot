@@ -101,7 +101,7 @@ class UserPermissionPanel(gui.MenuGUI):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         perm = interaction.data["custom_id"]
-        if config.permissions_config[perm]["toggleable"] or self.user_profile["id"] in config.server_config["bot_admins"]:
+        if config.permissions_config[perm]["toggleable"] or interaction.user.id in config.server_config["bot_admins"]:
             self.user_profile["permissions"][perm] = next_perm[self.user_profile["permissions"][perm]]
             users.save_user_profile(self.user_profile)
         else:
