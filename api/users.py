@@ -30,12 +30,12 @@ def new_data_field(name: str, data_type: type) -> bool:
     config.save_user_config()
 
     # update existing user files
-    filepath = Path(f"{DIR}/data/users")
-    for file in os.listdir(filepath):
-        with open(f"{filepath}/{file}", "r", encoding="utf-8") as file:
+
+    for user_file in os.listdir(f"{DIR}/data/users"):
+        with open(f"{DIR}/data/users/{user_file}", "r", encoding="utf-8") as file:
             user = json.load(file)
         user[id] = data_type()
-        with open(f"{filepath}/{file}", "w", encoding="utf-8") as file:
+        with open(f"{DIR}/data/users/{user_file}", "w", encoding="utf-8") as file:
             json.dump(user, file)
 
     return True
@@ -50,7 +50,6 @@ def has_permission(user_id: int, permission: str) -> bool:
         permission = f"{extension}:{permission}"
     return asyncio.create_task(users.permission_check(user_id, permission))
     
-
 def get(user_id: int) -> dict:
     """
     Get sonny user profile

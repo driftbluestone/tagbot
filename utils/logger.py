@@ -13,7 +13,7 @@ class Logger:
             level=logging.DEBUG,
             filemode='w'
         )
-        self.logger = logging.getLogger("")
+        self.logger = logging.getLogger(":")
         self.buffers = {}
 
     def _get_buffer(self, interaction: Optional[discord.Interaction]) -> list:
