@@ -34,8 +34,6 @@ def save_user_profile(user: dict) -> dict:
 
 ternary = bool | None
 async def permission_check(user_id: int, permission: str) -> bool:
-    if permission is None:
-        return True
     # Bot admin bypass check
     if user_id in config.server_config["bot_admins"]:
         return True
