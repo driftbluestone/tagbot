@@ -24,6 +24,12 @@ except ModuleNotFoundError:
     print("Module 'psutil' not found. Installing")
     print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psutil"])))
 
+try:
+    import orjson
+except ModuleNotFoundError:
+    print("Module 'psutil' not found. Installing")
+    print(asyncio.run(run([sys.executable, "-m", "pip", "install", "orjson"])))
+
 vinf = sys.version_info
 REQUIRED_VER = (3, 14)
 VER = (vinf.major, vinf.minor)
