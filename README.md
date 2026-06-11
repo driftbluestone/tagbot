@@ -9,8 +9,15 @@ This is the bot used in the [AstroGreg discord](https://discord.gg/dUaZeV6Drp) a
 ## Usage Guide
 ### Permissions
 * Accessed by using the /permissions command
-* Requires administrator permission or the edit permissions bot permission
-* The optional user input field allows managing the permissions of other users
+* Requires accessor to be a bot admin or to have the edit permissions bot permission
+* `/permissions default` modifies default permissions
+* `/permissions roles` modifies permissions that roles have
+* `/permissions user` modifies a specific user's permissions,
+* **Permissions can be red, blue, or green**
+* Red is explicit denial
+* Blue means that the bot will check the next layer of permissions
+* Green is explicit alowance
+* Permission higherarcy is user -> roles -> default
 #### Bot admins
 * Bot admins bypass all permission checks
 * They are also the only people who can manage bot extensions, not even server administrators can
