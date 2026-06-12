@@ -1,12 +1,11 @@
-import discord, os, asyncio, importlib, json, sys, shutil, typing
+import discord, os, asyncio, importlib, sys, shutil, typing
 from discord import app_commands
 from discord.ext import commands
 from modules.bot import bot
-from api import gui
-from utils.config import server_config, save_server_config
+from utils import config, jsonIO
 from utils.logger import Logger
 LOGGER = Logger()
-
+from api import gui
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 
@@ -21,19 +20,19 @@ class Extensions(commands.Cog):
 
     @extension.command(name="toggle", description="Toggle extensions")
     async def extension_toggle(self, interaction: discord.Interaction):
-        if not interaction.user.id in server_config["bot_admins"]:
+        if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         view = ExtensionManager(interaction)
         return await interaction.response.send_message(view=view)
 
     @extension.command(name="update", description="Update extensions")
     async def extension_update(self, interaction: discord.Interaction, repo: str):
-        if not interaction.user.id in server_config["bot_admins"]:
+        if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         repo_name = repo.split("/")[-1]
-        if repo_name not in server_config["extensions"].keys():
+        if repo_name not in config.server_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await interaction.response.send_message(f"Updating extension {repo_name} from {repo}.")
         await LOGGER.info(f"Updating extension {repo_name} from {repo}.")
@@ -43,7 +42,7 @@ class Extensions(commands.Cog):
 
     @extension.command(name="add", description="Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
-        if not interaction.user.id in server_config["bot_admins"]:
+        if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
@@ -61,9 +60,9 @@ class Extensions(commands.Cog):
 
     @extension.command(name="delete", description="Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
-        if not interaction.user.id in server_config["bot_admins"]:
+        if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        if extension not in server_config["extensions"].keys():
+        if extension not in config.server_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await uninstall(interaction, extension, save_data)
 
@@ -101,9 +100,7 @@ class Installer:
         filepath = f"{DIR}/extensions/{self.extension}/dependencies.json"
         if not os.path.exists(filepath):
             return
-
-        with open(filepath, "r") as file:
-            requirements = json.load(file)
+        requirements = jsonIO.load(filepath)
 
         if "pip" in requirements:
             for pip in requirements["pip"]:
@@ -131,26 +128,26 @@ class Installer:
 class ExtensionManager(gui.MenuGUI):
     """Manage which extensions are enabled or disabled via /extension toggle"""
     def __init__(self, interaction, _ = None, page = 1):
-        super().__init__(interaction=interaction, element_count=len(server_config["extensions"].keys()), page=page)
-        extensions = list(server_config["extensions"].keys())
+        super().__init__(interaction=interaction, element_count=len(config.server_config["extensions"].keys()), page=page)
+        extensions = list(config.server_config["extensions"].keys())
         extensions = extensions[((self.page-1)*10):(self.page*10)]
         for extension in extensions:
-            buttonstyle = discord.ButtonStyle.success if server_config["extensions"][extension] else discord.ButtonStyle.danger
+            buttonstyle = discord.ButtonStyle.success if config.server_config["extensions"][extension] else discord.ButtonStyle.danger
             button = discord.ui.Button(label = extension, style=buttonstyle, custom_id=extension)
             button.callback = self.button_callback
             self.add_item(button)
 
     async def button_callback(self, interaction: discord.Interaction):
-        if not interaction.user.id in server_config["bot_admins"]:
+        if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission." ,ephemeral=True)
         extension = interaction.data["custom_id"]
-        server_config["extensions"][extension] = not server_config["extensions"][extension]
-        state = "enabled" if server_config["extensions"][extension] else "disabled"
+        config.server_config["extensions"][extension] = not config.server_config["extensions"][extension]
+        state = "enabled" if config.server_config["extensions"][extension] else "disabled"
         view = ExtensionManager(self.interaction, self.page)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await self.interaction.edit_original_response(view=view)
 
-        if server_config["extensions"][extension]:
+        if config.server_config["extensions"][extension]:
             await reload_modules(extension)
             await bot.load_extension(f"extensions.{extension}.main")
         else:
@@ -158,22 +155,22 @@ class ExtensionManager(gui.MenuGUI):
         await resync_commands()
 
         await LOGGER.info(f"Extension '{extension}' {state}.")
-        save_server_config()
+        config.save_server_config()
 
 async def load_extensions():
     for i in os.listdir(f"{DIR}/extensions"):
-        if i not in server_config["extensions"]:
-            server_config["extensions"][i] = True
+        if i not in config.server_config["extensions"]:
+            config.server_config["extensions"][i] = True
             try:
                 os.mkdir(f"{DIR}/data/extensions/{i}")
             except FileExistsError:
                 pass
             if os.path.exists(f"{DIR}/extensions/{i}/init.py"):
                 importlib.import_module(f"extensions.{i}.init")
-                save_server_config()
+                config.save_server_config()
                 await LOGGER.info(f"Registered new extension: {i}.")
 
-        if server_config["extensions"][i]:
+        if config.server_config["extensions"][i]:
             try:
                 await reload_modules(i)
                 await bot.load_extension(f"extensions.{i}.main")
@@ -208,8 +205,8 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
         os.chmod(path, 128)
         func(path)
 
-    server_config["extensions"].pop(extension)
-    save_server_config()
+    config.server_config["extensions"].pop(extension)
+    config.save_server_config()
     if not silent:
         await interaction.response.defer()
     try:
@@ -219,24 +216,19 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
 
     if not save_data:
         # remove permissions
-        with open(f"{DIR}/data/static/permissions.json", "r") as file:
-            permissions: dict = json.load(file)
-        permission_keys: list[str] = list(permissions.keys())
+        config.permissions_config
+        permission_keys: list[str] = list(config.permissions_config.keys())
         for k in permission_keys:
             if k.startswith(extension + ":"):
-                permissions.pop(k)
-        with open(f"{DIR}/data/static/permissions.json", "w") as file:
-            json.dump(permissions, file)
+                config.permissions_config.pop(k)
+        config.save_permisions_config()
 
         # remove user fields
-        with open(f"{DIR}/data/static/user.json", "r") as file:
-            users: dict = json.load(file)
-        user_keys: list[str] = list(users.keys())
+        user_keys: list[str] = list(config.user_config.keys())
         for k in user_keys:
             if k.startswith(extension + ":"):
-                users.pop(k)
-        with open(f"{DIR}/data/static/user.json", "w") as file:
-            json.dump(users, file)
+                config.user_config.pop(k)
+        config.save_user_config()
     # remove files
         shutil.rmtree(f'{DIR}/data/extensions/{extension}', onexc=_remove_readonly)
     shutil.rmtree(f'{DIR}/extensions/{extension}', onexc=_remove_readonly)

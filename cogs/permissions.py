@@ -1,9 +1,9 @@
-import discord, typing, json
+import discord, typing
 from discord import app_commands
 from discord.ext import commands
-from api import gui
-from utils import users, config
 from modules.bot import bot
+from utils import users, config, jsonIO
+from api import gui
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 
@@ -134,9 +134,7 @@ class RolePermissionPanel(gui.MenuGUI):
     def __init__(self, interaction: discord.Interaction, data_transfer: int, page: int = 1):
         perms = list(config.permissions_config.keys())
         super().__init__(interaction=interaction, interaction_permission="edit_permissions", data_transfer=data_transfer, page=page, element_count=len(perms))
-
-        with open(f"{DIR}/data/roles/{data_transfer}.json", "r") as file:
-            role = json.load(file)
+        role = jsonIO.load(f"{DIR}/data/roles/{data_transfer}.json")
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
             button = discord.ui.Button(label=config.permissions_config[perm]["display_name"], style=colors[role[perm]], custom_id=str(perm))
@@ -160,14 +158,12 @@ class RolePermissionPanel(gui.MenuGUI):
         
         perm = interaction.data["custom_id"]
         filepath = f"{DIR}/data/roles/{self.data_transfer}.json"
-        with open(filepath, "r") as file:
-            role = json.load(file)
+        role = jsonIO.load(filepath)
         if config.permissions_config[perm]["toggleable"] or interaction.user.id in config.server_config["bot_admins"]:
             role[perm] = next_perm[role[perm]]
         else:
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
-        with open(filepath, "w") as file:
-            json.dump(role, file, indent=2)
+        jsonIO.dump(filepath, role)
         view = RolePermissionPanel(self.interaction, self.data_transfer)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await self.interaction.edit_original_response(view=view)
