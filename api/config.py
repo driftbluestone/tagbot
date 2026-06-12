@@ -1,4 +1,4 @@
-import json, os
+import os
 from utils import jsonIO
 from api import _ext as ext
 from typing import Any
@@ -36,8 +36,7 @@ def get(namespace: str = None) -> dict:
     """
     if namespace is None:
         namespace = ext()
-    with open(f"{DIR}/data/extensions/{namespace}/config.json", "r") as file:
-        data: dict = json.load(file)
+    data = jsonIO.load(f"{DIR}/data/extensions/{namespace}/config.json")
     return data
 
 def set(field: str, data):
@@ -46,21 +45,18 @@ def set(field: str, data):
     Will raise a KeyError if the field is not in the config
     """
     extension = ext()
-    with open(f"{DIR}/data/extensions/{extension}/config.json", "r") as file:
-        cfg = json.load(file)
+    cfg = jsonIO.load(f"{DIR}/data/extensions/{extension}/config.json")
     if field not in cfg:
         raise KeyError
     cfg[field] = data
-    with open(f"{DIR}/data/extensions/{extension}/config.json", "w") as file:
-        json.dump(cfg, file, indent=2)
+    jsonIO.dump(f"{DIR}/data/extensions/{extension}/config.json", cfg)
 
 def overwrite(data: dict) -> None:
     """
     Overwrite all config data
     """
     extension = ext()
-    with open(f"{DIR}/data/extensions/{extension}/config.json", "w") as file:
-        json.dump(data, file, indent=2)
+    jsonIO.dump(f"{DIR}/data/extensions/{extension}/config.json", data)
 
 def datadir() -> Path:
     """

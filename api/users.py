@@ -1,8 +1,8 @@
-import json, discord, os, asyncio
+import discord, os, asyncio
+from modules.bot import bot
+from utils import users, config, jsonIO
 from api import _ext as ext
 from pathlib import Path
-from utils import users, config
-from modules.bot import bot
 DIR = Path(__file__).resolve().parent.parent
 
 def new_data_field(name: str, data_type: type) -> bool:
@@ -32,11 +32,9 @@ def new_data_field(name: str, data_type: type) -> bool:
     # update existing user files
 
     for user_file in os.listdir(f"{DIR}/data/users"):
-        with open(f"{DIR}/data/users/{user_file}", "r", encoding="utf-8") as file:
-            user = json.load(file)
+        user = jsonIO.load(f"{DIR}/data/users/{user_file}")
         user[id] = data_type()
-        with open(f"{DIR}/data/users/{user_file}", "w", encoding="utf-8") as file:
-            json.dump(user, file)
+        jsonIO.dump(f"{DIR}/data/users/{user_file}", user)
 
     return True
 
@@ -70,8 +68,7 @@ def set_field(user_id: int, field, data):
     if field not in user:
         raise KeyError
     user[field] = data
-    with open(f"{DIR}/data/users/{user_id}.json", "w") as file:
-        json.dump(user, file, indent=2)
+    jsonIO.dump(f"{DIR}/data/users/{user_id}.json", user)
 
 def overwrite(user: dict) -> dict:
     """
@@ -85,8 +82,7 @@ def toggle_permission(user_id: int, permission) -> bool:
     """
     user = users.get_user_profile(user_id)
     user["permissions"][permission] = not user["permissions"][permission]
-    with open(f"{DIR}/data/users/{user_id}.json", "w") as file:
-        json.dump(user, file)
+    jsonIO.dump(f"{DIR}/data/users/{user_id}.json", user)
     return user["permissions"][permission]
 
 async def resolve_user(user: str | int) -> tuple[dict, discord.Member] | False:
