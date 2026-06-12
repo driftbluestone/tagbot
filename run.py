@@ -27,7 +27,7 @@ except ModuleNotFoundError:
 try:
     import orjson
 except ModuleNotFoundError:
-    print("Module 'psutil' not found. Installing")
+    print("Module 'orjson' not found. Installing")
     print(asyncio.run(run([sys.executable, "-m", "pip", "install", "orjson"])))
 
 vinf = sys.version_info

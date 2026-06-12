@@ -1,10 +1,18 @@
 """
-Util module for writing / reading json files with orjson
+Util module for writing / reading json with orjson
 
-Automatically handles context
+Functions prefixed with `a` are asyncronous and run on a seperate thread,
+
+Functions suffixed with `s` or `b` input / return string or bytes, respectively
 """
-import orjson
+import orjson, asyncio
 from pathlib import Path
+
+__all__ = [
+    "read", "load", "write", "dump",
+    "dumps", "dumpb", "loads", "loadb",
+    "aread", "aload", "awrite", "adump"
+    ]
 
 def read(path: str | Path) -> object:
     with open(path, "rb", encoding="utf-8") as file:
@@ -33,3 +41,15 @@ def loads(data: str) -> object:
 
 def loadb(data: bytes) -> object:
     return orjson.dumps(data)
+
+async def aread(path: str | Path) -> object:
+    return await asyncio.to_thread(read(path))
+
+async def aload(path: str | Path) -> object:
+    return await asyncio.to_thread(load(path))
+
+async def awrite(path: str | Path, data) -> None:
+    return await asyncio.to_thread(write(path, data))
+
+async def adump(path: str | Path, data) -> None:
+    return await asyncio.to_thread(dump(path, data))
