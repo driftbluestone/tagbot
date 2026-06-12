@@ -3,7 +3,7 @@ from utils import jsonIO
 from api import _ext as ext
 from typing import Any
 from pathlib import Path
-DIR = Path(__file__).resolve().parent.parent
+from utils.utils import DIR
 
 def create_field(name: str, data: type|Any) -> bool:
     """
@@ -18,13 +18,13 @@ def create_field(name: str, data: type|Any) -> bool:
     if not os.path.isfile(path):
         jsonIO.dump(path, {})
     config = jsonIO.load(path)
-    
+
     def _register(name: str, data: type|Any) -> bool:
         if name not in config:
-            config[name] = data() if isinstance(data, type) else data 
+            config[name] = data() if isinstance(data, type) else data
             return True
         return False
-    
+
     if not _register(name, data):
         return False
     jsonIO.dump(path, config)

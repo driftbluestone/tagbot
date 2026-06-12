@@ -1,5 +1,5 @@
 import pathlib, os
-DIR = pathlib.Path(__file__).resolve().parent.parent
+from utils.utils import DIR
 
 def on_ready():
     if not os.path.isdir(f"{DIR}/data"):

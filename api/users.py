@@ -3,7 +3,7 @@ from modules.bot import bot
 from utils import users, config, jsonIO
 from api import _ext as ext
 from pathlib import Path
-DIR = Path(__file__).resolve().parent.parent
+from utils.utils import DIR
 
 def new_data_field(name: str, data_type: type) -> bool:
     """
@@ -16,17 +16,17 @@ def new_data_field(name: str, data_type: type) -> bool:
         extension = ext()
     else:
         extension, name = name.split(":")
-    
+
     def _register(id: str, data_type: type) -> bool:
         if id not in config.user_config:
             config.user_config[id] = data_type()
             return True
         return False
-    
+
     id = f"{extension}:{name}"
     if not _register(id, data_type):
         return False
-    
+
     config.save_user_config()
 
     # update existing user files
@@ -93,7 +93,7 @@ async def resolve_user(user: str | int) -> tuple[dict, discord.Member] | False:
         user_object = bot.guilds[0].get_member_named(user)
     if user_object == None:
         try:
-            user = int(user)    
+            user = int(user)
             user_object = bot.guilds[0].get_member(user)
         except:
             return False

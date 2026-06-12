@@ -1,6 +1,6 @@
 import sys, asyncio
 from pathlib import Path
-DIR = Path(__file__).resolve().parent.parent
+from utils.utils import DIR
 
 async def run(args):
     try:
@@ -13,7 +13,7 @@ async def run(args):
         return stdout.decode()
     except Exception as e:
         return str(e)
-    
+
 try:
     import PyInstaller
 except ModuleNotFoundError:
