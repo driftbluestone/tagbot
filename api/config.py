@@ -1,4 +1,5 @@
 import json, os
+from utils import jsonIO
 from api import _ext as ext
 from typing import Any
 from pathlib import Path
@@ -15,10 +16,8 @@ def create_field(name: str, data: type|Any) -> bool:
         os.mkdir(path)
     path /= "config.json"
     if not os.path.isfile(path):
-        with open(path, "w") as file:
-            json.dump({}, file)
-    with open(path, "r") as file:
-            config: dict = json.load(file)
+        jsonIO.dump(path, {})
+    config = jsonIO.load(path)
     
     def _register(name: str, data: type|Any) -> bool:
         if name not in config:
@@ -28,8 +27,7 @@ def create_field(name: str, data: type|Any) -> bool:
     
     if not _register(name, data):
         return False
-    with open(path, "w") as file:
-        json.dump(config, file, indent=2)
+    jsonIO.dump(path, config)
     return True
 
 def get(namespace: str = None) -> dict:

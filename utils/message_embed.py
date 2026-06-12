@@ -14,5 +14,3 @@ async def message_reply(message: discord.Message):
         embed =  await gui.create_message_embed(link)
         if embed == None: return
         await message.reply(embed=embed)
-        
-

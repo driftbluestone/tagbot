@@ -23,11 +23,11 @@ def load(path: str | Path) -> object:
 
 def write(path: str | Path, data) -> None:
     with open(path, "wb", encoding="utf-8") as file:
-        file.write(orjson.dumps(data))
+        file.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
 def dump(path: str | Path, data) -> None:
     with open(path, "wb", encoding="utf-8") as file:
-        file.write(orjson.dumps(data))
+        file.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
 def dumps(data) -> str:
     return orjson.dumps(data).decode()
