@@ -14,19 +14,19 @@ __all__ = [
     ]
 
 def read(path: str | Path) -> object:
-    with open(path, "rb", encoding="utf-8") as file:
+    with open(path, "rb") as file:
         return orjson.loads(file.read())
 
 def load(path: str | Path) -> object:
-    with open(path, "rb", encoding="utf-8") as file:
+    with open(path, "rb") as file:
         return orjson.loads(file.read())
 
 def write(path: str | Path, data) -> None:
-    with open(path, "wb", encoding="utf-8") as file:
+    with open(path, "wb") as file:
         file.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
 def dump(path: str | Path, data) -> None:
-    with open(path, "wb", encoding="utf-8") as file:
+    with open(path, "wb") as file:
         file.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
 def dumps(data) -> str:
