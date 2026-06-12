@@ -7,7 +7,6 @@ Functions suffixed with `s` or `b` input / return string or bytes, respectively
 """
 import orjson, asyncio
 from pathlib import Path
-
 __all__ = [
     "read", "load", "write", "dump",
     "dumps", "dumpb", "loads", "loadb",

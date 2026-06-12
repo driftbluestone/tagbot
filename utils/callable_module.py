@@ -1,3 +1,6 @@
+"""
+Use this module as a decorator to make that module callable as that function.
+"""
 import sys
 
 def callable_module(func: function):

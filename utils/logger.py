@@ -1,10 +1,14 @@
+"""
+Log things, create a new instance of the `Logger` class in order to use
+"""
+
 import discord
 import logging
-from pathlib import Path
 from typing import Optional
 import inspect
-
+from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
+__all__ = ["Logger"]
 
 class Logger:
     def __init__(self):

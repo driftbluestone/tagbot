@@ -1,6 +1,16 @@
+"""
+Access internal config files.
+
+These files are always saved in memory, so they do not need to be input as args when
+calling their respective save functions.
+"""
 import json, os
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
+__all__ = [
+    "server_config", "user_config", "permissions_config",
+    "save_server_config", "save_user_config", "saver_permissions_config"
+    ]
 
 if not os.path.isdir(f"{DIR}/data"):
     os.mkdir(f"{DIR}/data")

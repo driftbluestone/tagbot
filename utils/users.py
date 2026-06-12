@@ -1,8 +1,15 @@
+"""
+Interact with user profiles at a lower level than the api
+"""
 import discord, json, os
 from utils import config
 from modules.bot import bot
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
+__all__ = [
+    "get_user_profile", "permissions", "save_user_profile",
+    "permission_check", "update_role"
+    ]
 
 # these are different functions because all of them need to be accessed at some point
 def get_user_profile(user_id: int) -> dict:
