@@ -7,7 +7,7 @@ from utils.logger import Logger
 LOGGER = Logger()
 from api import gui
 from pathlib import Path
-DIR = Path(__file__).resolve().parent.parent
+from utils.utils import DIR
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
@@ -34,7 +34,7 @@ class Extensions(commands.Cog):
         repo_name = repo.split("/")[-1]
         if repo_name not in config.server_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
-        await interaction.response.send_message(f"Updating extension {repo_name} from {repo}.")
+        await interaction.response.send_message(f"Updating extension {repo_name} from {repo}.", interaction)
         await LOGGER.info(f"Updating extension {repo_name} from {repo}.")
         await uninstall(interaction, repo_name, True, True)
         await self.download_repo(interaction, repo, True)
@@ -51,10 +51,8 @@ class Extensions(commands.Cog):
     async def download_repo(self, interaction: discord.Interaction, repo: str, silent: bool = False):
         repo_name = repo.split("/")[-1]
         if os.path.isdir(f"{DIR}/extensions/{repo_name}"):
-            return await LOGGER.warn("Extension already installed.")
+            return await LOGGER.warn("Extension already installed.", interaction)
         os.mkdir(f"{DIR}/extensions/{repo_name}")
-        if not silent:
-            await interaction.response.send_message("Installing...")
         await Installer(None if silent else interaction, repo).install_extension()
         await load_extensions()
 
@@ -233,5 +231,4 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
         shutil.rmtree(f'{DIR}/data/extensions/{extension}', onexc=_remove_readonly)
     shutil.rmtree(f'{DIR}/extensions/{extension}', onexc=_remove_readonly)
     if not silent:
-        await interaction.followup.send(f":white_check_mark: Extension **{extension}** deleted.")
-        await LOGGER.info(f"Uninstalled {extension}")
+        await LOGGER.info(f":white_check_mark: Extension **{extension}** deleted.")

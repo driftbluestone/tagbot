@@ -2,14 +2,14 @@ import asyncio
 from utils import users, config
 from api import _ext as ext
 from pathlib import Path
-DIR = Path(__file__).resolve().parent.parent
+from utils.utils import DIR
 
 def create(name: str, display_name: str, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True) -> bool:
     """
     Register a new permission
     """
     extension = ext()
-    
+
     id = f"{extension}:{name}"
     config.permissions_config[id] = {
         "display_name": display_name,

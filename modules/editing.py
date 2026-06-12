@@ -1,6 +1,6 @@
 import discord, pathlib, os
 from utils import message_embed, jsonIO
-DIR = pathlib.Path(__file__).resolve().parent.parent
+from utils.utils import DIR
 
 async def new_edit(message: discord.Message, deleted = False):
     id = str(message.id)

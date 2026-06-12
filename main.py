@@ -6,7 +6,7 @@ from utils import message_embed, config, logger
 
 LOGGER = logger.Logger()
 
-DIR = pathlib.Path(__file__).resolve().parent
+from utils.utils import DIR
 if not os.path.exists(f"{DIR}/TOKEN.txt"):
     with open(f"{DIR}/TOKEN.txt", "w") as file:
         file.write(input("Paste bot token: "))

@@ -4,7 +4,7 @@ from discord.ext import commands
 from api import gui
 from utils import config
 from pathlib import Path
-DIR = Path(__file__).absolute().parent.parent
+from utils.utils import DIR
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Config(bot=bot))
@@ -18,15 +18,15 @@ class Config(commands.Cog):
     @diagnostics.command(name="ram", description=diagnostics.description)
     async def ram(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"{psutil.Process(os.getpid()).memory_info().rss /1024**2:.2f} MB")
-    
+
     @diagnostics.command(name="cogs", description=diagnostics.description)
     async def cogs(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"{self.bot.cogs}")
-    
+
     @diagnostics.command(name="member-count", description=diagnostics.description)
     async def member_count(self, interaction: discord.Interaction):
         await interaction.response.send_message(interaction.guild.member_count)
-    
+
     @diagnostics.command(name="commands", description=diagnostics.description)
     async def commands(self, interaction: discord.Interaction):
         commands = [command.name for command in list(self.bot.commands)]
@@ -37,7 +37,7 @@ class Config(commands.Cog):
     @diagnostics.command(name="ping", description=diagnostics.description)
     async def ping(self, interaction: discord.Interaction):
         interaction.response.send_message(f"Ping: {self.bot.latency*1000} ms")
-    
+
     devops = app_commands.Group(name="devops", description="Bot admin only debug information")
 
     @devops.command(name="logs", description=devops.description)
@@ -52,7 +52,7 @@ class Config(commands.Cog):
         if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.send_message(view=FileView(interaction, DIR))
-        
+
 
 class FileView(gui.MenuGUI):
     def __init__(self, interaction: discord.Interaction, workdir, page: int = 1):
@@ -69,7 +69,7 @@ class FileView(gui.MenuGUI):
         button = discord.ui.Button(label="..", style=discord.ButtonStyle.secondary, custom_id="..", row=4)
         button.callback = self.button_callback
         self.add_item(button)
-    
+
     async def button_callback(self, interaction: discord.Interaction):
         if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)

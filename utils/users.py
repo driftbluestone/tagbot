@@ -5,7 +5,7 @@ import discord, os
 from modules.bot import bot
 from utils import config, jsonIO
 from pathlib import Path
-DIR = Path(__file__).resolve().parent.parent
+from utils.utils import DIR
 __all__ = [
     "get_user_profile", "permissions", "save_user_profile",
     "permission_check", "update_role"
@@ -23,7 +23,7 @@ def get_user_profile(user_id: int) -> dict:
         dc_user: discord.Member = bot.guilds[0].get_member(user_id)
         user["roles"] = [role.id for role in dc_user.roles]
         return permissions(user)
-    
+
 def permissions(user: dict):
     for k in config.permissions_config:
         if k in user["permissions"]:
@@ -41,11 +41,11 @@ async def permission_check(user_id: int, permission: str) -> bool:
     # Bot admin bypass check
     if user_id in config.server_config["bot_admins"]:
         return True
-    
+
     # Ensure permission exists
     if permission not in config.permissions_config:
         raise KeyError("Permission not found.")
-    
+
     # local user layer
     user_profile = get_user_profile(user_id)
     try:
@@ -55,12 +55,12 @@ async def permission_check(user_id: int, permission: str) -> bool:
         profile_permission = user_profile["permissions"][permission]
     if profile_permission is not None:
         return profile_permission
-    
+
     # safety
     if "roles" not in user_profile:
         user_profile["roles"] = [role.id for role in bot.guilds[0].get_member(user_id).roles]
         save_user_profile(user_profile)
-    
+
     # role layer
     for role in reversed(user_profile["roles"]):
         filepath = f"{DIR}/data/roles/{role}"
@@ -71,10 +71,10 @@ async def permission_check(user_id: int, permission: str) -> bool:
             role = update_role()
         if role[permission] is not None:
             return role[permission]
-    
+
     # default layer
     return config.permissions_config[permission]["default_enabled"]
-            
+
 def update_role(role_id):
     filepath = f"{DIR}/data/roles/{role_id}.json"
     if os.path.exists(filepath):
