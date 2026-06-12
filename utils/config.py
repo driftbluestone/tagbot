@@ -4,7 +4,8 @@ Access internal config files.
 These files are always saved in memory, so they do not need to be input as args when
 calling their respective save functions.
 """
-import json, os
+import os
+from utils import jsonIO
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 __all__ = [
@@ -18,30 +19,29 @@ if not os.path.isdir(f"{DIR}/data/static"):
     os.mkdir(f"{DIR}/data/static")
 
 if not os.path.exists(f"{DIR}/data/static/user.json"):
-    with open(f"{DIR}/data/static/user.json", "w") as file:
-        json.dump({"id": "", "permissions": {}, "roles": []}, file)
+    jsonIO.dump(f"{DIR}/data/static/user.json",
+                {"id": "", "permissions": {}, "roles": []})
+
 if not os.path.exists(f"{DIR}/data/static/permissions.json"):
-    with open(f"{DIR}/data/static/permissions.json", "w") as file:
-        json.dump({"edit_permissions": {"display_name": "Edit Permission", "toggleable": False,
-                   "default_enabled": False, "role_assignable": True}}, file)
+    jsonIO.dump(f"{DIR}/data/static/permissions.json",
+                {"edit_permissions": {
+                    "display_name": "Edit Permission",
+                    "toggleable": False,
+                    "default_enabled": False,
+                    "role_assignable": True}})
+    
 if not os.path.exists(f"{DIR}/data/static/config.json"):
-    with open(f"{DIR}/data/static/config.json", "w") as file:
-        json.dump({"command_prefix": "%", "extensions": {}, "bot_admins": []}, file)
+    jsonIO.dump(f"{DIR}/data/static/config.json",
+                {"command_prefix": "%", "extensions": {}, "bot_admins": []})
 
-with open(f"{DIR}/data/static/config.json", "r", encoding='utf-8') as file:
-    server_config: dict = json.load(file)
+server_config: dict = jsonIO.load(f"{DIR}/data/static/config.json")
 def save_server_config():
-    with open(f"{DIR}/data/static/config.json", "w", encoding="utf-8") as file:
-        json.dump(server_config, file, indent=2)
+    jsonIO.dump(f"{DIR}/data/static/config.json", server_config)
 
-with open(f"{DIR}/data/static/user.json", "r", encoding='utf-8') as file:
-    user_config: dict= json.load(file)
+user_config: dict = jsonIO.load(f"{DIR}/data/static/user.json")
 def save_user_config():
-    with open(f"{DIR}/data/static/user.json", "w", encoding="utf-8") as file:
-        json.dump(user_config, file, indent=2)
+    jsonIO.dump(f"{DIR}/data/static/user.json", user_config)
 
-with open(f"{DIR}/data/static/permissions.json", "r", encoding='utf-8') as file:
-    permissions_config: dict = json.load(file)
+permissions_config: dict = jsonIO.load(f"{DIR}/data/static/permissions.json")
 def save_permisions_config():
-    with open(f"{DIR}/data/static/permissions.json", "w", encoding="utf-8") as file:
-        json.dump(permissions_config, file, indent=2)
+    jsonIO.dump(f"{DIR}/data/static/permissions.json", permissions_config)

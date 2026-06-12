@@ -1,9 +1,9 @@
 """
 Interact with user profiles at a lower level than the api
 """
-import discord, json, os
-from utils import config
+import discord, os
 from modules.bot import bot
+from utils import config, jsonIO
 from pathlib import Path
 DIR = Path(__file__).resolve().parent.parent
 __all__ = [
@@ -15,12 +15,10 @@ __all__ = [
 def get_user_profile(user_id: int) -> dict:
     filepath = f"{DIR}/data/users/{user_id}.json"
     if Path(filepath).exists():
-        with open(filepath, "r") as file:
-            user = json.load(file)
+        uesr = jsonIO.load(filepath)
         return user
     else:
-        with open(f"{DIR}/data/static/user.json", "r") as file:
-            user = json.load(file)  
+        user = jsonIO.load(f"{DIR}/data/static/user.json")
         user["id"] = user_id
         dc_user: discord.Member = bot.guilds[0].get_member(user_id)
         user["roles"] = [role.id for role in dc_user.roles]
@@ -35,8 +33,7 @@ def permissions(user: dict):
 
 def save_user_profile(user: dict) -> dict:
     filepath = f"{DIR}/data/users/{user["id"]}.json"
-    with open(filepath, "w") as file:
-        json.dump(user, file, indent=2)
+    jsonIO.dump(filepath, user)
     return user
 
 ternary = bool | None
@@ -69,8 +66,7 @@ async def permission_check(user_id: int, permission: str) -> bool:
         filepath = f"{DIR}/data/roles/{role}"
         if not os.path.exists(filepath):
             continue
-        with open(filepath, "r") as file:
-            role = json.load(file)
+        role = jsonIO.load(filepath)
         if permission not in role:
             role = update_role()
         if role[permission] is not None:
@@ -82,8 +78,7 @@ async def permission_check(user_id: int, permission: str) -> bool:
 def update_role(role_id):
     filepath = f"{DIR}/data/roles/{role_id}.json"
     if os.path.exists(filepath):
-        with open(filepath, "r") as file:
-            role = json.load(file)
+        role = jsonIO.load(filepath)
     else:
         role = {}
     for name, permission in config.permissions_config.items():
@@ -91,6 +86,5 @@ def update_role(role_id):
             continue
         if name not in role:
             role[name] = None # permission["default_enabled"]
-    with open(filepath, "w") as file:
-        json.dump(role, file, indent=2)
+    jsonIO.dump(filepath, role)
     return role
