@@ -1,5 +1,5 @@
 import discord, math
-from modules.bot import bot
+from utils.bot import bot
 from api import users
 
 async def create_message_embed(link: str):

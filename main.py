@@ -1,8 +1,8 @@
-import discord, pathlib, os, traceback
+import discord, os, traceback
 from discord.ext import commands
-from modules.bot import bot
-from modules import editing
-from utils import message_embed, config, logger
+from utils.bot import bot
+from modules import editing, message_embed
+from utils import config, logger
 
 LOGGER = logger.Logger()
 

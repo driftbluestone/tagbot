@@ -1,10 +1,9 @@
 import discord, typing
 from discord import app_commands
 from discord.ext import commands
-from modules.bot import bot
+from utils.bot import bot
 from utils import users, config, jsonIO
 from api import gui
-from pathlib import Path
 from utils.utils import DIR
 
 async def setup(bot: commands.Bot) -> None:

@@ -2,7 +2,7 @@
 Interact with user profiles at a lower level than the api
 """
 import discord, os
-from modules.bot import bot
+from utils.bot import bot
 from utils import config, jsonIO
 from pathlib import Path
 from utils.utils import DIR
@@ -44,7 +44,7 @@ async def permission_check(user_id: int, permission: str) -> bool:
 
     # Ensure permission exists
     if permission not in config.permissions_config:
-        raise KeyError("Permission not found.")
+        raise KeyError(f"Permission not found: {permission}")
 
     # local user layer
     user_profile = get_user_profile(user_id)

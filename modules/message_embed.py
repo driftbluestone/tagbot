@@ -1,6 +1,6 @@
 import discord, re
 from api import gui
-from modules.bot import bot
+from utils.bot import bot
 
 async def message_reply(message: discord.Message):
     # Keep commands working

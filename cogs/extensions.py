@@ -1,7 +1,7 @@
 import discord, os, asyncio, importlib, sys, shutil, typing
 from discord import app_commands
 from discord.ext import commands
-from modules.bot import bot
+from utils.bot import bot
 from utils import config, jsonIO
 from utils.logger import Logger
 LOGGER = Logger()

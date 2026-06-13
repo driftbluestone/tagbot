@@ -1,8 +1,7 @@
 import discord, os, asyncio
-from modules.bot import bot
+from utils.bot import bot
 from utils import users, config, jsonIO
 from api import _ext as ext
-from pathlib import Path
 from utils.utils import DIR
 
 def new_data_field(name: str, data_type: type) -> bool:

@@ -1,5 +1,6 @@
 import discord, pathlib, os
-from utils import message_embed, jsonIO
+from modules import message_embed
+from utils import jsonIO
 from utils.utils import DIR
 
 async def new_edit(message: discord.Message, deleted = False):

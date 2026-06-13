@@ -1,4 +1,4 @@
-import pathlib, os
+import os
 from utils.utils import DIR
 
 def on_ready():

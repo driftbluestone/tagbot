@@ -3,7 +3,6 @@ from discord import app_commands
 from discord.ext import commands
 from api import gui
 from utils import config
-from pathlib import Path
 from utils.utils import DIR
 
 async def setup(bot: commands.Bot) -> None:

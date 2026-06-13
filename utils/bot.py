@@ -3,6 +3,8 @@ from discord.ext import commands
 from modules import on_start
 from utils.config import server_config
 
+__all__ = ["bot"]
+
 class _BOT(commands.Bot):
     def __init__(self):
         super().__init__(

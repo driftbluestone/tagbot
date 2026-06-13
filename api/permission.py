@@ -1,8 +1,6 @@
 import asyncio
 from utils import users, config
 from api import _ext as ext
-from pathlib import Path
-from utils.utils import DIR
 
 def create(name: str, display_name: str, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True) -> bool:
     """
@@ -31,7 +29,7 @@ def override(namespace: str, permission: str, new_equiv: str) -> bool:
         return True
     return False
 
-async def check(user_id: int, permission: str) -> bool:
+def check(user_id: int, permission: str) -> bool:
     """
     User permission check.
     This function must be called using await.
