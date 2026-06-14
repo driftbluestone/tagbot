@@ -34,8 +34,7 @@ class Extensions(commands.Cog):
         repo_name = repo.split("/")[-1]
         if repo_name not in config.server_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
-        await interaction.response.send_message(f"Updating extension {repo_name} from {repo}.", interaction)
-        await LOGGER.info(f"Updating extension {repo_name} from {repo}.")
+        await LOGGER.info(f"Updating extension {repo_name} from {repo}.", interaction)
         await uninstall(interaction, repo_name, True, True)
         await self.download_repo(interaction, repo, True)
         await LOGGER.info(f"Updated extension {repo_name} from {repo}.", interaction)
