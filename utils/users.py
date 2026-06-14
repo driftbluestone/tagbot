@@ -28,7 +28,7 @@ def permissions(user: dict):
     for k in config.permissions_config:
         if k in user["permissions"]:
             continue
-        user["permissions"][k] = None # config.permissions_config[k]["default_enabled"]
+        user["permissions"][k] = None
     return save_user_profile(user)
 
 def save_user_profile(user: dict) -> dict:
@@ -85,6 +85,6 @@ def update_role(role_id):
         if not permission["role_assignable"]:
             continue
         if name not in role:
-            role[name] = None # permission["default_enabled"]
+            role[name] = None
     jsonIO.dump(filepath, role)
     return role
