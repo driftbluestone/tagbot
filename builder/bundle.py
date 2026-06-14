@@ -1,5 +1,4 @@
 import sys, asyncio
-from pathlib import Path
 from utils.utils import DIR
 
 async def run(args):
@@ -23,10 +22,8 @@ except ModuleNotFoundError:
 bundle = [sys.executable, "-m", "PyInstaller", "--onefile",
                  "--add-data", f"{DIR}/api;api",
                  "--add-data", f"{DIR}/cogs;cogs",
-                 "--add-data", f"{DIR}/data/static;data/static",
                  "--add-data", f"{DIR}/modules;modules",
                  "--add-data", f"{DIR}/utils;utils",
-                 "--add-data", f"{DIR}/config.json;data/static/",
                  "--add-data", f"{DIR}/main.py;.",
                  "run.py"]
 
