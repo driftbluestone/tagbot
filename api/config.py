@@ -5,6 +5,8 @@ from typing import Any
 from pathlib import Path
 from utils.utils import DIR
 
+__all__ = ["create_field", "get", "set", "overwrite", "datadir"]
+
 def create_field(name: str, data: type|Any) -> bool:
     """
     Define a new field for storing data in the extension config file.
