@@ -2,6 +2,8 @@ import asyncio
 from utils import users, config
 from api import _ext as ext
 
+__all__ = ["create", "override", "check"]
+
 def create(name: str, display_name: str, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True) -> bool:
     """
     Register a new permission

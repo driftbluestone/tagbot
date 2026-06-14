@@ -4,6 +4,8 @@ from utils import users, config, jsonIO
 from api import _ext as ext
 from utils.utils import DIR
 
+__all__ = ["new_data_field", "has_permission", "get", "set_field", "overwrite", "toggle_permission", "resolve_user"]
+
 def new_data_field(name: str, data_type: type) -> bool:
     """
     Define a new field for storing data in user json files.
@@ -95,7 +97,7 @@ async def resolve_user(user: str | int) -> tuple[dict, discord.Member] | False:
             user = int(user)
             user_object = bot.guilds[0].get_member(user)
         except:
-            return False
+            return False, False
     if user_object == None:
-            return False
+            return False, False
     return users.get_user_profile(user_object.id), user_object
