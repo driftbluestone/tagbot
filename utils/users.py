@@ -15,7 +15,7 @@ __all__ = [
 def get_user_profile(user_id: int) -> dict:
     filepath = f"{DIR}/data/users/{user_id}.json"
     if Path(filepath).exists():
-        uesr = jsonIO.load(filepath)
+        user = jsonIO.load(filepath)
         return user
     else:
         user = jsonIO.load(f"{DIR}/data/static/user.json")
