@@ -27,7 +27,7 @@ class Permissions(commands.Cog):
     async def default(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.send_message(view=DefaultPermissionPanel(interaction))
+        await interaction.response.send_message(view=DefaultPermissionPanel())
 
     @permissions.command(name="user", description="Configure user permissions")
     async def user(self, interaction: discord.Interaction, target: typing.Optional[discord.Member]):
@@ -35,13 +35,13 @@ class Permissions(commands.Cog):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if target == None:
             target = interaction.user
-        await interaction.response.send_message(content = f"Permissions for: {target.mention}",view=UserPermissionPanel(interaction, target))
+        await interaction.response.send_message(content = f"Permissions for: {target.mention}",view=UserPermissionPanel(target))
 
     @permissions.command(name="roles", description="Configure role permissions")
     async def roles(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.send_message(view=RolePanel(interaction))
+        await interaction.response.send_message(view=RolePanel())
 
 colors = {
     False: discord.ButtonStyle.danger, # 4
@@ -55,10 +55,10 @@ next_perm = {
     True: False
 }
 
-class DefaultPermissionPanel(gui.MenuGUI):
-    def __init__(self, interaction: discord.Interaction, _ = None, page: int = 1):
+class DefaultPermissionPanel(gui.PageUI):
+    def __init__(self, _ = None, page: int = 1):
         perms = list(config.permissions_config.keys())
-        super().__init__(interaction=interaction, interaction_permission="edit_permissions", page=page, element_count=len(perms))
+        super().__init__(interaction_permission="edit_permissions", page=page, element_count=len(perms))
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
             permission = config.permissions_config[perm]["default_enabled"]
@@ -76,12 +76,12 @@ class DefaultPermissionPanel(gui.MenuGUI):
         else:
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
         await interaction.response.defer(ephemeral=True, thinking=False)
-        await self.interaction.edit_original_response(view=DefaultPermissionPanel(self.interaction))
+        await interaction.message.edit(view=DefaultPermissionPanel())
 
-class UserPermissionPanel(gui.MenuGUI):
-    def __init__(self, interaction: discord.Interaction, user: discord.Member, page: int = 1):
+class UserPermissionPanel(gui.PageUI):
+    def __init__(self, user: discord.Member, page: int = 1):
         perms = list(config.permissions_config.keys())
-        super().__init__(interaction=interaction, interaction_permission="edit_permissions", data_transfer=user, page=page, element_count=len(perms))
+        super().__init__(interaction_permission="edit_permissions", data_transfer=user, page=page, element_count=len(perms))
         self.user: discord.User = user
         self.user_profile = users.get_user_profile(user.id)
 
@@ -106,12 +106,12 @@ class UserPermissionPanel(gui.MenuGUI):
         else:
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
         await interaction.response.defer(ephemeral=True, thinking=False)
-        await self.interaction.edit_original_response(view=UserPermissionPanel(self.interaction, self.user))
+        await interaction.message.edit(view=UserPermissionPanel(self.user))
 
-class RolePanel(gui.MenuGUI):
-    def __init__(self, interaction: discord.Interaction, _ = None, page: int = 1):
+class RolePanel(gui.PageUI):
+    def __init__(self, _ = None, page: int = 1):
         roles = [[role.id, role.name] for role in bot.guilds[0].roles]
-        super().__init__(interaction=interaction, interaction_permission="edit_permissions", page=page, element_count=len(roles))
+        super().__init__(interaction_permission="edit_permissions", page=page, element_count=len(roles))
 
         roles = roles[((self.page-1)*10):(self.page*10)]
         for role in roles:
@@ -126,13 +126,13 @@ class RolePanel(gui.MenuGUI):
         role = int(interaction.data["custom_id"])
         role = bot.guilds[0].get_role(role)
         users.update_role(role.id)
-        view = RolePermissionPanel(self.interaction, role.id)
-        await self.interaction.edit_original_response(content=f"Permissions for {role.mention}:", view=view)
+        view = RolePermissionPanel(role.id)
+        await interaction.message.edit(content=f"Permissions for {role.mention}:", view=view)
 
-class RolePermissionPanel(gui.MenuGUI):
-    def __init__(self, interaction: discord.Interaction, data_transfer: int, page: int = 1):
+class RolePermissionPanel(gui.PageUI):
+    def __init__(self, data_transfer: int, page: int = 1):
         perms = list(config.permissions_config.keys())
-        super().__init__(interaction=interaction, interaction_permission="edit_permissions", data_transfer=data_transfer, page=page, element_count=len(perms))
+        super().__init__(interaction_permission="edit_permissions", data_transfer=data_transfer, page=page, element_count=len(perms))
         role = jsonIO.load(f"{DIR}/data/roles/{data_transfer}.json")
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
@@ -148,8 +148,7 @@ class RolePermissionPanel(gui.MenuGUI):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.defer(ephemeral=True, thinking=False)
-        view = RolePanel(self.interaction)
-        await self.interaction.edit_original_response(content="", view=view)
+        await interaction.message.edit(content="", view=RolePanel())
 
     async def callback(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
@@ -163,6 +162,6 @@ class RolePermissionPanel(gui.MenuGUI):
         else:
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
         jsonIO.dump(filepath, role)
-        view = RolePermissionPanel(self.interaction, self.data_transfer)
+        view = RolePermissionPanel(self.data_transfer)
         await interaction.response.defer(ephemeral=True, thinking=False)
-        await self.interaction.edit_original_response(view=view)
+        await interaction.message.edit(view=view)

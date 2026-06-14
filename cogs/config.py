@@ -50,14 +50,14 @@ class Config(commands.Cog):
     async def ls(self, interaction: discord.Interaction):
         if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.send_message(view=FileView(interaction, DIR))
+        await interaction.response.send_message(view=FileView(DIR))
 
 
-class FileView(gui.MenuGUI):
-    def __init__(self, interaction: discord.Interaction, workdir, page: int = 1):
+class FileView(gui.PageUI):
+    def __init__(self, workdir, page: int = 1):
         dirlist = os.listdir(workdir)
         self.workdir = workdir
-        super().__init__(interaction=interaction, data_transfer=workdir, element_count=len(dirlist), page=page)
+        super().__init__(data_transfer=workdir, element_count=len(dirlist), page=page)
         dirlist = dirlist[((self.page-1)*10):(self.page*10)]
         for dir in dirlist:
             fulldir = os.path.join(workdir, dir)
@@ -76,7 +76,7 @@ class FileView(gui.MenuGUI):
         fulldir = os.path.join(self.workdir, dir)
         await interaction.response.defer(thinking=False, ephemeral=True)
         if not os.path.isfile(fulldir):
-            view = FileView(interaction, fulldir)
+            view = FileView(fulldir)
             await interaction.edit_original_response(view=view)
         else:
             await interaction.channel.send(file=discord.File(fulldir))

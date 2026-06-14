@@ -22,7 +22,7 @@ class Extensions(commands.Cog):
     async def extension_toggle(self, interaction: discord.Interaction):
         if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        view = ExtensionManager(interaction)
+        view = ExtensionManager()
         return await interaction.response.send_message(view=view)
 
     @extension.command(name="update", description="Update extensions")
@@ -122,12 +122,13 @@ class Installer:
         await LOGGER.info(output.strip(), self.interaction)
         await LOGGER.info(f"Pip dependency installed: {pip}.", self.interaction)
 
-class ExtensionManager(gui.MenuGUI):
+class ExtensionManager(gui.PageUI):
     """Manage which extensions are enabled or disabled via /extension toggle"""
-    def __init__(self, interaction, _ = None, page = 1):
-        super().__init__(interaction=interaction, element_count=len(config.server_config["extensions"].keys()), page=page)
+    def __init__(self, _ = None, page = 1):
+        super().__init__(element_count = len(config.server_config["extensions"].keys()), page = page)
         extensions = list(config.server_config["extensions"].keys())
         extensions = extensions[((self.page-1)*10):(self.page*10)]
+
         for extension in extensions:
             buttonstyle = discord.ButtonStyle.success if config.server_config["extensions"][extension] else discord.ButtonStyle.danger
             button = discord.ui.Button(label = extension, style=buttonstyle, custom_id=extension)
@@ -140,9 +141,9 @@ class ExtensionManager(gui.MenuGUI):
         extension = interaction.data["custom_id"]
         config.server_config["extensions"][extension] = not config.server_config["extensions"][extension]
         state = "enabled" if config.server_config["extensions"][extension] else "disabled"
-        view = ExtensionManager(self.interaction, self.page)
+        view = ExtensionManager(page = self.page)
         await interaction.response.defer(ephemeral=True, thinking=False)
-        await self.interaction.edit_original_response(view=view)
+        await interaction.message.edit(view=view)
 
         if config.server_config["extensions"][extension]:
             await reload_modules(extension)
