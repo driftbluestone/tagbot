@@ -73,10 +73,12 @@ class Group:
     def __init__(self, name: str):
         if ":" in name:
             self.ext, self.name = name.split(":")
+        elif "." in name:
+            self.ext, self.name = name.split(".")
         else:
             self.name = name
             self.ext = ext()
-            self.group = f"{self.ext}:{self.name}"
+        self.group = f"{self.ext}.{self.name}"
     
     def check(self, user_id: int, permission: str) -> bool:
         return check(user_id, f"{self.ext}.{self.name}:{permission}")
@@ -92,3 +94,4 @@ class Group:
         }
         config.save_permisions_config()
         return True
+    
