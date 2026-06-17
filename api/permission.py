@@ -79,6 +79,7 @@ class Group:
             self.name = name
             self.ext = ext()
         self.group = f"{self.ext}.{self.name}"
+        self.TLG = False
     
     def check(self, user_id: int, permission: str) -> bool:
         return check(user_id, f"{self.ext}.{self.name}:{permission}")
