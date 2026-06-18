@@ -1,8 +1,5 @@
 TOKEN.txt
-tags
-users
-history
-extensions/*
+extensions
 __pycache__
 data
 .vscode
