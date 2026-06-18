@@ -49,18 +49,18 @@ async def permission_check(user_id: int, permission: str) -> bool:
     # Bot admin bypass check
     if user_id in config.server_config["bot_admins"]:
         return True
+    
+    perm = permission.split(".")
 
     # Ensure permission exists
-    is_group = False
-    if "." in permission:
-        is_group = True
-        _group_check(permission)
-    else:
-        if permission not in config.permissions_config:
-            raise KeyError(f"Permission not found: {permission}")
+    exists = functools.reduce(getattr, perm, Permissions, None)
+    if exists is None:
+        raise KeyError(f"Permission not found: {permission}")
 
     # user layer
     user_profile = get_user_profile(user_id)
+    perms = user_profile["permissions"]
+    exists = functools.reduce(dict.get, perm, perms, None)
     try:
         profile_permission = user_profile["permissions"][permission]
     except:
@@ -86,11 +86,11 @@ async def permission_check(user_id: int, permission: str) -> bool:
             return role[permission]
 
     # default layer
-    if is_group:
-        group, permission = permission.split(":")
-        return config.permissions_config[group][permission]["default_enabled"]
-    else:
-        return config.permissions_config[permission]["default_enabled"]
+    # if is_group:
+    #     group, permission = permission.split(":")
+    #     return config.permissions_config[group][permission]["default_enabled"]
+    # else:
+    #     return config.permissions_config[permission]["default_enabled"]
 
 async def _group_check(perm: str) -> bool:
     group, permission = perm.split(":")
