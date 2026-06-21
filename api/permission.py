@@ -68,31 +68,4 @@ def group(name: str):
         config.save_permisions_config()
         return True
     return False
-
-class Group: 
-    def __init__(self, name: str):
-        if ":" in name:
-            self.ext, self.name = name.split(":")
-        elif "." in name:
-            self.ext, self.name = name.split(".")
-        else:
-            self.name = name
-            self.ext = ext()
-        self.group = f"{self.ext}.{self.name}"
-        self.TLG = False
-    
-    def check(self, user_id: int, permission: str) -> bool:
-        return check(user_id, f"{self.ext}.{self.name}:{permission}")
-    
-    def create(self, name: str, display_name: str, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True):
-        if name in config.permissions_config[self.group]:
-            return False
-        config.permissions_config[self.group][name] = {
-            "display_name": display_name,
-            "toggleable": toggleable,
-            "default_enabled": default_enabled,
-            "role_assignable": role_assignable
-        }
-        config.save_permisions_config()
-        return True
     

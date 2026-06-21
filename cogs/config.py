@@ -14,8 +14,6 @@ class Config(commands.Cog):
 
     diagnostics = app_commands.Group(name="diagnostics", description="View bot information")
 
-    
-
     @diagnostics.command(name="cogs", description=diagnostics.description)
     async def cogs(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"{self.bot.cogs}")
@@ -35,6 +33,7 @@ class Config(commands.Cog):
     async def ping(self, interaction: discord.Interaction):
         interaction.response.send_message(f"Ping: {self.bot.latency*1000} ms")
 
+
     system = app_commands.Group(name="system", description="System resource information")
     async def cog_load(self):
         self.diagnostics.add_command(self.system)
@@ -42,6 +41,7 @@ class Config(commands.Cog):
     @system.command(name="ram", description=system.description)
     async def ram(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"{psutil.Process(os.getpid()).memory_info().rss /1024**2:.2f} MB")
+
         
     devops = app_commands.Group(name="devops", description="Bot admin only debug information")
 
