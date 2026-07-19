@@ -34,7 +34,10 @@ async def on_ready():
 @bot.event
 async def on_message(message: discord.Message):
     if message.author.bot:
-        if message.reference == None: return
+        if bot.user.id != message.author.id:
+            return
+        if message.reference == None:
+            return
         return await editing.create_reply_json(message.id, message.reference.message_id)
     return await message_embed.message_reply(message)
 
