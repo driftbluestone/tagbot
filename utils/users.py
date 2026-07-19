@@ -28,15 +28,8 @@ def permissions(user: dict):
     for k in config.permissions_config:
         if k in user["permissions"]:
             continue
-        if "." in k:
-            _group_perm_update(user, k)
-            continue
         user["permissions"][k] = None
     return save_user_profile(user)
-
-def _group_perm_update(user: dict, k: str):
-    for perm in config.permissions_config[k]:
-        user["permissions"][f"{k}:{perm}"] = None
 
 def save_user_profile(user: dict) -> dict:
     filepath = f"{DIR}/data/users/{user["id"]}.json"
