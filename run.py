@@ -15,31 +15,19 @@ async def run(args):
 try:
     import discord
 except ModuleNotFoundError:
-    print("Module 'discord.py' not found. Would you like to install? y or n")
-    confirm = input(">> ").lower()
-    if confirm != "y":
-        print("Cannot install module. Goodbye.")
-        exit()
+    print("Module 'discord.py' not found. Installing")
     print(asyncio.run(run([sys.executable, "-m", "pip", "install", "-U", "discord.py"])))
 
 try:
     import psutil
 except ModuleNotFoundError:
-    print("Module 'psutil' not found.  Would you like to install? y or n")
-    confirm = input(">> ").lower()
-    if confirm != "y":
-        print("Cannot install module. Goodbye.")
-        exit()
+    print("Module 'psutil' not found. Installing")
     print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psutil"])))
 
 try:
     import orjson
 except ModuleNotFoundError:
-    print("Module 'orjson' not found.  Would you like to install? y or n")
-    confirm = input(">> ").lower()
-    if confirm != "y":
-        print("Cannot install module. Goodbye.")
-        exit()
+    print("Module 'orjson' not found. Installing")
     print(asyncio.run(run([sys.executable, "-m", "pip", "install", "orjson"])))
 
 vinf = sys.version_info
