@@ -36,7 +36,6 @@ def save_user_profile(user: dict) -> dict:
     jsonIO.dump(filepath, user)
     return user
 
-ternary = bool | None
 async def permission_check(user_id: int, permission: str) -> bool:
     # Bot admin bypass check
     if user_id in config.server_config["bot_admins"]:
@@ -63,7 +62,7 @@ async def permission_check(user_id: int, permission: str) -> bool:
 
     # role layer
     for role in reversed(user_profile["roles"]):
-        filepath = f"{DIR}/data/roles/{role}"
+        filepath = f"{DIR}/data/roles/{role}.json"
         if not os.path.exists(filepath):
             continue
         role = jsonIO.load(filepath)

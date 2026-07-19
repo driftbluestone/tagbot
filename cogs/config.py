@@ -52,7 +52,6 @@ class Config(commands.Cog):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.send_message(view=FileView(DIR))
 
-
 class FileView(gui.PageUI):
     def __init__(self, workdir, page: int = 1):
         dirlist = os.listdir(workdir)
