@@ -51,6 +51,13 @@ class Config(commands.Cog):
         if not interaction.user.id in config.server_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.send_message(view=FileView(DIR))
+    
+    @devops.command(name="quit", description=devops.description)
+    async def quit(self, interaction: discord.Interaction):
+        if not interaction.user.id in config.server_config["bot_admins"]:
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        await interaction.response.send_message("Restarting bot...")
+        await self.bot.close()
 
 class FileView(gui.PageUI):
     def __init__(self, workdir, page: int = 1):

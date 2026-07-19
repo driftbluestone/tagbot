@@ -30,6 +30,12 @@ except ModuleNotFoundError:
     print("Module 'orjson' not found. Installing")
     print(asyncio.run(run([sys.executable, "-m", "pip", "install", "orjson"])))
 
+try:
+    import psycopg2
+except ModuleNotFoundError:
+    print("Module 'psycopg2' not found. Installing")
+    print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psycopg2.binary"])))
+
 vinf = sys.version_info
 REQUIRED_VER = (3, 14)
 VER = (vinf.major, vinf.minor)

@@ -2,6 +2,7 @@ import json
 from contextlib import closing
 import psycopg2
 
+
 DB_HOST = "localhost"
 DB_NAME = "postgres"      # Your database name
 DB_USER = "postgres"      # Your PostgreSQL username
