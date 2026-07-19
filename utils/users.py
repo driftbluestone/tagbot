@@ -43,15 +43,10 @@ async def permission_check(user_id: int, permission: str) -> bool:
         return True
 
     # Ensure permission exists
-    is_group = False
-    if "." in permission:
-        is_group = True
-        _group_check(permission)
-    else:
-        if permission not in config.permissions_config:
-            raise KeyError(f"Permission not found: {permission}")
+    if permission not in config.permissions_config:
+        raise KeyError(f"Permission not found: {permission}")
 
-    # user layer
+    # local user layer
     user_profile = get_user_profile(user_id)
     try:
         profile_permission = user_profile["permissions"][permission]
@@ -78,19 +73,7 @@ async def permission_check(user_id: int, permission: str) -> bool:
             return role[permission]
 
     # default layer
-    if is_group:
-        group, permission = permission.split(":")
-        return config.permissions_config[group][permission]["default_enabled"]
-    else:
-        return config.permissions_config[permission]["default_enabled"]
-
-async def _group_check(perm: str) -> bool:
-    group, permission = perm.split(":")
-
-    if group not in config.permissions_config:
-        raise KeyError(f"Group not found: {group}")
-    if permission not in config.permissions_config[group]:
-        raise KeyError(f"Permission within group not found: {group}:{permission}")
+    return config.permissions_config[permission]["default_enabled"]
 
 def update_role(role_id):
     filepath = f"{DIR}/data/roles/{role_id}.json"
