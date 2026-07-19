@@ -1,15 +1,11 @@
-import discord, os, traceback
+import discord, traceback
 from discord.ext import commands
 from utils.bot import bot
 from modules import editing, message_embed
-from utils import config, logger
+from utils import config, logger, utils
 
 LOGGER = logger.Logger()
 
-from utils.utils import DIR
-if not os.path.exists(f"{DIR}/TOKEN.txt"):
-    with open(f"{DIR}/TOKEN.txt", "w") as file:
-        file.write(input("Paste bot token: "))
 if len(config.server_config["bot_admins"]) == 0:
     admin = input("Paste user id for bot admin (optional): ")
     try:
@@ -18,8 +14,6 @@ if len(config.server_config["bot_admins"]) == 0:
         config.save_server_config()
     except:
         pass
-with open(f"{DIR}/TOKEN.txt", "r") as file:
-    TOKEN = file.read()
 
 @bot.event
 async def on_ready():
@@ -61,4 +55,4 @@ async def on_command_error(ctx: commands.Context, error: Exception):
         await LOGGER.error("".join(traceback.format_exception(error)))
         raise error
 
-bot.run(TOKEN)
+bot.run(utils.data["TOKEN"])
