@@ -1,19 +1,19 @@
-import discord, pathlib, os
+import discord
 from modules import message_embed
-from utils import jsonIO
+from utils import db
 from utils.utils import DIR
 
 async def new_edit(message: discord.Message, deleted = False):
-    id = str(message.id)
-    filepath = f"{DIR}/data/history/{id}.json"
-    if pathlib.Path(filepath).exists():
-        reply_id = jsonIO.load(filepath)
-        reply: discord.PartialMessage = message.channel.get_partial_message(reply_id)
-        await reply.delete()
-        os.remove(filepath)
+    id = message.id
+    result = db.single("SELECT * FROM sonny.history WHERE message = %s;", (id,))
+    if result is None:
+        return
+    _, reply_id = result
+    reply: discord.PartialMessage = message.channel.get_partial_message(reply_id)
+    await reply.delete()
+    db.run("DELETE FROM sonny.history WHERE message = %s;", (id,))
     if not deleted:
         await message_embed.message_reply(message)
 
-async def create_reply_json(id, reply_id):
-    filepath = f"{DIR}/data/history/{reply_id}.json"
-    jsonIO.dump(filepath, id)
+async def create_reply_entry(id: int, reply_id: int):
+    db.run("INSERT INTO sonny.history (message, reply) VALUES (%s, %s);", (reply_id, id))

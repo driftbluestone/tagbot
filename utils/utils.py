@@ -11,6 +11,7 @@ if not os.path.exists(f"{DIR}/bot_info.json"):
         quit()
     data["TOKEN"] = tkn
 
+    print("Database setup...")
     data["DB"] = {}
     host = input("Paste database host: ")
     if not host:

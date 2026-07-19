@@ -1,7 +1,7 @@
 import psycopg2
 from utils.utils import data
 
-__all__ = ["run", "cursor", "connection", "check_connection", "close_connection"]
+__all__ = ["run", "query", "cursor", "connection", "check_connection", "close_connection"]
 
 data = data["DB"]
 HOST = data["HOST"]
@@ -40,4 +40,12 @@ except Exception as error:
     print(f"\nError while connecting to PostgreSQL: {error}")
 
 run = cursor.execute
+
+def query(*args):
+    cursor.execute(*args)
+    return cursor.fetchall()
+
+def single(*args):
+    cursor.execute(*args)
+    return cursor.fetchone()
 
