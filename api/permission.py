@@ -45,19 +45,3 @@ def check(user_id: int, permission: str) -> bool:
         extension = ext()
         permission = f"{extension}:{permission}"
     return asyncio.create_task(users.permission_check(user_id, permission))
-
-def group(name: str): ...
-
-class Group: 
-    def __init__(self, name: str):
-        if ":" in name:
-            self.ext, self.name = name.split(":")
-        else:
-            self.name = name
-            self.ext = ext()
-    
-    def check(self, user_id: int, permission: str) -> bool:
-        return check(user_id, f"{self.ext}.{self.name}:{permission}")
-    
-    def create(self, name: str, display_name: str, toggleable: bool = True, default_enabled: bool = False, role_assignable: bool = True):
-        return create(f"{self.ext}.{self.name}:{name}", display_name, toggleable, default_enabled, role_assignable)
