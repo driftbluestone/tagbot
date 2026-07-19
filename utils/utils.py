@@ -44,5 +44,4 @@ if not os.path.exists(f"{DIR}/bot_info.json"):
 
     jsonIO.dump(f"{DIR}/bot_info.json", data)
 
-with open(f"{DIR}/bot_info.json", "r") as file:
-    data = jsonIO.load(file)
+data = jsonIO.load(f"{DIR}/bot_info.json")
