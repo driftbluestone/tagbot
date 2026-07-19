@@ -1,12 +1,11 @@
 """
 Interact with user profiles at a lower level than the api
 """
-import discord, os, functools
-from modules.permissions import Permissions
+import discord, os
 from utils.bot import bot
 from utils import config, jsonIO
-from utils.utils import DIR
 from pathlib import Path
+from utils.utils import DIR
 __all__ = [
     "get_user_profile", "permissions", "save_user_profile",
     "permission_check", "update_role"

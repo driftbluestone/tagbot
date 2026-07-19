@@ -3,13 +3,13 @@ from discord.ext import commands
 from utils.bot import bot
 from modules import editing, message_embed
 from utils import config, logger
-from utils.utils import DIR
+
 LOGGER = logger.Logger()
 
-token = input("Paste bot token: ")
+from utils.utils import DIR
 if not os.path.exists(f"{DIR}/TOKEN.txt"):
     with open(f"{DIR}/TOKEN.txt", "w") as file:
-        file.write(token)
+        file.write(input("Paste bot token: "))
 if len(config.server_config["bot_admins"]) == 0:
     admin = input("Paste user id for bot admin (optional): ")
     try:

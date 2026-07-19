@@ -1,5 +1,68 @@
 # module currently in development
-from utils import config
+import orjson, functools
+from pathlib import Path
+DIR = Path(__file__).resolve().parent.parent
+
+permissions = {
+    "edit_permissions": {
+        "display_name": "Edit Permission",
+        "toggleable": False,
+        "default_enabled": False,
+        "role_assignable": True
+    },
+    "sonny_tags": {
+        "view": {
+            "display_name": "View Tags",
+            "toggleable": True,
+            "default_enabled": True,
+            "role_assignable": True
+        },
+        "create": {
+            "display_name": "Create Tags",
+            "toggleable": True,
+            "default_enabled": True,
+            "role_assignable": True
+        },
+        "admin": {
+            "display_name": "Tag Admin",
+            "toggleable": True,
+            "default_enabled": False,
+            "role_assignable": True
+        },
+    },
+    "sonny_sed":{
+        "sed": {
+            "display_name": "Sed",
+            "toggleable": True,
+            "default_enabled": True,
+            "role_assignable": True
+        }
+    },
+    "pet_uni": {
+        "add_uni_images": {
+            "display_name": "Add Uni Images",
+            "toggleable": True,
+            "default_enabled": False,
+            "role_assignable": True
+        }
+    },
+    "sonny_moderation": {
+        "moderator": {
+            "timeout": {
+                "display_name": "Timeout",
+                "toggleable": True,
+                "default_enabled": False,
+                "role_assignable": True
+            },
+            "ban": {
+                "display_name": "Ban",
+                "toggleable": True,
+                "default_enabled": False,
+                "role_assignable": True
+            }
+        }
+    }
+}
 
 class Group:
     def __init__(self, perms: dict, TLG: bool = False):
@@ -44,5 +107,7 @@ def to_dict(obj):
     # Return primitive types (strings, ints, floats, bools, None) as they are
     return obj
 
-Permissions = Group(config.permissions_config, True)
+test = Group(permissions, True)
+print(functools.reduce(getattr, "edit_permissions.display_name".split("."), test))
+print(orjson.dumps(to_dict(test)).decode())
 
