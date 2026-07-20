@@ -39,7 +39,9 @@ try:
 except Exception as error:
     print(f"\nError while connecting to PostgreSQL: {error}")
 
-run = cursor.execute
+def run(*args):
+    cursor.execute(*args)
+    connection.commit()
 
 def query(*args):
     cursor.execute(*args)
@@ -49,3 +51,8 @@ def single(*args):
     cursor.execute(*args)
     return cursor.fetchone()
 
+def insert(table, variables: tuple[str], values: tuple):
+    run(f"INSERT INTO sonny.{table} ({", ".join(variables)}) VALUES ({", ".join(("%s",) * len(values))})", values)
+
+def delete(table, key, value):
+    run(f"DELETE FROM sonny.{table} WHERE {key} = %s", (value,))
