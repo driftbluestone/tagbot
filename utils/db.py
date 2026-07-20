@@ -1,5 +1,8 @@
 import psycopg2
+from utils.logger import Logger
 from utils.utils import data
+
+logger = Logger()
 
 __all__ = ["run", "query", "cursor", "connection", "check_connection", "close_connection"]
 
@@ -14,13 +17,13 @@ def check_connection():
     cursor.execute("SELECT version();")
     db_version = cursor.fetchone()
     
-    print("\n--- Connection Successful! ---")
-    print(f"PostgreSQL version: {db_version[0]}\n")
+    logger.info("Connection Successful")
+    logger.info(f"PostgreSQL version: {db_version[0]}")
 
 def close_connection():
     cursor.close()
     connection.close()
-    print("Database connection closed.")
+    logger.info("Database connection closed.")
 
 try:
     # 2. Establish the database connection
@@ -37,7 +40,7 @@ try:
     check_connection()
 
 except Exception as error:
-    print(f"\nError while connecting to PostgreSQL: {error}")
+    logger.error(f"\nError while connecting to PostgreSQL: {error}")
 
 def run(*args):
     cursor.execute(*args)

@@ -1,5 +1,0 @@
-{
-    "user": "[('id', 'bigint'), ('perms', 'jsonb'), ('data', 'jsonb')]",
-    "role": "[('id', 'bigint'), ('perms', 'jsonb')]",
-    "history": "[('message', 'bigint'), ('reply', 'bigint')]"
-}
