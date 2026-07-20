@@ -56,6 +56,9 @@ def insert(table, variables: tuple[str], values: tuple):
         ON CONFLICT ({variables[0]}) DO UPDATE SET {", ".join(f"{v} = EXCLUDED.{v}" for v in variables if v != variables[0])}
         """, values)
 
+def insert_exclusive(table, variables: tuple[str], values: tuple):
+    run(f"INSERT INTO sonny.{table} ({", ".join(variables)}) VALUES ({", ".join(("%s",) * len(values))}", values)
+
 def delete(table, key, value):
     run(f"DELETE FROM sonny.{table} WHERE {key} = %s", (value,))
 

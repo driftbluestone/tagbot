@@ -2,7 +2,7 @@ import discord, typing
 from discord import app_commands
 from discord.ext import commands
 from utils.bot import bot
-from utils import users, config, jsonIO
+from utils import users, config, jsonIO, db
 from api import gui
 from utils.utils import DIR
 
@@ -58,7 +58,7 @@ next_perm = {
 class DefaultPermissionPanel(gui.PageUI):
     def __init__(self, _ = None, page: int = 1):
         perms = list(config.permissions_config.keys())
-        super().__init__(interaction_permission="edit_permissions", page=page, element_count=len(perms))
+        super().__init__(page=page, element_count=len(perms))
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
             permission = config.permissions_config[perm]["default_enabled"]
@@ -81,7 +81,7 @@ class DefaultPermissionPanel(gui.PageUI):
 class UserPermissionPanel(gui.PageUI):
     def __init__(self, user: discord.Member, page: int = 1):
         perms = list(config.permissions_config.keys())
-        super().__init__(interaction_permission="edit_permissions", data_transfer=user, page=page, element_count=len(perms))
+        super().__init__(data_transfer=user, page=page, element_count=len(perms))
         self.user: discord.User = user
         self.user_profile = users.get_user(user.id)
         self.user_permissions = self.user_profile[1]
@@ -112,7 +112,7 @@ class UserPermissionPanel(gui.PageUI):
 class RolePanel(gui.PageUI):
     def __init__(self, _ = None, page: int = 1):
         roles = [[role.id, role.name] for role in bot.guilds[0].roles]
-        super().__init__(interaction_permission="edit_permissions", page=page, element_count=len(roles))
+        super().__init__(page=page, element_count=len(roles))
 
         roles = roles[((self.page-1)*10):(self.page*10)]
         for role in roles:
@@ -133,8 +133,9 @@ class RolePanel(gui.PageUI):
 class RolePermissionPanel(gui.PageUI):
     def __init__(self, data_transfer: int, page: int = 1):
         perms = list(config.permissions_config.keys())
-        super().__init__(interaction_permission="edit_permissions", data_transfer=data_transfer, page=page, element_count=len(perms))
-        role = jsonIO.load(f"{DIR}/data/roles/{data_transfer}.json")
+        super().__init__(data_transfer=data_transfer, page=page, element_count=len(perms))
+        role, = db.get("role", data_transfer, "perms")
+        self.role = role
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
             button = discord.ui.Button(label=config.permissions_config[perm]["display_name"], style=colors[role[perm]], custom_id=str(perm))
@@ -156,13 +157,11 @@ class RolePermissionPanel(gui.PageUI):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
 
         perm = interaction.data["custom_id"]
-        filepath = f"{DIR}/data/roles/{self.data_transfer}.json"
-        role = jsonIO.load(filepath)
         if config.permissions_config[perm]["toggleable"] or interaction.user.id in config.server_config["bot_admins"]:
-            role[perm] = next_perm[role[perm]]
+            self.role[perm] = next_perm[self.role[perm]]
         else:
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
-        jsonIO.dump(filepath, role)
+        db.insert("role", ("id", "perms"), (self.data_transfer, jsonIO.dumps(self.role)))
         view = RolePermissionPanel(self.data_transfer)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(view=view)

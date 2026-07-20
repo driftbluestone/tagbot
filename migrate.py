@@ -6,7 +6,7 @@ from utils.utils import DIR
 for file in os.listdir(f"{DIR}/data/history"):
     with open(f"{DIR}/data/history/{file}", "r") as f:
         data = json.load(f)
-    db.run("INSERT INTO sonny.history (message, reply) VALUES (%s, %s);", (int(file[:-5]), data))
+    db.insert("history", ("message", "reply"), (int(file[:-5]), data))
     os.remove(f"{DIR}/data/history/{file}")
 
 # user files
@@ -18,3 +18,10 @@ for file in os.listdir(f"{DIR}/data/users"):
     usr.pop("permissions")
     db.insert("user", ("id", "perms", "data"), (int(file[:-5]), data["permissions"], usr))
     os.remove(f"{DIR}/data/users/{file}")
+
+# roles
+for file in os.listdir(f"{DIR}/data/roles"):
+    with open(f"{DIR}/data/roles/{file}", "r") as f:
+        data = json.load(f)
+    db.insert("role", ("id", "perms"), (int(file[:-5]), data))
+    os.remove(f"{DIR}/data/roles/{file}")

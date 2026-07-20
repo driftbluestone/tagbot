@@ -87,7 +87,7 @@ async def permission_check(user_id: int, permission: str) -> bool:
     return config.permissions_config[permission]["default_enabled"]
 
 def update_role(role_id):
-    role = db.get("role", role_id, "perms")
+    role, = db.get("role", role_id, "perms")
     if role is None:
         role = {}
     for name, permission in config.permissions_config.items():
