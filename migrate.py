@@ -1,5 +1,5 @@
 import os, json
-from utils import db
+from utils import db, jsonIO
 from utils.utils import DIR
 
 # message history
@@ -16,12 +16,12 @@ for file in os.listdir(f"{DIR}/data/users"):
     usr = data.copy()
     usr.pop("id")
     usr.pop("permissions")
-    db.insert("user", ("id", "perms", "data"), (int(file[:-5]), data["permissions"], usr))
+    db.insert("user", ("id", "perms", "data"), (int(file[:-5]), jsonIO.dumps(data["permissions"]), jsonIO.dumps(usr)))
     os.remove(f"{DIR}/data/users/{file}")
 
 # roles
 for file in os.listdir(f"{DIR}/data/roles"):
     with open(f"{DIR}/data/roles/{file}", "r") as f:
         data = json.load(f)
-    db.insert("role", ("id", "perms"), (int(file[:-5]), data))
+    db.insert("role", ("id", "perms"), (int(file[:-5]), jsonIO.dumps(data)))
     os.remove(f"{DIR}/data/roles/{file}")
