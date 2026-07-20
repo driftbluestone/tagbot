@@ -63,4 +63,6 @@ def delete(table, key, value):
     run(f"DELETE FROM sonny.{table} WHERE {key} = %s", (value,))
 
 def get(table, value, column: str | tuple[str] = "*", key: str = "id"):
+    if isinstance(column, tuple):
+        column = ", ".join(column)
     return single(f"SELECT {column} FROM sonny.{table} WHERE {key} = %s", (value,))
