@@ -4,7 +4,7 @@ from utils import db
 
 async def new_edit(message: discord.Message, deleted = False):
     id = message.id
-    result = db.single("SELECT * FROM sonny.history WHERE message = %s;", (id,))
+    result = db.get("history", id, "*", "message")
     if result is None:
         return
     _, reply_id = result

@@ -52,7 +52,12 @@ def single(*args):
     return cursor.fetchone()
 
 def insert(table, variables: tuple[str], values: tuple):
-    run(f"INSERT INTO sonny.{table} ({", ".join(variables)}) VALUES ({", ".join(("%s",) * len(values))})", values)
+    run(f"""INSERT INTO sonny.{table} ({", ".join(variables)}) VALUES ({", ".join(("%s",) * len(values))})
+        ON CONFLICT ({variables[0]}) DO UPDATE SET {", ".join(f"{v} = EXCLUDED.{v}" for v in variables if v != variables[0])}
+        """, values)
 
 def delete(table, key, value):
     run(f"DELETE FROM sonny.{table} WHERE {key} = %s", (value,))
+
+def get(table, value, column: str | tuple[str] = "*", key: str = "id"):
+    return single(f"SELECT {column} FROM sonny.{table} WHERE {key} = %s", (value,))

@@ -83,15 +83,16 @@ class UserPermissionPanel(gui.PageUI):
         perms = list(config.permissions_config.keys())
         super().__init__(interaction_permission="edit_permissions", data_transfer=user, page=page, element_count=len(perms))
         self.user: discord.User = user
-        self.user_profile = users.get_user_profile(user.id)
+        self.user_profile = users.get_user(user.id)
+        self.user_permissions = self.user_profile[1]
 
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
             try:
-                permission = self.user_profile["permissions"][perm]
+                permission = self.user_permissions[perm]
             except:
                 self.user_profile = users.permissions(self.user_profile)
-                permission = self.user_profile["permissions"][perm]
+                permission = self.user_permissions[perm]
             button = discord.ui.Button(label = config.permissions_config[perm]["display_name"], style=colors[permission], custom_id=perm)
             button.callback = self.callback
             self.add_item(button)
@@ -101,7 +102,7 @@ class UserPermissionPanel(gui.PageUI):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         perm = interaction.data["custom_id"]
         if config.permissions_config[perm]["toggleable"] or interaction.user.id in config.server_config["bot_admins"]:
-            self.user_profile["permissions"][perm] = next_perm[self.user_profile["permissions"][perm]]
+            self.user_permissions[perm] = next_perm[self.user_permissions[perm]]
             users.save_user_profile(self.user_profile)
         else:
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)

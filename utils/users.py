@@ -1,39 +1,58 @@
 """
 Interact with user profiles at a lower level than the api
 """
-import discord, os
 from utils.bot import bot
-from utils import config, jsonIO
-from pathlib import Path
+from utils import config
+from utils import db, jsonIO
 from utils.utils import DIR
-__all__ = [
-    "get_user_profile", "permissions", "save_user_profile",
-    "permission_check", "update_role"
-    ]
 
 # these are different functions because all of them need to be accessed at some point
 def get_user_profile(user_id: int) -> dict:
-    filepath = f"{DIR}/data/users/{user_id}.json"
-    if Path(filepath).exists():
-        user = jsonIO.load(filepath)
+    "deprecated"
+    user = db.get("user", user_id)
+    print(user)
+    if user is not None:
+        id, perms, data = user
+        user = {"id": id, "permissions": perms}
+        user.update(data)
         return user
-    else:
-        user = jsonIO.load(f"{DIR}/data/static/user.json")
-        user["id"] = user_id
-        dc_user: discord.Member = bot.guilds[0].get_member(user_id)
-        user["roles"] = [role.id for role in dc_user.roles]
-        return permissions(user)
+    
+    return permissions((user_id, {}, config.user_config))
 
-def permissions(user: dict):
-    for k in config.permissions_config:
-        if k in user["permissions"]:
-            continue
-        user["permissions"][k] = None # config.permissions_config[k]["default_enabled"]
+def get_user(user_id: int) -> tuple:
+    user = db.get("user", user_id)
+    if user is not None:
+        return user
+    return permissions((user_id, {}, config.user_config))
+
+def get_user_permissions(user_id: int) -> dict:
+    perms = db.get("user", user_id, "perms")
+    
+    if perms is None:
+        user = get_user(user_id)
+        perms = user[1]
+    return perms
+
+def permissions(user: tuple):
+    if isinstance(user, tuple):
+        perms = {}
+        for k in config.permissions_config:
+            if k in user: continue
+            perms[k] = None
+        user[1].update(perms)
+    else:
+        for k in config.permissions_config:
+            if k in user["permissions"]: continue
+            user["permissions"][k] = None
     return save_user_profile(user)
 
-def save_user_profile(user: dict) -> dict:
-    filepath = f"{DIR}/data/users/{user["id"]}.json"
-    jsonIO.dump(filepath, user)
+def save_user_profile(user: tuple) -> tuple:
+    if isinstance(user, dict):
+        usr = user.copy()
+        usr.pop("id")
+        usr.pop("permissions")
+        user = (user["id"], user["permissions"], usr)
+    db.insert("user", ("id", "perms", "data"), (user[0], jsonIO.dumps(user[1]), jsonIO.dumps(user[2])))
     return user
 
 async def permission_check(user_id: int, permission: str) -> bool:
@@ -46,44 +65,35 @@ async def permission_check(user_id: int, permission: str) -> bool:
         raise KeyError(f"Permission not found: {permission}")
 
     # local user layer
-    user_profile = get_user_profile(user_id)
-    try:
-        profile_permission = user_profile["permissions"][permission]
-    except:
-        user_profile = permissions(user_profile)
-        profile_permission = user_profile["permissions"][permission]
+    perms = get_user_permissions(user_id)
+    if permission not in perms:
+        perms = get_user(user_id)[1]
+    profile_permission = perms[permission]
+    
     if profile_permission is not None:
         return profile_permission
 
-    # safety
-    if "roles" not in user_profile:
-        user_profile["roles"] = [role.id for role in bot.guilds[0].get_member(user_id).roles]
-        save_user_profile(user_profile)
-
     # role layer
-    for role in reversed(user_profile["roles"]):
-        filepath = f"{DIR}/data/roles/{role}.json"
-        if not os.path.exists(filepath):
+    for role in reversed(bot.guilds[0].get_member(user_id).roles):
+        _role = db.get("role", role.id, "perms")
+        if _role is None:
             continue
-        role = jsonIO.load(filepath)
-        if permission not in role:
-            role = update_role()
-        if role[permission] is not None:
-            return role[permission]
+        if permission not in _role:
+            _role = update_role(role.id)
+        if _role[permission] is not None:
+            return _role[permission]
 
     # default layer
     return config.permissions_config[permission]["default_enabled"]
 
 def update_role(role_id):
-    filepath = f"{DIR}/data/roles/{role_id}.json"
-    if os.path.exists(filepath):
-        role = jsonIO.load(filepath)
-    else:
+    role = db.get("role", role_id, "perms")
+    if role is None:
         role = {}
     for name, permission in config.permissions_config.items():
         if not permission["role_assignable"]:
             continue
         if name not in role:
-            role[name] = None # permission["default_enabled"]
-    jsonIO.dump(filepath, role)
+            role[name] = None
+    db.insert("role", ("id", "perms"), (role_id, jsonIO.dumps(role)))
     return role
