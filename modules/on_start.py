@@ -36,6 +36,6 @@ def on_ready():
         );
     """)
     
-    print("Defined Schema and Tables")
+    db.logger._logger.info("Defined Schema and Tables")
 
 on_ready()
