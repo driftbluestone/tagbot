@@ -43,11 +43,11 @@ except ModuleNotFoundError:
         quit()
 
 try:
-    import psycopg2
+    import psycopg
 except ModuleNotFoundError:
-    print("Module 'psycopg2' not found. Would you like to install?")
+    print("Module 'psycopg' not found. Would you like to install?")
     if input("Enter 'y' to install: ").lower() == 'y':
-        print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psycopg2.binary"])))
+        print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psycopg"])))
     else:
         print("Installation skipped.")
         quit()

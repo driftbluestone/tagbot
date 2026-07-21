@@ -1,8 +1,8 @@
 import discord, os, asyncio
-from utils.bot import bot
 from utils import users, config, jsonIO
-from api import _ext as ext
+from utils.bot import bot
 from utils.utils import DIR
+from api import _ext as ext
 
 __all__ = ["new_data_field", "has_permission", "get", "set_field", "overwrite", "toggle_permission", "resolve_user"]
 
@@ -54,7 +54,7 @@ def has_permission(user_id: int, permission: str) -> bool:
         permission = f"{extension}:{permission}"
     return asyncio.create_task(users.permission_check(user_id, permission))
 
-def get(user_id: int) -> dict:
+def get(user_id: int) -> tuple[int, dict[str, bool | None], dict[str, any]]:
     """
     Get sonny user profile
     """
@@ -65,13 +65,13 @@ def set_field(user_id: int, field, data):
     Set user data and automatically save it to disk.
     Will raise a KeyError if the field is not in the user profile
     """
-    user = users.get_user_profile(user_id)
+    user = users.get_user_data(user_id)
     if field not in user:
         raise KeyError
     user[field] = data
-    jsonIO.dump(f"{DIR}/data/users/{user_id}.json", user)
+    users.save_user_data(user_id, user)
 
-def overwrite(user: dict) -> dict:
+def overwrite(user: tuple) -> tuple:
     """
     Overwrite all data for this user
     """

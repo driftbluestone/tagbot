@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg
 from utils.logger import Logger
 from utils.utils import data
 
@@ -28,7 +28,7 @@ def close_connection():
 try:
     # 2. Establish the database connection
     logger._logger.info("Connecting to the PostgreSQL database...")
-    connection = psycopg2.connect(
+    connection = psycopg.connect(
         host=HOST,
         database=NAME,
         user=USER,
@@ -43,29 +43,29 @@ except Exception as error:
     logger._logger.error(f"\nError while connecting to PostgreSQL: {error}")
 
 def run(*args):
-    cursor.execute(*args)
+    connection.execute(*args)
     connection.commit()
 
 def query(*args):
-    cursor.execute(*args)
+    connection.execute(*args)
     return cursor.fetchall()
 
 def single(*args):
-    cursor.execute(*args)
+    connection.execute(*args)
     return cursor.fetchone()
 
-def insert(table, variables: tuple[str], values: tuple):
+def insert(table: str, variables: tuple[str], values: tuple[any]):
     run(f"""INSERT INTO sonny.{table} ({", ".join(variables)}) VALUES ({", ".join(("%s",) * len(values))})
         ON CONFLICT ({variables[0]}) DO UPDATE SET {", ".join(f"{v} = EXCLUDED.{v}" for v in variables if v != variables[0])}
         """, values)
 
-def insert_exclusive(table, variables: tuple[str], values: tuple):
+def insert_exclusive(table: str, variables: tuple[str], values: tuple[any]):
     run(f"INSERT INTO sonny.{table} ({", ".join(variables)}) VALUES ({", ".join(("%s",) * len(values))}", values)
 
-def delete(table, key, value):
+def delete(table: str, key: str, value: any):
     run(f"DELETE FROM sonny.{table} WHERE {key} = %s", (value,))
 
-def get(table, value, column: str | tuple[str] = "*", key: str = "id"):
+def get(table: str, value: str, column: str | tuple[str] = "*", key: str = "id") -> tuple[any]:
     if isinstance(column, tuple):
         column = ", ".join(column)
     return single(f"SELECT {column} FROM sonny.{table} WHERE {key} = %s", (value,))

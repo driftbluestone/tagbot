@@ -4,11 +4,12 @@ Interact with user profiles at a lower level than the api
 from utils.bot import bot
 from utils import config
 from utils import db, jsonIO
-from utils.utils import DIR
 
 # these are different functions because all of them need to be accessed at some point
 def get_user_profile(user_id: int) -> dict:
-    "deprecated"
+    """
+    deprecated, use get_user instead
+    """
     user = db.get("user", user_id)
     print(user)
     if user is not None:
@@ -19,7 +20,7 @@ def get_user_profile(user_id: int) -> dict:
     
     return permissions((user_id, {}, config.user_config))
 
-def get_user(user_id: int) -> tuple:
+def get_user(user_id: int) -> tuple[int, dict[str, bool | None], dict[str, any]]:
     user = db.get("user", user_id)
     if user is not None:
         return user
@@ -32,6 +33,13 @@ def get_user_permissions(user_id: int) -> dict:
         user = get_user(user_id)
         perms = user[1]
     return perms
+
+def get_user_data(user_id: int) -> dict:
+    data = db.get("user", user_id, "data")
+    if data is None:
+        user = get_user(user_id)
+        data = user[2]
+    return data
 
 def permissions(user: tuple):
     if isinstance(user, tuple):
@@ -55,6 +63,12 @@ def save_user_profile(user: tuple) -> tuple:
     db.insert("user", ("id", "perms", "data"), (user[0], jsonIO.dumps(user[1]), jsonIO.dumps(user[2])))
     return user
 
+def save_user_permissions(user_id: int, permissions: dict):
+    db.insert("user", ("id", "perms"), (user_id, jsonIO.dumps(permissions)))
+
+def save_user_data(user_id: int, data: dict):
+    db.insert("user", ("id", "data"), (user_id, jsonIO.dumps(data)))
+
 async def permission_check(user_id: int, permission: str) -> bool:
     # Bot admin bypass check
     if user_id in config.server_config["bot_admins"]:
@@ -67,7 +81,7 @@ async def permission_check(user_id: int, permission: str) -> bool:
     # local user layer
     perms = get_user_permissions(user_id)
     if permission not in perms:
-        perms = get_user(user_id)[1]
+        perms = permissions(get_user(user_id))[1]
     profile_permission = perms[permission]
     
     if profile_permission is not None:
