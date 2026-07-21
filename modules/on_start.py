@@ -32,9 +32,11 @@ def on_ready():
     """)
 
     db.cursor.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.server_perms (
+        CREATE TABLE IF NOT EXISTS {SCHEMA}.server (
             server_id BIGINT PRIMARY KEY,
-            perms JSONB
+            perms JSONB,
+            extensions JSONB,
+            command_prefix TEXT
         );
     """)
 

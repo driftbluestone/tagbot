@@ -43,19 +43,6 @@ def get_user_data(user_id: int) -> dict:
         db.insert("user_data", ("user_id", "data") (user_id, jsonIO.dumps(config.user_config)))
     return get_user_data(user_id)
 
-def permissions(user: tuple):
-    if isinstance(user, tuple):
-        perms = {}
-        for k in config.permissions_config:
-            if k in user: continue
-            perms[k] = None
-        user[0].update(perms)
-    else:
-        for k in config.permissions_config:
-            if k in user["permissions"]: continue
-            user["permissions"][k] = None
-    return save_user_profile(user)
-
 def save_user_profile(user: dict):
     """
     Depricated, user save_user() instead.
@@ -89,30 +76,30 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
     # Ensure permission exists
     if permission not in config.permissions_config:
         raise KeyError(f"Permission not found: {permission}")
-    
+
     # get roles
     roles = [role.id for role in reversed((bot.get_guild(server_id).get_member(user_id)).roles)]
 
     query = sql.SQL("""SELECT COALESCE (
-                        (up.perms ->> {perm})::boolean,
-                        (
-                            SELECT (perms ->> {perm})::boolean
-                            FROM {schema}.role r
-                            WHERE server_id = {server_id}
-                                AND r.role_id = ANY({roles})
-                                AND r.perms ->> {perm} IS NOT NULL
-                            ORDER BY array_position({roles}, role_id)
-                            ASC LIMIT 1
-                        ),
-                        (sp.perms ->> {perm})::boolean,
-                        ) FROM {schema}.server_perms sp
-                        LEFT JOIN {schema}.role rp
-                        ON rp.server_id = sp.server_id
-                        LEFT JOIN {schema}.user_perms up
-                        ON up.server_id = sp.server_id
-                        AND up.user_id = {user_id}
-                        WHERE up.server_id = {server_id}
-                    """).format(
+            (up.perms ->> {perm})::boolean,
+            (
+                SELECT (perms ->> {perm})::boolean
+                FROM {schema}.role r
+                WHERE server_id = {server_id}
+                    AND r.role_id = ANY({roles})
+                    AND r.perms ->> {perm} IS NOT NULL
+                ORDER BY array_position({roles}, role_id)
+                ASC LIMIT 1
+            ),
+            (sp.perms ->> {perm})::boolean,
+            ) FROM {schema}.server sp
+            LEFT JOIN {schema}.role rp
+            ON rp.server_id = sp.server_id
+            LEFT JOIN {schema}.user_perms up
+            ON up.server_id = sp.server_id
+            AND up.user_id = {user_id}
+            WHERE up.server_id = {server_id}
+        """).format(
         schema = db.SCHEMA,
         perm = sql.Placeholder("perm"),
         server_id = sql.Placeholder("server_id"),
@@ -125,51 +112,10 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
         "user_id": user_id,
         "roles": roles
     })
-    if result is None:
-        result = config.permissions_config[permission]
     return result
 
 async def permission_check(user_id: int, permission: str) -> bool:
-    # Bot admin bypass check
-    if user_id in config.server_config["bot_admins"]:
-        return True
-
-    # Ensure permission exists
-    if permission not in config.permissions_config:
-        raise KeyError(f"Permission not found: {permission}")
-    
-    ### everything below this is depricated
-    # local user layer
-    perms = get_user_permissions(user_id)
-    if permission not in perms:
-        pass
-        perms = permissions(get_user(user_id))[1]
-    profile_permission = perms[permission]
-    
-    if profile_permission is not None:
-        return profile_permission
-
-    # role layer
-    for role in reversed(bot.guilds[0].get_member(user_id).roles):
-        _role = db.get("role", role.id, "perms")
-        if _role is None:
-            continue
-        if permission not in _role:
-            _role = update_role(role.id)
-        if _role[permission] is not None:
-            return _role[permission]
-
-    # default layer
-    return config.permissions_config[permission]["default_enabled"]
-
-def update_role(role_id):
-    role, = db.get("role", role_id, "perms")
-    if role is None:
-        role = {}
-    for name, permission in config.permissions_config.items():
-        if not permission["role_assignable"]:
-            continue
-        if name not in role:
-            role[name] = None
-    db.insert("role", ("id", "perms"), (role_id, jsonIO.dumps(role)))
-    return role
+    """
+    depricated
+    """
+    return await check_permission(bot.guilds[0].id, user_id, permission)
