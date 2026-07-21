@@ -47,39 +47,37 @@ def run(*args):
     connection.execute(*args)
     connection.commit()
 
-# def query(*args):
-#     connection.execute(*args)
-#     return cursor.fetchall()
-
 def single(*args):
     connection.execute(*args)
     return cursor.fetchone()
 
-def insert(table: str, variables: tuple[str], values: tuple[any]):
-    run(f"""INSERT INTO {SCHEMA}.{table} ({", ".join(variables)}) VALUES ({", ".join(("%s",) * len(values))})
-        ON CONFLICT ({variables[0]}) DO UPDATE SET {", ".join(f"{v} = EXCLUDED.{v}" for v in variables if v != variables[0])}
-        """, values)
-
-def insert(table: str, fields: tuple[str], values: tuple[any] | any):
-    query = sql.SQL("INSERT INTO {schema}.{table} ({fields}) VALUES ({values})").format(
+def insert(table: str, key: tuple[str], field: tuple[str], value: tuple[any]):
+    query = sql.SQL("INSERT INTO {schema}.{table} ({fields}) VALUES ({values}) ON CONFLICT ({keys}) DO UPDATE SET {assignments}").format(
         schema = SCHEMA,
         table = table,
-        fields = sql.SQL(", ").join(sql.Identifier(f) for f in fields),
-        values = sql.SQL(", ").join(sql.Placeholder() for _ in values)
+        fields = sql.SQL(", ").join(sql.Identifier(f) for f in key + field),
+        values = sql.SQL(", ").join(sql.Placeholder() for _ in value),
+        keys = sql.SQL(", ").join(sql.Identifier(k) for k in key),
+        assignments = sql.SQL(", ").join(sql.SQL("{f} = EXCLUDED.{f}").format(f=sql.Identifier(f)) for f in field if f not in key)
     )
-    run(query)
-
-def insert_exclusive(table: str, variables: tuple[str], values: tuple[any]):
-    run(f"INSERT INTO {SCHEMA}.{table} ({", ".join(variables)}) VALUES ({", ".join(("%s",) * len(values))}", values)
+    run(query, value)
 
 def delete(table: str, key: str, value: any):
     run(f"DELETE FROM {SCHEMA}.{table} WHERE {key} = %s", (value,))
 
-def get(table: str, value: str | tuple[str], column: str | tuple[str] = "*", key: str | tuple[str] = "id") -> tuple[any]:
+def get(table: str, value: tuple[any], key: tuple[str] = ("id",), column: tuple[str] = ("*",)):
     query = sql.SQL("SELECT {column} FROM {schema}.{table} WHERE {key}").format(
-        column = sql.SQL(", ").join(sql.Identifier(c) for c in column) if isinstance(column, tuple) else sql.Identifier(column),
+        column = sql.SQL(", ").join(sql.Identifier(c) for c in column),
         schema = SCHEMA,
         table = table,
-        key = sql.SQL(" AND ").join(sql.SQL("{k} = %s").format(k=sql.Identifier(k)) for k in key) if isinstance(key, tuple) else sql.SQL("{key} = %s").format(key=sql.Identifier(key))
+        key = sql.SQL(" AND ").join(sql.SQL("{k} = %s").format(k=sql.Identifier(k)) for k in key)
     )
-    run(query, (value,) if not isinstance(value, tuple) else value)
+    run(query, value)
+# def get(table: str, value: str | tuple[str], column: str | tuple[str] = "*", key: str | tuple[str] = "id") -> tuple[any]:
+#     query = sql.SQL("SELECT {column} FROM {schema}.{table} WHERE {key}").format(
+#         column = sql.SQL(", ").join(sql.Identifier(c) for c in column) if isinstance(column, tuple) else sql.Identifier(column),
+#         schema = SCHEMA,
+#         table = table,
+#         key = sql.SQL(" AND ").join(sql.SQL("{k} = %s").format(k=sql.Identifier(k)) for k in key) if isinstance(key, tuple) else sql.SQL("{key} = %s").format(key=sql.Identifier(key))
+#     )
+#     run(query, (value,) if not isinstance(value, tuple) else value)
