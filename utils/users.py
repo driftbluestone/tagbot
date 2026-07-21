@@ -93,29 +93,25 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
     # get roles
     roles = [role.id for role in reversed((bot.get_guild(server_id).get_member(user_id)).roles)]
 
-    query = sql.SQL("""
-                    SELECT COALESCE(
+    query = sql.SQL("""SELECT COALESCE (
+                        (up.perms ->> {perm})::boolean,
                         (
-                            SELECT (perms->>{perm})::boolean
-                            FROM user_perms
-                            WHERE user_id = {user_id}
-                            LIMIT 1
-                        ),
-                        (
-                            SELECT (r.perms->>{perm})::boolean
-                            FROM roles r
-                            LEFT JOIN user_roles AS ur ON ur.role_id = r.role_id AND ur.user_id = {user_id}
-                            WHERE r.perms->>{perm} IS NOT NULL
-                            ORDER BY r.priority ASC
-                            LIMIT 1
-                        ),
-                        (
-                            SELECT (perms->>{perm})::boolean
-                            FROM server_perms
+                            SELECT (perms ->> {perm})::boolean
+                            FROM {schema}.role r
                             WHERE server_id = {server_id}
-                            LIMIT 1
-                        )
-                    );
+                                AND r.role_id = ANY({roles})
+                                AND r.perms ->> {perm} IS NOT NULL
+                            ORDER BY array_position({roles}, role_id)
+                            ASC LIMIT 1
+                        ),
+                        (sp.perms ->> {perm})::boolean,
+                        ) FROM {schema}.server_perms sp
+                        LEFT JOIN {schema}.role rp
+                        ON rp.server_id = sp.server_id
+                        LEFT JOIN {schema}.user_perms up
+                        ON up.server_id = sp.server_id
+                        AND up.user_id = {user_id}
+                        WHERE up.server_id = {server_id}
                     """).format(
         schema = db.SCHEMA,
         perm = sql.Placeholder("perm"),
