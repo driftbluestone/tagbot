@@ -80,6 +80,7 @@ def save_user_permissions(server_id: int, user_id: int, permissions: dict):
 def save_user_data(user_id: int, data: dict):
     db.insert("user_data", ("user_id",) ("data",), (user_id, jsonIO.dumps(data)))
 
+# im gonna cry.
 async def check_permission(server_id: int, user_id: int, permission: str) -> bool:
     # Bot admin bypass check
     if user_id in config.server_config["bot_admins"]:
@@ -88,6 +89,45 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
     # Ensure permission exists
     if permission not in config.permissions_config:
         raise KeyError(f"Permission not found: {permission}")
+    
+    # get roles
+    roles = [role.id for role in reversed((bot.get_guild(server_id).get_member(user_id)).roles)]
+
+    query = sql.SQL("""SELECT COALESCE (
+                    (up.perms ->> {perm})::boolean,
+                    (
+                        SELECT (perms ->> {perm})::boolean
+                        FROM {schema}.role
+                        WHERE server_id = {server_id}
+                            AND role_id = ANY({roles})
+                            AND perms ->> {perm} IS NOT NULL
+                        ORDER BY array_position({roles}, role_id)
+                        ASC LIMIT 1
+                    ),
+                    (sp.perms ->> {perm})::boolean,
+                    ) FROM {schema}.server_perms sp
+                    LEFT JOIN {schema}.role rp
+                    ON rp.server_id = sp.server_id
+                    LEFT JOIN {schema}.user_perms up
+                    ON up.server_id = sp.server_id
+                    AND up.user_id = {user_id}
+                    WHERE up.server_id = {server_id}
+                    """).format(
+        schema = db.SCHEMA,
+        perm = sql.Placeholder("perm"),
+        server_id = sql.Placeholder("server_id"),
+        user_id = sql.Placeholder("user_id"),
+        roles = sql.Placeholder("roles")
+    )
+    result = db.single(query, {
+        "perm": permission,
+        "server_id": server_id,
+        "user_id": user_id,
+        "roles": roles
+    })
+    if result is None:
+        result = config.permissions_config[permission]
+    return result
 
 async def permission_check(user_id: int, permission: str) -> bool:
     # Bot admin bypass check
@@ -98,8 +138,6 @@ async def permission_check(user_id: int, permission: str) -> bool:
     if permission not in config.permissions_config:
         raise KeyError(f"Permission not found: {permission}")
     
-
-
     ### everything below this is depricated
     # local user layer
     perms = get_user_permissions(user_id)

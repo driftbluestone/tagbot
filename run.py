@@ -47,7 +47,7 @@ try:
 except ModuleNotFoundError:
     print("Module 'psycopg' not found. Would you like to install?")
     if input("Enter 'y' to install: ").lower() == 'y':
-        print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psycopg"])))
+        print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psycopg[binary]"])))
     else:
         print("Installation skipped.")
         quit()

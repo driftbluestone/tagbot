@@ -32,6 +32,13 @@ def on_ready():
     """)
 
     db.cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA}.server_perms (
+            server_id BIGINT PRIMARY KEY,
+            perms JSONB
+        );
+    """)
+
+    db.cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS {SCHEMA}.role (
             server_id BIGINT NOT NULL,
             role_id BIGINT NOT NULL,
