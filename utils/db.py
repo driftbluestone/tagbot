@@ -26,7 +26,6 @@ def close_connection():
     logger._logger.info("Database connection closed.")
 
 try:
-    # 2. Establish the database connection
     logger._logger.info("Connecting to the PostgreSQL database...")
     connection = psycopg.connect(
         host=HOST,
