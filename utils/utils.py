@@ -13,6 +13,12 @@ if not os.path.exists(f"{DIR}/bot_info.json"):
 
     print("Database setup...")
     data["DB"] = {}
+    schema = input("Paste database schema name: ")
+    if not schema:
+        print("No database schema provided, default value `sonny` will be used.")
+        schema = "sonny"
+    data["DB"]["SCHEMA"] = schema
+    
     host = input("Paste database host: ")
     if not host:
         print("No database host provided, default value `localhost` will be used.")
@@ -33,8 +39,8 @@ if not os.path.exists(f"{DIR}/bot_info.json"):
 
     passw = input("Paste database password: ")
     if not passw:
-        print("No database password provided, default value `asdfjkl` will be used.")
-        passw = "asdfjkl"
+        print("No database password provided, default value `password` will be used.")
+        passw = "password"
     data["DB"]["PASS"] = passw
 
     port = input("Paste database port: ")

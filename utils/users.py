@@ -20,7 +20,8 @@ def get_user_profile(user_id: int) -> dict:
     
     return permissions((user_id, {}, config.user_config))
 
-def get_user(user_id: int) -> tuple[int, dict[str, bool | None], dict[str, any]]:
+def get_user(server_id, user_id: int) -> tuple[dict[str, bool | None], dict[str, any]]:
+    permissions = db.get("user", user_id, "perms")
     user = db.get("user", user_id)
     if user is not None:
         return user
