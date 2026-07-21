@@ -1,7 +1,7 @@
 """
 Access internal config files.
 
-These files are always saved in memory, so they do not need to be input as args when
+These files are always held in memory, so they do not need to be input as args when
 calling their respective save functions.
 """
 import os

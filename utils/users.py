@@ -1,46 +1,47 @@
 """
 Interact with user profiles at a lower level than the api
 """
+from typing import Any
+from psycopg import sql
 from utils.bot import bot
 from utils import config
 from utils import db, jsonIO
 
-# these are different functions because all of them need to be accessed at some point
 def get_user_profile(user_id: int) -> dict:
     """
     deprecated, use get_user instead
     """
-    user = db.get("user", user_id)
-    print(user)
-    if user is not None:
-        id, perms, data = user
-        user = {"id": id, "permissions": perms}
-        user.update(data)
-        return user
-    
-    return permissions((user_id, {}, config.user_config))
-
-def get_user(server_id, user_id: int) -> tuple[dict[str, bool | None], dict[str, any]]:
-    permissions = db.get("user", user_id, "perms")
-    user = db.get("user", user_id)
-    if user is not None:
-        return user
-    return permissions((user_id, {}, config.user_config))
-
-def get_user_permissions(user_id: int) -> dict:
-    perms = db.get("user", user_id, "perms")
-    
+    perms = db.get("user_perms", (bot.guilds[0].id, user_id), ("server_id", "user_id"), ("perms",),)
+    data = db.get("user_data", (user_id,), ("user_id"), ("data",))
     if perms is None:
-        user = get_user(user_id)
-        perms = user[1]
+        perms = {}
+    if data is None:
+        data = get_user_data(user_id)
+    user = {"id": user_id, "permissions": perms}
+    user.update(data)
+    return user
+
+def get_user(server_id: int, user_id: int) -> tuple[dict[str, bool | None], dict[str, Any]]:
+    perms = db.get("user_perms", (server_id, user_id), ("server_id", "user_id"), ("perms",),)
+    data = db.get("user_data", (user_id,), ("user_id",), ("data",))
+    if perms is None:
+        perms = {}
+    if data is not None:
+        return perms, data
+    db.insert("user_data", ("user_id", "data") (user_id, jsonIO.dumps(config.user_config)))
+    return get_user(server_id, user_id)
+
+def get_user_permissions(server_id, user_id: int) -> dict:
+    perms = db.get("user_perms", (server_id, user_id), ("server_id", "user_id"), ("perms",))
+    if perms is None:
+        return {}
     return perms
 
 def get_user_data(user_id: int) -> dict:
-    data = db.get("user", user_id, "data")
+    data = db.get("user_data", (user_id,), ("user_id",), ("data",))
     if data is None:
-        user = get_user(user_id)
-        data = user[2]
-    return data
+        db.insert("user_data", ("user_id", "data") (user_id, jsonIO.dumps(config.user_config)))
+    return get_user_data(user_id)
 
 def permissions(user: tuple):
     if isinstance(user, tuple):
@@ -48,27 +49,45 @@ def permissions(user: tuple):
         for k in config.permissions_config:
             if k in user: continue
             perms[k] = None
-        user[1].update(perms)
+        user[0].update(perms)
     else:
         for k in config.permissions_config:
             if k in user["permissions"]: continue
             user["permissions"][k] = None
     return save_user_profile(user)
 
-def save_user_profile(user: tuple) -> tuple:
-    if isinstance(user, dict):
-        usr = user.copy()
-        usr.pop("id")
-        usr.pop("permissions")
-        user = (user["id"], user["permissions"], usr)
-    db.insert("user", ("id", "perms", "data"), (user[0], jsonIO.dumps(user[1]), jsonIO.dumps(user[2])))
-    return user
+def save_user_profile(user: dict):
+    """
+    Depricated, user save_user() instead.
+    """
+    server_id = bot.guilds[0].id
+    usr = user.copy()
+    usr.pop("id")
+    usr.pop("permissions")
+    save_user(server_id, user["id"], (user["permissions"], usr))
 
-def save_user_permissions(user_id: int, permissions: dict):
-    db.insert("user", ("id", "perms"), (user_id, jsonIO.dumps(permissions)))
+def save_user(server_id: int, user_id: int, user: tuple[dict, dict]):
+    """
+    Save both user permissions and user data. `user` must be a tuple of the perms dict and the user data dict
+    """
+    perms, data = user
+    save_user_permissions(server_id, user_id, perms)
+    save_user_data(user_id, data)
+
+def save_user_permissions(server_id: int, user_id: int, permissions: dict):
+    db.insert("user_perms", ("server_id", "user_id",), ("perms",), (server_id, user_id, jsonIO.dumps(permissions)))
 
 def save_user_data(user_id: int, data: dict):
-    db.insert("user", ("id", "data"), (user_id, jsonIO.dumps(data)))
+    db.insert("user_data", ("user_id",) ("data",), (user_id, jsonIO.dumps(data)))
+
+async def check_permission(server_id: int, user_id: int, permission: str) -> bool:
+    # Bot admin bypass check
+    if user_id in config.server_config["bot_admins"]:
+        return True
+
+    # Ensure permission exists
+    if permission not in config.permissions_config:
+        raise KeyError(f"Permission not found: {permission}")
 
 async def permission_check(user_id: int, permission: str) -> bool:
     # Bot admin bypass check
@@ -78,10 +97,14 @@ async def permission_check(user_id: int, permission: str) -> bool:
     # Ensure permission exists
     if permission not in config.permissions_config:
         raise KeyError(f"Permission not found: {permission}")
+    
 
+
+    ### everything below this is depricated
     # local user layer
     perms = get_user_permissions(user_id)
     if permission not in perms:
+        pass
         perms = permissions(get_user(user_id))[1]
     profile_permission = perms[permission]
     
