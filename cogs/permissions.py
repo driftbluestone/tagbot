@@ -4,7 +4,6 @@ from discord.ext import commands
 from utils.bot import bot
 from utils import users, config, jsonIO, db
 from api import gui
-from utils.utils import DIR
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Permissions(bot=bot))
@@ -13,21 +12,13 @@ class Permissions(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.Cog.listener() # Store roles internally to save API calls
-    async def on_member_update(self, before: discord.Member, after: discord.Member):
-        if before.roles == after.roles:
-            return
-        profile = users.get_user_profile(after.id)
-        profile["roles"] = [role.id for role in after.roles]
-        users.save_user_profile(profile)
-
     permissions = app_commands.Group(name="permissions", description=".")
 
     @permissions.command(name="default", description="Manage default permissions")
     async def default(self, interaction: discord.Interaction):
         if not await users.permission_check(interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.send_message(view=DefaultPermissionPanel())
+        await interaction.response.send_message(view=DefaultPermissionPanel(interaction.guild.id))
 
     @permissions.command(name="user", description="Configure user permissions")
     async def user(self, interaction: discord.Interaction, target: typing.Optional[discord.Member]):
@@ -56,9 +47,10 @@ next_perm = {
 }
 
 class DefaultPermissionPanel(gui.PageUI):
-    def __init__(self, _ = None, page: int = 1):
-        perms = list(config.permissions_config.keys())
-        super().__init__(page=page, element_count=len(perms))
+    def __init__(self, guild_id: int, page: int = 1):
+        perms = db.get("server", (guild_id,), ("server_id",) ("perms",))
+        perms = list(perms.keys())
+        super().__init__(page=page, element_count=len(perms), data_transfer=guild_id)
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
             permission = config.permissions_config[perm]["default_enabled"]

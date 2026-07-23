@@ -1,10 +1,9 @@
 """
 Interact with user profiles at a lower level than the api
 """
-from typing import Any
 from psycopg import sql
 from utils.bot import bot
-from utils import config
+from utils import config, get
 from utils import db, jsonIO
 
 def get_user_profile(user_id: int) -> dict:
@@ -16,32 +15,12 @@ def get_user_profile(user_id: int) -> dict:
     if perms is None:
         perms = {}
     if data is None:
-        data = get_user_data(user_id)
+        data = get.user_data(user_id)
     user = {"id": user_id, "permissions": perms}
     user.update(data)
     return user
 
-def get_user(server_id: int, user_id: int) -> tuple[dict[str, bool | None], dict[str, Any]]:
-    perms = db.get("user_perms", (server_id, user_id), ("server_id", "user_id"), ("perms",),)
-    data = db.get("user_data", (user_id,), ("user_id",), ("data",))
-    if perms is None:
-        perms = {}
-    if data is not None:
-        return perms, data
-    db.insert("user_data", ("user_id", "data") (user_id, jsonIO.dumps(config.user_config)))
-    return get_user(server_id, user_id)
 
-def get_user_permissions(server_id, user_id: int) -> dict:
-    perms = db.get("user_perms", (server_id, user_id), ("server_id", "user_id"), ("perms",))
-    if perms is None:
-        return {}
-    return perms
-
-def get_user_data(user_id: int) -> dict:
-    data = db.get("user_data", (user_id,), ("user_id",), ("data",))
-    if data is None:
-        db.insert("user_data", ("user_id", "data") (user_id, jsonIO.dumps(config.user_config)))
-    return get_user_data(user_id)
 
 def save_user_profile(user: dict):
     """
