@@ -20,8 +20,6 @@ def get_user_profile(user_id: int) -> dict:
     user.update(data)
     return user
 
-
-
 def save_user_profile(user: dict):
     """
     Depricated, user save_user() instead.
