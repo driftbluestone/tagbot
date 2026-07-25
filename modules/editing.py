@@ -1,16 +1,16 @@
 import discord
 from modules import message_embed
-from utils import db
+from db import db
 
 async def new_edit(message: discord.Message, deleted = False):
     id = message.id
-    result = db.get("history", id, "*", "message")
+    result = db.get("history", (id,), ("message",), ("reply",))
     if result is None:
         return
     _, reply_id = result
     reply: discord.PartialMessage = message.channel.get_partial_message(reply_id)
     await reply.delete()
-    db.delete("history", "message", id)
+    db.delete("history", ("message",), (id,))
     if not deleted:
         await message_embed.message_reply(message)
 

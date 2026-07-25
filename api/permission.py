@@ -1,5 +1,6 @@
 import asyncio
-from utils import users, config
+from db import users
+from utils import config
 from api import _ext as ext
 
 __all__ = ["create", "override", "check"]

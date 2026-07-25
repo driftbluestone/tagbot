@@ -1,5 +1,5 @@
 from typing import Literal
-from utils import db
+from db import db
 from api import _ext
 
 def table(name: str, custom_serial: bool, columns: dict[str, Literal["SMALLINT", "INT", "BIGINT",

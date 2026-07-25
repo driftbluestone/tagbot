@@ -1,8 +1,9 @@
 import discord, typing
 from discord import app_commands
 from discord.ext import commands
+from db import db, users
 from utils.bot import bot
-from utils import users, config, jsonIO, db
+from utils import config, jsonIO
 from api import gui
 
 async def setup(bot: commands.Bot) -> None:

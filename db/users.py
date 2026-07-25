@@ -2,41 +2,26 @@
 Interact with user profiles at a lower level than the api
 """
 from psycopg import sql
+from db import db
 from utils.bot import bot
-from utils import config, get
-from utils import db, jsonIO
+from utils import config, jsonIO
 
-def get_user_profile(user_id: int) -> dict:
+def get_user_data(server_id: int, user_id: int) -> dict:
     """
-    deprecated, use get_user instead
+    Get user data, for global user data, use server id 0.
     """
-    perms = db.get("user_perms", (bot.guilds[0].id, user_id), ("server_id", "user_id"), ("perms",),)
-    data = db.get("user_data", (user_id,), ("user_id"), ("data",))
-    if perms is None:
-        perms = {}
+    data = db.get("user", (server_id, user_id,), ("server_id", "user_id",), ("data",))
     if data is None:
-        data = get.user_data(user_id)
-    user = {"id": user_id, "permissions": perms}
-    user.update(data)
-    return user
+        data = {}
+    return data
 
-def save_user_profile(user: dict):
-    """
-    Depricated, user save_user() instead.
-    """
-    server_id = bot.guilds[0].id
-    usr = user.copy()
-    usr.pop("id")
-    usr.pop("permissions")
-    # save_user(server_id, user["id"], (user["permissions"], usr))
+def save_user_data(server_id: int, user_id: int, data: dict):
+    db.insert("user", ("server_id", "user_id") ("data",), (server_id, user_id, jsonIO.dumps(data)))
 
 def save_permission(server_id: int, id: int, permission: str, value: bool):
     if value is None:
         return
     db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, id, permission, value))
-
-def save_user_data(user_id: int, data: dict):
-    db.insert("user_data", ("user_id",) ("data",), (user_id, jsonIO.dumps(data)))
 
 # im gonna cry.
 async def check_permission(server_id: int, user_id: int, permission: str) -> bool:
@@ -85,9 +70,3 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
         result = False
     
     return result
-
-async def permission_check(user_id: int, permission: str) -> bool:
-    """
-    depricated
-    """
-    return await check_permission(bot.guilds[0].id, user_id, permission)

@@ -1,5 +1,6 @@
 import discord, os, asyncio
-from utils import users, config, jsonIO
+from db import users
+from utils import config, jsonIO
 from utils.bot import bot
 from utils.utils import DIR
 from api import _ext as ext

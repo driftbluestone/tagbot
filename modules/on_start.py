@@ -1,5 +1,5 @@
 import os
-from utils import db
+from db import db
 from utils.utils import DIR, data
 
 SCHEMA = data["DB"]["SCHEMA"]
@@ -14,7 +14,7 @@ def on_ready():
 
     db.connection.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA};")
 
-    # user table
+    # permissions table
     db.connection.execute(f"""
         CREATE TABLE IF NOT EXISTS {SCHEMA}.permissions (
             server_id BIGINT NOT NULL,
@@ -25,15 +25,9 @@ def on_ready():
         );
     """)
 
+    # user data table
     db.cursor.execute(f"""
-        connection TABLE IF NOT EXISTS {SCHEMA}.user_global (
-            user_id BIGINT PRIMARY KEY,
-            data JSONB
-        );
-    """)
-
-    db.cursor.execute(f"""
-            connection TABLE IF NOT EXISTS {SCHEMA}.user_server (
+            connection TABLE IF NOT EXISTS {SCHEMA}.user (
                 server_id BIGINT,
                 user_id BIGINT,
                 data JSONB,
@@ -41,6 +35,7 @@ def on_ready():
             );
         """)
 
+    # server data table
     db.connection.execute(f"""
         CREATE TABLE IF NOT EXISTS {SCHEMA}.server (
             server_id BIGINT PRIMARY KEY,
@@ -50,6 +45,7 @@ def on_ready():
         );
     """)
 
+    # permission metadata table
     db.connection.execute(f"""
         CREATE TABLE IF NOT EXISTS {SCHEMA}.perm (
             name TEXT PRIMARY KEY,
