@@ -16,11 +16,12 @@ def on_ready():
 
     # user table
     db.connection.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.user_perms (
+        CREATE TABLE IF NOT EXISTS {SCHEMA}.permissions (
             server_id BIGINT NOT NULL,
-            user_id BIGINT NOT NULL,
-            perms JSONB,
-            PRIMARY KEY (server_id, user_id)
+            permission TEXT NOT NULL,
+            id BIGINT NOT NULL,
+            value BOOLEAN,
+            PRIMARY KEY (server_id, id, permission)
         );
     """)
 
@@ -38,15 +39,6 @@ def on_ready():
             extensions TEXT[],
             default_user_data JSONB,
             command_prefix TEXT
-        );
-    """)
-
-    db.connection.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.role (
-            server_id BIGINT NOT NULL,
-            role_id BIGINT NOT NULL,
-            perms JSONB,
-            PRIMARY KEY (server_id, role_id)
         );
     """)
 

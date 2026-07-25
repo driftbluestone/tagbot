@@ -57,40 +57,41 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
         raise KeyError(f"Permission not found: {permission}")
 
     # get roles
-    roles = [role.id for role in reversed((bot.get_guild(server_id).get_member(user_id)).roles)]
+    ids = [role.id for role in reversed((bot.get_guild(server_id).get_member(user_id)).roles)]
+    ids.insert(0, user_id)
+    ids.append(0)
 
-    query = sql.SQL("""SELECT COALESCE (
-            (up.perms ->> {perm})::boolean,
-            (
-                SELECT (perms ->> {perm})::boolean
-                FROM {schema}.role r
-                WHERE server_id = {server_id}
-                    AND r.role_id = ANY({roles})
-                    AND r.perms ->> {perm} IS NOT NULL
-                ORDER BY array_position({roles}, role_id)
-                ASC LIMIT 1
-            ),
-            (sp.perms ->> {perm})::boolean,
-            ) FROM {schema}.server sp
-            LEFT JOIN {schema}.role rp
-            ON rp.server_id = sp.server_id
-            LEFT JOIN {schema}.user_perms up
-            ON up.server_id = sp.server_id
-            AND up.user_id = {user_id}
-            WHERE up.server_id = {server_id}
+    query = sql.SQL("""SELECT sub.value
+        FROM unnest({ids})
+        WITH ORDINALITY AS k(key_val, priority)
+        CROSS JOIN LATERAL (
+            SELECT value
+            FROM {schema}.permissions
+            WHERE id = k.key_val
+                AND server_id = {server_id}
+                AND permission = {permission}
+                AND value IS NOT NULL
+            LIMIT 1
+        ) sub
+        ORDER BY k.priority
+        LIMIT 1;
         """).format(
         schema = db.SCHEMA,
-        perm = sql.Placeholder("perm"),
         server_id = sql.Placeholder("server_id"),
-        user_id = sql.Placeholder("user_id"),
-        roles = sql.Placeholder("roles")
+        permission = sql.Placeholder("permission"),
+        ids = sql.Placeholder("ids")
     )
     result = db.single(query, {
-        "perm": permission,
         "server_id": server_id,
-        "user_id": user_id,
-        "roles": roles
+        "permission": permission,
+        "ids": ids
     })
+
+    if isinstance(result, tuple):
+        result = result[0]
+    if result is None:
+        result = False
+    
     return result
 
 async def permission_check(user_id: int, permission: str) -> bool:
