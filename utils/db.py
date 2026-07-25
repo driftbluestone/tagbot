@@ -51,15 +51,15 @@ def single(*args):
 
 def insert(table: str, key: tuple[str, ...], field: tuple[str, ...], value: tuple[Any, ...]):
     if not isinstance(key, tuple):
-        raise ValueError("Argument `key` must be a tuple")
+        raise ValueError("Argument `key` must be a tuple.")
     if not isinstance(field, tuple):
-        raise ValueError("Argument `field` must be a tuple")
+        raise ValueError("Argument `field` must be a tuple.")
     if not isinstance(value, tuple):
-        raise ValueError("Argument `value` must be a tuple")
+        raise ValueError("Argument `value` must be a tuple.")
     if len(key) + len(field) != len(value):
-        raise ValueError("len(key) + len(field) must equal len(value)")
+        raise ValueError("len(key) + len(field) must equal len(value).")
     if not key:
-        raise ValueError("Arguments `key`, `field`, and `value` cannot be empty")
+        raise ValueError("Arguments `key`, `field`, and `value` cannot be empty.")
     
     query = sql.SQL("INSERT INTO {schema}.{table} ({fields}) VALUES ({values}) ON CONFLICT ({keys}) DO UPDATE SET {assignments}").format(
         schema = SCHEMA,

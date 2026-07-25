@@ -30,18 +30,12 @@ def save_user_profile(user: dict):
     usr = user.copy()
     usr.pop("id")
     usr.pop("permissions")
-    save_user(server_id, user["id"], (user["permissions"], usr))
+    # save_user(server_id, user["id"], (user["permissions"], usr))
 
-def save_user(server_id: int, user_id: int, user: tuple[dict, dict]):
-    """
-    Save both user permissions and user data. `user` must be a tuple of the perms dict and the user data dict
-    """
-    perms, data = user
-    save_user_permissions(server_id, user_id, perms)
-    save_user_data(user_id, data)
-
-def save_user_permissions(server_id: int, user_id: int, permissions: dict):
-    db.insert("user_perms", ("server_id", "user_id",), ("perms",), (server_id, user_id, jsonIO.dumps(permissions)))
+def save_permission(server_id: int, id: int, permission: str, value: bool):
+    if value is None:
+        return
+    db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, id, permission, value))
 
 def save_user_data(user_id: int, data: dict):
     db.insert("user_data", ("user_id",) ("data",), (user_id, jsonIO.dumps(data)))
