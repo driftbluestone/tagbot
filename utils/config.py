@@ -34,11 +34,3 @@ if not os.path.exists(f"{DIR}/data/config.json"):
 bot_config: dict = jsonIO.load(f"{DIR}/data/config.json")
 def save_bot_config():
     jsonIO.dump(f"{DIR}/data/config.json", bot_config)
-
-user_config: dict = jsonIO.load(f"{DIR}/data/user.json")
-def save_user_config():
-    jsonIO.dump(f"{DIR}/data/user.json", user_config)
-
-permissions_config: dict = jsonIO.load(f"{DIR}/data/permissions.json")
-def save_permisions_config():
-    jsonIO.dump(f"{DIR}/data/permissions.json", permissions_config)

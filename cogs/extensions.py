@@ -1,12 +1,13 @@
 import discord, os, asyncio, importlib, sys, shutil, typing
 from discord import app_commands
 from discord.ext import commands
+from psycopg import sql
 from utils import config, jsonIO
 from utils.bot import bot
 from utils.utils import DIR
 from utils.logger import Logger
 LOGGER = Logger()
-from db import server, user
+from db import db, server, user
 from api import gui
 
 async def setup(bot: commands.Bot) -> None:
@@ -212,8 +213,14 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
         os.chmod(path, 128)
         func(path)
 
-    config.bot_config["extensions"].pop(extension)
-    config.save_bot_config()
+    query = sql.SQL("""UPDATE {schema}.server
+        SET extensions = array_remove(extensions, '{extension}')
+        WHERE '{extension}' = ANY(extensions);
+        """).format(
+            schema = db.SCHEMA,
+            extension = sql.Placeholder()
+        )
+    db.run(query, extension)
     if not silent:
         await interaction.response.defer()
     try:
@@ -224,21 +231,27 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
 
     if not save_data:
         # remove permissions
-        config.permissions_config
-        permission_keys: list[str] = list(config.permissions_config.keys())
-        for k in permission_keys:
-            if k.startswith(extension + ":"):
-                config.permissions_config.pop(k)
-        config.save_permisions_config()
+        query = sql.SQL("SELECT name FROM {schema}.perm WHERE name LIKE '{extension}:%';").format(
+            schema = db.SCHEMA,
+            extension = sql.Placeholder()
+        )
+        permissions = db.multiple(query, extension)
+        for permission in permissions:
+            query = sql.SQL("DELETE FROM {schema}.permissions WHERE permission = {permission}").format(
+                schema = db.SCHEMA,
+                permission = sql.Placeholder()
+            )
+            db.run(query, permission)
 
-        # remove user fields
-        user_keys: list[str] = list(config.user_config.keys())
-        for k in user_keys:
-            if k.startswith(extension + ":"):
-                config.user_config.pop(k)
-        config.save_user_config()
+            query = sql.SQL("DELETE FROM {schema}.perm WHERE name = {permission}").format(
+                schema = db.SCHEMA,
+                permission = sql.Placeholder()
+            )
+            db.run(query, permission)
+        
     # remove files
         shutil.rmtree(f'{DIR}/data/{extension}', onexc=_remove_readonly)
     shutil.rmtree(f'{DIR}/extensions/{extension}', onexc=_remove_readonly)
     if not silent:
-        await LOGGER.info(f":white_check_mark: Extension **{extension}** deleted.", interaction)
+        await LOGGER.info(f":white_check_mark: Extension **{extension}** deleted.")
+        await interaction.followup.send(f":white_check_mark: Extension **{extension}** deleted.")
