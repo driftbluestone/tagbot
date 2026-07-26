@@ -154,7 +154,7 @@ class ExtensionManager(gui.PageUI):
 
     # REWRITE REWRITE REWRITE
         if self.extensions[extension]:
-            reload_modules(extension)
+            unload_modules(extension)
             await bot.load_extension(f"extensions.{extension}.main")
         else:
             await bot.unload_extension(f"extensions.{extension}.main")
@@ -163,33 +163,32 @@ class ExtensionManager(gui.PageUI):
         await LOGGER.info(f"Extension '{extension}' {state}.")
 
 async def load_extensions():
-    for i in os.listdir(f"{DIR}/extensions"):
-        if i not in config.bot_config["extensions"]:
-            config.bot_config["extensions"][i] = True
-            try:
-                os.mkdir(f"{DIR}/extensions/{i}")
-            except FileExistsError:
-                pass
-            if os.path.exists(f"{DIR}/extensions/{i}/init.py"):
-                importlib.import_module(f"extensions.{i}.init")
-                config.save_bot_config()
-                await LOGGER.info(f"Registered new extension: {i}.")
-
-        if config.bot_config["extensions"][i]:
-            try:
-                reload_modules(i)
-                await bot.load_extension(f"extensions.{i}.main")
-                await LOGGER.info(f"Loaded extension: {i}.")
-            except Exception as e:
-                await LOGGER.error(f"Failed to load extension {i}: {e}")
-        else:
-            try:
-                await bot.unload_extension(f"extensions.{i}.main")
-                await LOGGER.info(f"Unloaded extension: {i}.")
-            except:
-                pass
+    extensions, = db.get("server", (0,), ("server_id",), ("extensions",),)
     await resync_commands()
 
+async def init_extension(extension: str):
+    query = sql.SQL("SELECT {extension} = ANY(extensions) FROM {schema}.server WHERE server_id = 0").format(
+        schema = db.SCHEMA,
+        extension = sql.Identifier(extension)
+    )
+    exists, = db.single(query)
+    if not exists:
+        try:
+            os.mkdir(f"{DIR}/extensions/{extension}")
+        except FileExistsError:
+            pass
+        if os.path.exists(f"{DIR}/extensions/{extension}/init.py"):
+            importlib.import_module(f"extensions.{extension}.init")
+        await bot.load_extension(f"extensions.{extension}.main")
+        await LOGGER.info(f"Initialized new extension: {extension}.")
+    # else:
+    #     try:
+    #         unload_modules(extension)
+    #         await bot.load_extension(f"extensions.{extension}.main")
+    #         await LOGGER.info(f"Initialized extension: {extension}.")
+    #     except Exception as e:
+    #         await LOGGER.error(f"Failed to initialize extension {extension}: {e}")
+    
 async def resync_commands_server(guild: discord.Guild):
     await bot.tree.sync(guild=guild)
 
@@ -200,7 +199,7 @@ async def resync_commands():
     except Exception as e:
         await LOGGER.error(f"Failed to sync commands: {e}")
 
-def reload_modules(extension_name: str):
+def unload_modules(extension_name: str):
     extension_prefix = f"extensions.{extension_name}"
     for module_name in list(sys.modules.keys()):
         if module_name == f"{extension_prefix}.main":
@@ -214,8 +213,8 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
         func(path)
 
     query = sql.SQL("""UPDATE {schema}.server
-        SET extensions = array_remove(extensions, '{extension}')
-        WHERE '{extension}' = ANY(extensions);
+        SET extensions = array_remove(extensions, {extension})
+        WHERE {extension} = ANY(extensions);
         """).format(
             schema = db.SCHEMA,
             extension = sql.Placeholder()
@@ -225,7 +224,7 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
         await interaction.response.defer()
     try:
         await bot.unload_extension(f"extensions.{extension}.main")
-        reload_modules(extension)
+        unload_modules(extension)
     except:
         pass
 

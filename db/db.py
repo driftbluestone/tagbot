@@ -41,6 +41,71 @@ try:
 except Exception as error:
     logger._logger.error(f"\nError while connecting to PostgreSQL: {error}")
 
+def _init():
+    """
+    Internal function. Creates the schema and tables.
+    """
+    connection.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA};")
+    
+    # permissions table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA}.permissions (
+            server_id BIGINT NOT NULL,
+            permission TEXT NOT NULL,
+            id BIGINT NOT NULL,
+            value BOOLEAN,
+            PRIMARY KEY (server_id, id, permission)
+        );
+    """)
+
+    # user data table
+    connection.execute(f"""
+        TABLE IF NOT EXISTS {SCHEMA}.user (
+            server_id BIGINT,
+            user_id BIGINT,
+            data JSONB,
+            PRIMARY KEY (server_id, user_id)
+        );
+        """)
+
+    # server data table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA}.server (
+            server_id BIGINT PRIMARY KEY,
+            command_prefix TEXT
+        );
+    """)
+
+    # extension table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXIST {SCHEMA}.extensions (
+            server_id BIGINT,
+            extension TEXT,
+            PRIMARY KEY (server_id, extension)
+        );
+    """)
+
+    # permission metadata table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA}.perm (
+            name TEXT PRIMARY KEY,
+            display_name TEXT,
+            toggleable BOOLEAN,
+            default_enabled BOOLEAN,
+            source TEXT
+        );    
+    """)
+
+    # message history table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA}.history (
+            message BIGINT PRIMARY KEY,
+            reply BIGINT,
+        );
+    """)
+    
+    logger._logger.info("Defined Schema and Tables")
+
 def run(*args):
     connection.execute(*args)
     connection.commit()
