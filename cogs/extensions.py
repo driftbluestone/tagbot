@@ -26,6 +26,17 @@ class Extensions(commands.Cog):
         view = ExtensionManager(interaction.guild)
         return await interaction.response.send_message(view=view)
 
+    @extension.command(name="add", description="Requires bot admin. Install extensions")
+    async def extension_add(self, interaction: discord.Interaction, repo: str):
+        if interaction.user.id in config.bot_config["bot_admins"]:
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        if not repo.startswith("https://github.com/"):
+            return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
+        repo_name = repo.split("/")[-1]
+        if server.check_extension(0, repo_name):
+            return await interaction.response.send_message(":warning: Extension already installed.")
+        await _install_repo(interaction, repo, repo_name)
+    
     @extension.command(name="update", description="Requires bot admin. Update extensions")
     async def extension_update(self, interaction: discord.Interaction, repo: str):
         if interaction.user.id in config.bot_config["bot_admins"]:
@@ -33,28 +44,10 @@ class Extensions(commands.Cog):
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         repo_name = repo.split("/")[-1]
-        if repo_name not in config.bot_config["extensions"].keys():
-            return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
-        await LOGGER.info(f"Updating extension {repo_name} from {repo}.", interaction)
-        await uninstall(interaction, repo_name, True, True)
-        await self.download_repo(interaction, repo, True)
-        await LOGGER.info(f"Updated extension {repo_name} from {repo}.", interaction)
-
-    @extension.command(name="add", description="Requires bot admin. Install extensions")
-    async def extension_add(self, interaction: discord.Interaction, repo: str):
-        if interaction.user.id in config.bot_config["bot_admins"]:
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        if not repo.startswith("https://github.com/"):
-            return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
-        await self.download_repo(interaction, repo)
-
-    async def download_repo(self, interaction: discord.Interaction, repo: str, silent: bool = False):
-        repo_name = repo.split("/")[-1]
-        if os.path.isdir(f"{DIR}/extensions/{repo_name}"):
-            return await LOGGER.warn("Extension already installed.", interaction)
-        os.mkdir(f"{DIR}/extensions/{repo_name}")
-        await Installer(None if silent else interaction, repo).install_extension()
-        await load_extensions()
+        if server.check_extension(0, repo_name):
+            pass
+        else:
+            await _install_repo(interaction, repo, repo_name)
 
     @extension.command(name="delete", description="Requires bot admin. Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
@@ -64,64 +57,48 @@ class Extensions(commands.Cog):
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await uninstall(interaction, extension, save_data)
 
-class Installer:
-    def __init__(self, interaction: discord.Interaction, repo: str):
-        self.extension = repo.split("/")[-1]
-        self.repo = repo
-        self.ext = self.extension
-        self.interaction = interaction
+# internal extension installation functions
+async def _install_repo(interaction: discord.Interaction, repo: str, repo_name: str):
+    await LOGGER.info(f"Downloading {repo_name} from {repo}...", interaction)
+    await _subprocess(["git", "clone", repo, f"{DIR}/extensions/{repo_name}"])
+    dependencies = f"{DIR}/extensions/{repo_name}/dependencies.json"
+    if os.path.exists(dependencies):
+        await LOGGER.info(f"Downloaded {repo_name} from {repo}.", interaction)
+        await LOGGER.info("Found dependencies. Installing...", interaction)
+        dependencies = jsonIO.load(interaction, dependencies)
+        await _install_dependencies(interaction, dependencies)
+        await LOGGER.info("Dependencies installed.", interaction)
+    else:
+        await LOGGER.info(f"Installed {repo_name} from {repo}.", interaction)
+    
 
-    async def subprocess(self, args: list) -> str:
-        try:
-            result = await asyncio.create_subprocess_exec(
-                *args,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.STDOUT
-            )
-            stdout, _ = await result.communicate()
-            return stdout.decode()
-        except Exception as e:
-            return str(e)
+async def _install_dependencies(interaction: discord.Interaction, dependencies: dict):
+    if "pip" in dependencies:
+        for package in dependencies["pip"]:
+            await LOGGER.info(f"pip dependency {package} found. Installing...", interaction)
+            await _subprocess([sys.executable, "-m", "pip", "install", package])
+            await LOGGER.info(f"pip dependency {package} Installed.", interaction)
+    if "extension" in dependencies:
+        for extension in dependencies["extension"]:
+            extension_name = extension.split("/")[-1]
+            await LOGGER.info(f"Extension dependency {extension_name} found. Installing...", interaction)
+            await _install_repo(interaction, extension, extension_name)
+            await LOGGER.info(f"Extension dependency {extension_name} Installed.", interaction)
+    if "other" in dependencies:
+        for other in dependencies["other"]:
+            await LOGGER.warn(f"Other dependency '{other}' requires manual installation.", interaction)
 
-    async def install_extension(self):
-        # await log(f"Cloning {self.extension} from {self.repo}...", self.interaction)
-        output = await self.subprocess(["git", "clone", self.repo, f"{DIR}/extensions/{self.extension}"])
-        await LOGGER.info(output.strip(), self.interaction)
-        if os.path.exists(f"{DIR}/extensions/{self.extension}/main.py"):
-            await LOGGER.info(f"Installed {self.extension}", self.interaction)
-        else:
-            await LOGGER.error(f"Failed to install {self.extension}", self.interaction)
-            await uninstall(self.interaction, self.extension)
-        await self.dependencies()
-
-    async def dependencies(self):
-        filepath = f"{DIR}/extensions/{self.extension}/dependencies.json"
-        if not os.path.exists(filepath):
-            return
-        requirements = jsonIO.load(filepath)
-
-        if "pip" in requirements:
-            for pip in requirements["pip"]:
-                await self.install_pip(pip)
-
-        if "extension" in requirements:
-            for extension in requirements["extension"]:
-                self.extension = extension
-                await LOGGER.info(f"Extension dependency found: {extension}. Installing...", self.interaction)
-                await self.install_extension()
-                await LOGGER.info(f"Extension dependency installed: {extension}.", self.interaction)
-
-        if "other" in requirements:
-            for other in requirements["other"]:
-                await LOGGER.warn(f"Other dependency '{other}' requires manual installation.", self.interaction)
-
-        await LOGGER.info(f"Installed {self.ext} from {self.repo}.", self.interaction)
-
-    async def install_pip(self, pip: str):
-        await LOGGER.info(f"Installing pip dependency: {pip}...", self.interaction)
-        output = await self.subprocess(["python3", "-m", "pip", "install", pip])
-        await LOGGER.info(output.strip(), self.interaction)
-        await LOGGER.info(f"Pip dependency installed: {pip}.", self.interaction)
+async def _subprocess(args):
+    try:
+        result = await asyncio.create_subprocess_exec(
+            *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT
+        )
+        stdout, _ = await result.communicate()
+        await LOGGER.info(stdout.decode())
+    except Exception as e:
+        await LOGGER.warning(str(e))
 
 class ExtensionManager(gui.PageUI):
     """Manage which extensions are enabled or disabled via /extension toggle"""
