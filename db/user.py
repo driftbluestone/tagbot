@@ -72,7 +72,7 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
         permission = sql.Placeholder("permission"),
         ids = sql.Placeholder("ids")
     )
-    result = db.single(query, {
+    result, = db.single(query, {
         "server_id": server_id,
         "permission": permission,
         "ids": ids

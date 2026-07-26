@@ -16,19 +16,22 @@ async def setup(bot: commands.Bot) -> None:
 class Extensions(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    extension = app_commands.Group(name="extension", description="Manage extensions")
+
+    class ExtensionCommands(app_commands.Group):
+        async def interaction_check(self, interaction: discord.Interaction):
+            permission = interaction.user.id in config.bot_config["bot_admins"]
+            if not permission:
+                await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+            return permission
+    extension = ExtensionCommands(name="extension", description="Manage extensions")
 
     @extension.command(name="toggle", description="Toggle extensions")
     async def extension_toggle(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.bot_config["bot_admins"]:
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         view = ExtensionManager()
         return await interaction.response.send_message(view=view)
 
     @extension.command(name="update", description="Update extensions")
     async def extension_update(self, interaction: discord.Interaction, repo: str):
-        if not interaction.user.id in config.bot_config["bot_admins"]:
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         repo_name = repo.split("/")[-1]
@@ -41,8 +44,6 @@ class Extensions(commands.Cog):
 
     @extension.command(name="add", description="Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
-        if not interaction.user.id in config.bot_config["bot_admins"]:
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         await self.download_repo(interaction, repo)
@@ -57,8 +58,6 @@ class Extensions(commands.Cog):
 
     @extension.command(name="delete", description="Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
-        if not interaction.user.id in config.bot_config["bot_admins"]:
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if extension not in config.bot_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await uninstall(interaction, extension, save_data)
@@ -146,7 +145,7 @@ class ExtensionManager(gui.PageUI):
         await interaction.message.edit(view=view)
 
         if config.bot_config["extensions"][extension]:
-            await reload_modules(extension)
+            reload_modules(extension)
             await bot.load_extension(f"extensions.{extension}.main")
         else:
             await bot.unload_extension(f"extensions.{extension}.main")
@@ -170,7 +169,7 @@ async def load_extensions():
 
         if config.bot_config["extensions"][i]:
             try:
-                await reload_modules(i)
+                reload_modules(i)
                 await bot.load_extension(f"extensions.{i}.main")
                 await LOGGER.info(f"Loaded extension: {i}.")
             except Exception as e:
@@ -190,7 +189,7 @@ async def resync_commands():
     except Exception as e:
         await LOGGER.error(f"Failed to sync commands: {e}")
 
-async def reload_modules(extension_name: str):
+def reload_modules(extension_name: str):
     extension_prefix = f"extensions.{extension_name}"
     for module_name in list(sys.modules.keys()):
         if module_name == f"{extension_prefix}.main":
@@ -209,6 +208,7 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
         await interaction.response.defer()
     try:
         await bot.unload_extension(f"extensions.{extension}.main")
+        reload_modules(extension)
     except:
         pass
 
@@ -228,7 +228,7 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
                 config.user_config.pop(k)
         config.save_user_config()
     # remove files
-        shutil.rmtree(f'{DIR}/data/extensions/{extension}', onexc=_remove_readonly)
+        shutil.rmtree(f'{DIR}/data/{extension}', onexc=_remove_readonly)
     shutil.rmtree(f'{DIR}/extensions/{extension}', onexc=_remove_readonly)
     if not silent:
         await LOGGER.info(f":white_check_mark: Extension **{extension}** deleted.")
