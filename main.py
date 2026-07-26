@@ -17,13 +17,7 @@ if len(config.bot_config["bot_admins"]) == 0:
 
 @bot.event
 async def on_ready():
-    # sync all commands to discord
-    try:
-        synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} commands.")
-    except Exception as exception:
-        print(f"Error syncing commands: {exception}")
-    print(f"Logged in as {bot.user}.")
+    await LOGGER.info(f"Logged in as {bot.user}.")
 
 @bot.event
 async def on_message(message: discord.Message):

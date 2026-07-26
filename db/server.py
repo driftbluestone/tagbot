@@ -22,14 +22,16 @@ def perms(server_id: int) -> dict[str, bool]:
 
     return {k: v for k, v in perms}
 
-def extensions(server_id: int):
+def extensions(server_id: int) -> dict:
     query = sql.SQL("SELECT extension FROM {schema}.extensions WHERE server_id = {server_id}").format(
         schema = db.SCHEMA,
         server_id = sql.Placeholder()
     )
     installed = db.multiple(query, 0)
+    if server_id == 0:
+        return {k: True for k, in installed}
     server = db.multiple(query, server_id)
-    return {k: True if k in server else False for k in installed}
+    return {k: True if k in server else False for k, in installed}
 
 def check_extension(server_id: int, extension: str):
     query = sql.SQL("SELECT * FROM {schema}.extensions WHERE server_id = {server_id} AND extension = {extension}").format(
