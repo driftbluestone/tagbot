@@ -56,7 +56,7 @@ class Config(commands.Cog):
     async def quit(self, interaction: discord.Interaction):
         if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        await interaction.response.send_message("Restarting bot...")
+        await interaction.response.send_message("Quitting bot...")
         await self.bot.close()
 
 class FileView(gui.PageUI):

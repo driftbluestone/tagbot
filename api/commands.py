@@ -5,7 +5,7 @@ from typing import Callable
 from psycopg import sql
 from db import db
 
-def _extension_enabled(extension: str, server_id: int):
+def _extension_enabled(extension: str, server_id: int) -> bool:
     query = sql.SQL("""SELECT * FROM {schema}.server
                             WHERE {extension} = ANY(extensions)
                             AND server_id = {server_id}

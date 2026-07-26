@@ -241,4 +241,4 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
         shutil.rmtree(f'{DIR}/data/{extension}', onexc=_remove_readonly)
     shutil.rmtree(f'{DIR}/extensions/{extension}', onexc=_remove_readonly)
     if not silent:
-        await LOGGER.info(f":white_check_mark: Extension **{extension}** deleted.")
+        await LOGGER.info(f":white_check_mark: Extension **{extension}** deleted.", interaction)
