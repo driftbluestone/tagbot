@@ -45,9 +45,9 @@ class Extensions(commands.Cog):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         repo_name = repo.split("/")[-1]
         if server.check_extension(0, repo_name):
-            pass
-        else:
-            await _install_repo(interaction, repo, repo_name)
+            await uninstall(interaction, repo_name, True, True)
+            await _install_repo(None, repo, repo_name)
+        await _install_repo(interaction, repo, repo_name)
 
     @extension.command(name="delete", description="Requires bot admin. Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
@@ -71,7 +71,6 @@ async def _install_repo(interaction: discord.Interaction, repo: str, repo_name: 
     else:
         await LOGGER.info(f"Installed {repo_name} from {repo}.", interaction)
     
-
 async def _install_dependencies(interaction: discord.Interaction, dependencies: dict):
     if "pip" in dependencies:
         for package in dependencies["pip"]:
@@ -188,15 +187,7 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
     def _remove_readonly(func, path, _):
         os.chmod(path, 128)
         func(path)
-
-    query = sql.SQL("""UPDATE {schema}.server
-        SET extensions = array_remove(extensions, {extension})
-        WHERE {extension} = ANY(extensions);
-        """).format(
-            schema = db.SCHEMA,
-            extension = sql.Placeholder()
-        )
-    db.run(query, extension)
+    
     if not silent:
         await interaction.response.defer()
     try:
@@ -206,6 +197,12 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
         pass
 
     if not save_data:
+        # remove from extension table
+        query = sql.SQL("DELETE FROM {schema}.extensions WHERE extension = {extension};").format(
+            schema = db.SCHEMA,
+            extension = sql.Placeholder()
+        )
+        db.run(query, extension)
         # remove permissions
         query = sql.SQL("SELECT name FROM {schema}.perm WHERE name LIKE '{extension}:%';").format(
             schema = db.SCHEMA,
