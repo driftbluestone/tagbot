@@ -160,7 +160,6 @@ class ExtensionManager(gui.PageUI):
         await resync_commands()
 
         await LOGGER.info(f"Extension '{extension}' {state}.")
-        config.save_bot_config()
 
 async def load_extensions():
     for i in os.listdir(f"{DIR}/extensions"):
@@ -189,6 +188,9 @@ async def load_extensions():
             except:
                 pass
     await resync_commands()
+
+async def resync_commands_server(guild: discord.Guild):
+    await bot.tree.sync(guild=guild)
 
 async def resync_commands():
     try:
