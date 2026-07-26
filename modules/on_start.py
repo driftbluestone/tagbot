@@ -51,8 +51,7 @@ def on_ready():
             name TEXT PRIMARY KEY,
             display_name TEXT,
             toggleable BOOLEAN,
-            default_enabled BOOLEAN,
-            role_assignable BOOLEAN
+            default_enabled BOOLEAN
         );    
     """)
 

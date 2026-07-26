@@ -1,5 +1,5 @@
 import asyncio
-from db import users
+from db import user
 from utils import config
 from api import _ext as ext
 
@@ -15,8 +15,7 @@ def create(name: str, display_name: str, toggleable: bool = True, default_enable
     config.permissions_config[id] = {
         "display_name": display_name,
         "toggleable": toggleable,
-        "default_enabled": default_enabled,
-        "role_assignable": role_assignable
+        "default_enabled": default_enabled
     }
     config.save_permisions_config()
     return True
@@ -45,4 +44,4 @@ def check(user_id: int, permission: str) -> bool:
     if ":" not in permission:
         extension = ext()
         permission = f"{extension}:{permission}"
-    return asyncio.create_task(users.permission_check(user_id, permission))
+    return asyncio.create_task(user.permission_check(user_id, permission))

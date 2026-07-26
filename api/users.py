@@ -1,5 +1,5 @@
 import discord, os, asyncio
-from db import users
+from db import user
 from utils import config, jsonIO
 from utils.bot import bot
 from utils.utils import DIR
@@ -53,36 +53,36 @@ def has_permission(user_id: int, permission: str) -> bool:
     if ":" not in permission:
         extension = ext()
         permission = f"{extension}:{permission}"
-    return asyncio.create_task(users.permission_check(user_id, permission))
+    return asyncio.create_task(user.permission_check(user_id, permission))
 
 def get(user_id: int) -> tuple[int, dict[str, bool | None], dict[str, any]]:
     """
     Get sonny user profile
     """
-    return users.get_user_profile(user_id)
+    return user.get_user_profile(user_id)
 
 def set_field(user_id: int, field, data):
     """
     Set user data and automatically save it to disk.
     Will raise a KeyError if the field is not in the user profile
     """
-    user = users.get_user_data(user_id)
+    user = user.get_user_data(user_id)
     if field not in user:
         raise KeyError
     user[field] = data
-    users.save_user_data(user_id, user)
+    user.save_user_data(user_id, user)
 
 def overwrite(user: tuple) -> tuple:
     """
     Overwrite all data for this user
     """
-    return users.save_user_profile(user)
+    return user.save_user_profile(user)
 
 def toggle_permission(user_id: int, permission) -> bool:
     """
     Toggle user permission. Returns the updated value.
     """
-    user = users.get_user_profile(user_id)
+    user = user.get_user_profile(user_id)
     user["permissions"][permission] = not user["permissions"][permission]
     jsonIO.dump(f"{DIR}/data/users/{user_id}.json", user)
     return user["permissions"][permission]
@@ -101,4 +101,4 @@ async def resolve_user(user: str | int) -> tuple[dict, discord.Member] | False:
             return False, False
     if user_object == None:
             return False, False
-    return users.get_user_profile(user_object.id), user_object
+    return user.get_user_profile(user_object.id), user_object

@@ -20,19 +20,19 @@ class Extensions(commands.Cog):
 
     @extension.command(name="toggle", description="Toggle extensions")
     async def extension_toggle(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         view = ExtensionManager()
         return await interaction.response.send_message(view=view)
 
     @extension.command(name="update", description="Update extensions")
     async def extension_update(self, interaction: discord.Interaction, repo: str):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         repo_name = repo.split("/")[-1]
-        if repo_name not in config.server_config["extensions"].keys():
+        if repo_name not in config.bot_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await LOGGER.info(f"Updating extension {repo_name} from {repo}.", interaction)
         await uninstall(interaction, repo_name, True, True)
@@ -41,7 +41,7 @@ class Extensions(commands.Cog):
 
     @extension.command(name="add", description="Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
@@ -57,9 +57,9 @@ class Extensions(commands.Cog):
 
     @extension.command(name="delete", description="Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        if extension not in config.server_config["extensions"].keys():
+        if extension not in config.bot_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await uninstall(interaction, extension, save_data)
 
@@ -125,27 +125,27 @@ class Installer:
 class ExtensionManager(gui.PageUI):
     """Manage which extensions are enabled or disabled via /extension toggle"""
     def __init__(self, _ = None, page = 1):
-        super().__init__(element_count = len(config.server_config["extensions"].keys()), page = page)
-        extensions = list(config.server_config["extensions"].keys())
+        super().__init__(element_count = len(config.bot_config["extensions"].keys()), page = page)
+        extensions = list(config.bot_config["extensions"].keys())
         extensions = extensions[((self.page-1)*10):(self.page*10)]
 
         for extension in extensions:
-            buttonstyle = discord.ButtonStyle.success if config.server_config["extensions"][extension] else discord.ButtonStyle.danger
+            buttonstyle = discord.ButtonStyle.success if config.bot_config["extensions"][extension] else discord.ButtonStyle.danger
             button = discord.ui.Button(label = extension, style=buttonstyle, custom_id=extension)
             button.callback = self.button_callback
             self.add_item(button)
 
     async def button_callback(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission." ,ephemeral=True)
         extension = interaction.data["custom_id"]
-        config.server_config["extensions"][extension] = not config.server_config["extensions"][extension]
-        state = "enabled" if config.server_config["extensions"][extension] else "disabled"
+        config.bot_config["extensions"][extension] = not config.bot_config["extensions"][extension]
+        state = "enabled" if config.bot_config["extensions"][extension] else "disabled"
         view = ExtensionManager(page = self.page)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(view=view)
 
-        if config.server_config["extensions"][extension]:
+        if config.bot_config["extensions"][extension]:
             await reload_modules(extension)
             await bot.load_extension(f"extensions.{extension}.main")
         else:
@@ -153,22 +153,22 @@ class ExtensionManager(gui.PageUI):
         await resync_commands()
 
         await LOGGER.info(f"Extension '{extension}' {state}.")
-        config.save_server_config()
+        config.save_bot_config()
 
 async def load_extensions():
     for i in os.listdir(f"{DIR}/extensions"):
-        if i not in config.server_config["extensions"]:
-            config.server_config["extensions"][i] = True
+        if i not in config.bot_config["extensions"]:
+            config.bot_config["extensions"][i] = True
             try:
                 os.mkdir(f"{DIR}/data/extensions/{i}")
             except FileExistsError:
                 pass
             if os.path.exists(f"{DIR}/extensions/{i}/init.py"):
                 importlib.import_module(f"extensions.{i}.init")
-                config.save_server_config()
+                config.save_bot_config()
                 await LOGGER.info(f"Registered new extension: {i}.")
 
-        if config.server_config["extensions"][i]:
+        if config.bot_config["extensions"][i]:
             try:
                 await reload_modules(i)
                 await bot.load_extension(f"extensions.{i}.main")
@@ -203,8 +203,8 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
         os.chmod(path, 128)
         func(path)
 
-    config.server_config["extensions"].pop(extension)
-    config.save_server_config()
+    config.bot_config["extensions"].pop(extension)
+    config.save_bot_config()
     if not silent:
         await interaction.response.defer()
     try:

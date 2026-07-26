@@ -6,12 +6,12 @@ from utils import config, logger, utils
 
 LOGGER = logger.Logger()
 
-if len(config.server_config["bot_admins"]) == 0:
+if len(config.bot_config["bot_admins"]) == 0:
     admin = input("Paste user id for bot admin (optional): ")
     try:
         admin = int(admin)
-        config.server_config["bot_admins"].append(admin)
-        config.save_server_config()
+        config.bot_config["bot_admins"].append(admin)
+        config.save_bot_config()
     except:
         pass
 

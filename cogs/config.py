@@ -41,20 +41,20 @@ class Config(commands.Cog):
 
     @devops.command(name="logs", description=devops.description)
     async def logs(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         file = discord.File(f"{DIR}/data/.log")
         await interaction.response.send_message(file=file)
 
     @devops.command(name="ls", description=devops.description)
     async def ls(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.send_message(view=FileView(DIR))
     
     @devops.command(name="quit", description=devops.description)
     async def quit(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.send_message("Restarting bot...")
         await self.bot.close()
@@ -76,7 +76,7 @@ class FileView(gui.PageUI):
         self.add_item(button)
 
     async def button_callback(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in config.bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         dir = interaction.data["custom_id"]
         fulldir = os.path.join(self.workdir, dir)

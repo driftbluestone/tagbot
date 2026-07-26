@@ -8,8 +8,8 @@ import os
 from utils import jsonIO
 from utils.utils import DIR
 __all__ = [
-    "server_config", "user_config", "permissions_config",
-    "save_server_config", "save_user_config", "saver_permissions_config"
+    "bot_config", "user_config", "permissions_config",
+    "save_bot_config", "save_user_config", "saver_permissions_config"
     ]
 
 if not os.path.isdir(f"{DIR}/data"):
@@ -31,9 +31,9 @@ if not os.path.exists(f"{DIR}/data/config.json"):
     jsonIO.dump(f"{DIR}/data/config.json",
                 {"command_prefix": "%", "extensions": {}, "bot_admins": []})
 
-server_config: dict = jsonIO.load(f"{DIR}/data/config.json")
-def save_server_config():
-    jsonIO.dump(f"{DIR}/data/config.json", server_config)
+bot_config: dict = jsonIO.load(f"{DIR}/data/config.json")
+def save_bot_config():
+    jsonIO.dump(f"{DIR}/data/config.json", bot_config)
 
 user_config: dict = jsonIO.load(f"{DIR}/data/user.json")
 def save_user_config():

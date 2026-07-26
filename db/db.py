@@ -49,6 +49,10 @@ def single(*args):
     connection.execute(*args)
     return cursor.fetchone()
 
+def multiple(*args):
+    connection.execute(*args)
+    return cursor.fetchall()
+
 def insert(table: str, key: tuple[str, ...], field: tuple[str, ...], value: tuple[Any, ...]):
     if not isinstance(key, tuple):
         raise ValueError("Argument `key` must be a tuple.")

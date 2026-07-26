@@ -1,14 +1,14 @@
 import discord
 from discord.ext import commands
 from modules import on_start
-from utils.config import server_config
+from utils.config import bot_config
 
 __all__ = ["bot"]
 
 class _BOT(commands.Bot):
     def __init__(self):
         super().__init__(
-        command_prefix=server_config["command_prefix"],
+        command_prefix=bot_config["command_prefix"],
         case_insensitive=True,
         allowed_mentions=discord.AllowedMentions(
             users=False,

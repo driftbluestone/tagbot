@@ -38,9 +38,6 @@ def run(*args):
 def insert(table: str, columns: tuple[str], values: tuple):
     db.insert(table, columns, values)
 
-def insert_exclusive(table: str, columns: tuple[str], values: tuple):
-    db.insert_exclusive(table, columns, values)
-
 def get(table: str, key: str, column: str | tuple[str] = "*", value: str = "id") -> tuple:
     return db.get(table, value, column, key)
 
