@@ -3,7 +3,7 @@ from typing import Literal, Any
 from db import db
 
 def get(server_id: int, fields: tuple[Literal["extensions", "default_user_data","command_prefix", "*"], ...] = ("*",)):
-    svr, =db.get("server", (server_id,), ("server_id",), fields)
+    svr, = db.get("server", (server_id,), ("server_id",), fields)
     return svr
 
 def update(server_id: int, fields: tuple[Literal["extensions", "default_user_data","command_prefix"], ...], value: tuple[Any]):

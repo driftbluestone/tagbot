@@ -26,20 +26,20 @@ def on_ready():
     """)
 
     # user data table
-    db.cursor.execute(f"""
-            connection TABLE IF NOT EXISTS {SCHEMA}.user (
-                server_id BIGINT,
-                user_id BIGINT,
-                data JSONB,
-                PRIMARY KEY (server_id, user_id)
-            );
+    db.connection.execute(f"""
+        TABLE IF NOT EXISTS {SCHEMA}.user (
+            server_id BIGINT,
+            user_id BIGINT,
+            data JSONB,
+            PRIMARY KEY (server_id, user_id)
+        );
         """)
 
     # server data table
     db.connection.execute(f"""
         CREATE TABLE IF NOT EXISTS {SCHEMA}.server (
             server_id BIGINT PRIMARY KEY,
-            extensions JSONB,
+            extensions TEXT[],
             default_user_data JSONB,
             command_prefix TEXT
         );

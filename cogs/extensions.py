@@ -1,13 +1,13 @@
 import discord, os, asyncio, importlib, sys, shutil, typing
 from discord import app_commands
 from discord.ext import commands
-from utils.bot import bot
 from utils import config, jsonIO
+from utils.bot import bot
+from utils.utils import DIR
 from utils.logger import Logger
 LOGGER = Logger()
+from db import server, user
 from api import gui
-from pathlib import Path
-from utils.utils import DIR
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
@@ -16,22 +16,19 @@ async def setup(bot: commands.Bot) -> None:
 class Extensions(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    class ExtensionCommands(app_commands.Group):
-        async def interaction_check(self, interaction: discord.Interaction):
-            permission = interaction.user.id in config.bot_config["bot_admins"]
-            if not permission:
-                await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-            return permission
-    extension = ExtensionCommands(name="extension", description="Manage extensions")
+    extension = app_commands.Group(name="extension", description="Manage extensions")
 
     @extension.command(name="toggle", description="Toggle extensions")
     async def extension_toggle(self, interaction: discord.Interaction):
-        view = ExtensionManager()
+        if not user.check_permission(interaction.guild.id, interaction.user.id, "manage_extensions"):
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        view = ExtensionManager(interaction.guild)
         return await interaction.response.send_message(view=view)
 
-    @extension.command(name="update", description="Update extensions")
+    @extension.command(name="update", description="Requires bot admin. Update extensions")
     async def extension_update(self, interaction: discord.Interaction, repo: str):
+        if interaction.user.id in config.bot_config["bot_admins"]:
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         repo_name = repo.split("/")[-1]
@@ -42,8 +39,10 @@ class Extensions(commands.Cog):
         await self.download_repo(interaction, repo, True)
         await LOGGER.info(f"Updated extension {repo_name} from {repo}.", interaction)
 
-    @extension.command(name="add", description="Install extensions")
+    @extension.command(name="add", description="Requires bot admin. Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
+        if interaction.user.id in config.bot_config["bot_admins"]:
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
         await self.download_repo(interaction, repo)
@@ -56,8 +55,10 @@ class Extensions(commands.Cog):
         await Installer(None if silent else interaction, repo).install_extension()
         await load_extensions()
 
-    @extension.command(name="delete", description="Uninstall extensions")
+    @extension.command(name="delete", description="Requires bot admin. Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
+        if interaction.user.id in config.bot_config["bot_admins"]:
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if extension not in config.bot_config["extensions"].keys():
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await uninstall(interaction, extension, save_data)
@@ -85,7 +86,7 @@ class Installer:
         # await log(f"Cloning {self.extension} from {self.repo}...", self.interaction)
         output = await self.subprocess(["git", "clone", self.repo, f"{DIR}/extensions/{self.extension}"])
         await LOGGER.info(output.strip(), self.interaction)
-        if os.path.exists(Path(f"{DIR}/extensions/{self.extension}/main.py")):
+        if os.path.exists(f"{DIR}/extensions/{self.extension}/main.py"):
             await LOGGER.info(f"Installed {self.extension}", self.interaction)
         else:
             await LOGGER.error(f"Failed to install {self.extension}", self.interaction)
@@ -123,28 +124,35 @@ class Installer:
 
 class ExtensionManager(gui.PageUI):
     """Manage which extensions are enabled or disabled via /extension toggle"""
-    def __init__(self, _ = None, page = 1):
-        super().__init__(element_count = len(config.bot_config["extensions"].keys()), page = page)
-        extensions = list(config.bot_config["extensions"].keys())
+    def __init__(self, guild: discord.Guild, page = 1):
+        extensions = server.get(0, ("extensions",))
+        server_extensions = server.get(guild.id, ("extensions",))
+        self.extensions = {k: True if k in server_extensions else False for k in extensions}
+        super().__init__(element_count = len(extensions), page = page, data_transfer=guild)
+        
         extensions = extensions[((self.page-1)*10):(self.page*10)]
 
         for extension in extensions:
-            buttonstyle = discord.ButtonStyle.success if config.bot_config["extensions"][extension] else discord.ButtonStyle.danger
-            button = discord.ui.Button(label = extension, style=buttonstyle, custom_id=extension)
+            buttonstyle = discord.ButtonStyle.success if self.extensions[extension] else discord.ButtonStyle.danger
+            button = discord.ui.Button(label=extension, style=buttonstyle, custom_id=extension)
             button.callback = self.button_callback
             self.add_item(button)
 
     async def button_callback(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.bot_config["bot_admins"]:
-            return await interaction.response.send_message(":warning: No permission." ,ephemeral=True)
+        if not user.check_permission(interaction.guild.id, interaction.user.id, "manage_extensions"):
+            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         extension = interaction.data["custom_id"]
-        config.bot_config["extensions"][extension] = not config.bot_config["extensions"][extension]
-        state = "enabled" if config.bot_config["extensions"][extension] else "disabled"
-        view = ExtensionManager(page = self.page)
+        
+        self.extensions[extension] = not self.extensions[extension]
+        state = "enabled" if self.extensions[extension] else "disabled"
+        extensions = [k for k, v in self.extensions.items() if v]
+        server.update(interaction.guild.id, ("extensions",), (jsonIO.dumps(extensions),))
+        view = ExtensionManager(self.data_transfer, self.page)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(view=view)
 
-        if config.bot_config["extensions"][extension]:
+    # REWRITE REWRITE REWRITE
+        if self.extensions[extension]:
             reload_modules(extension)
             await bot.load_extension(f"extensions.{extension}.main")
         else:
@@ -159,7 +167,7 @@ async def load_extensions():
         if i not in config.bot_config["extensions"]:
             config.bot_config["extensions"][i] = True
             try:
-                os.mkdir(f"{DIR}/data/extensions/{i}")
+                os.mkdir(f"{DIR}/extensions/{i}")
             except FileExistsError:
                 pass
             if os.path.exists(f"{DIR}/extensions/{i}/init.py"):
