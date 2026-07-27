@@ -2,7 +2,7 @@ import discord, typing
 from discord import app_commands
 from discord.ext import commands
 from utils import utils
-from db import db, user, permission, server
+from db import db, permission, server, users
 from api import gui
 
 async def setup(bot: commands.Bot) -> None:
@@ -14,7 +14,7 @@ class Permissions(commands.Cog):
 
     class PermissionCommands(app_commands.Group):
         async def interaction_check(self, interaction: discord.Interaction):
-            permission = await user.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions")
+            permission = await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions")
             if not permission:
                 await interaction.response.send_message(":warning: No permission", ephemeral=True)
             return permission
@@ -62,7 +62,7 @@ class DefaultPermissionPanel(gui.PageUI):
             self.add_item(button)
 
     async def callback(self, interaction: discord.Interaction):
-        if not await user.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         name = interaction.data["custom_id"]
         perm = permission.get(name)
@@ -76,9 +76,9 @@ class UserPermissionPanel(gui.PageUI):
     def __init__(self, member: discord.Member, page: int = 1):
         perms = list(server.perms(member.guild.id))
         
-        super().__init__(data_transfer=user, page=page, element_count=len(perms))
+        super().__init__(data_transfer=users, page=page, element_count=len(perms))
         self.user: discord.Member = member
-        self.user_perms = user.perms(member.guild.id, member.id)
+        self.user_perms = users.perms(member.guild.id, member.id)
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
             if perm not in self.user_perms:
@@ -91,7 +91,7 @@ class UserPermissionPanel(gui.PageUI):
             self.add_item(button)
 
     async def callback(self, interaction: discord.Interaction):
-        if not await user.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         name = interaction.data["custom_id"]
         perm = permission.get(name)
@@ -101,7 +101,7 @@ class UserPermissionPanel(gui.PageUI):
         if next is None:
             db.delete("permissions", ("server_id", "permission", "id"), (interaction.guild.id, name, interaction.user.id))
         else:
-            user.save_permission(interaction.guild.id, interaction.user.id, name, next)
+            users.save_permission(interaction.guild.id, interaction.user.id, name, next)
             
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(view=UserPermissionPanel(self.user))
@@ -118,7 +118,7 @@ class RolePanel(gui.PageUI):
             self.add_item(button)
 
     async def callback(self, interaction: discord.Interaction):
-        if not await user.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.defer(ephemeral=True, thinking=False)
         role = int(interaction.data["custom_id"])
@@ -130,7 +130,7 @@ class RolePermissionPanel(gui.PageUI):
         guild, role = data_transfer
         perms = list(server.perms(guild.id))
         super().__init__(data_transfer=data_transfer, page=page, element_count=len(perms))
-        self.role = user.perms(guild.id, role)
+        self.role = users.perms(guild.id, role)
         self.role_id = role
         perms = perms[((self.page-1)*10):(self.page*10)]
         for perm in perms:
@@ -148,13 +148,13 @@ class RolePermissionPanel(gui.PageUI):
         self.add_item(button)
 
     async def back(self, interaction: discord.Interaction):
-        if not await user.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(content="", view=RolePanel(interaction.guild))
 
     async def callback(self, interaction: discord.Interaction):
-        if not await user.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
 
         name = interaction.data["custom_id"]
@@ -165,7 +165,7 @@ class RolePermissionPanel(gui.PageUI):
         if next is None:
             db.delete("permissions", ("server_id", "permission", "id"), (interaction.guild.id, name, self.role_id))
         else:
-            user.save_permission(interaction.guild.id, self.role_id, name, next)
+            users.save_permission(interaction.guild.id, self.role_id, name, next)
         view = RolePermissionPanel(self.data_transfer)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(view=view)

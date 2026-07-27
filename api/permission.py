@@ -1,5 +1,5 @@
 import asyncio
-from db import user
+from db import users
 from utils import config
 from api import _ext as ext
 
@@ -44,4 +44,4 @@ def check(user_id: int, permission: str) -> bool:
     if ":" not in permission:
         extension = ext()
         permission = f"{extension}:{permission}"
-    return asyncio.create_task(user.permission_check(user_id, permission))
+    return asyncio.create_task(users.permission_check(user_id, permission))

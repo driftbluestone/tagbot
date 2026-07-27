@@ -2,9 +2,9 @@
 Interact with user profiles at a lower level than the api
 """
 from psycopg import sql
-from db import db
-from utils.utils import bot
-from utils import config, jsonIO
+from utils import jsonIO
+from utils.utils import bot, bot_config
+from db import db, server
 
 def get_user_data(server_id: int, user_id: int) -> dict:
     """
@@ -40,17 +40,17 @@ def perms(server_id: int, user_id: int) -> dict[str, bool]:
 # im gonna cry.
 async def check_permission(server_id: int, user_id: int, permission: str) -> bool:
     # Bot admin bypass check
-    if user_id in config.server_config["bot_admins"]:
+    if user_id in bot_config["bot_admins"]:
         return True
 
+    defaults = server.perms(server_id)
     # Ensure permission exists
-    if permission not in config.permissions_config:
+    if permission not in defaults:
         raise KeyError(f"Permission not found: {permission}")
 
     # get roles
     ids = [role.id for role in reversed((bot.get_guild(server_id).get_member(user_id)).roles)]
     ids.insert(0, user_id)
-    ids.append(0)
 
     query = sql.SQL("""SELECT sub.value
         FROM unnest({ids})
@@ -77,10 +77,8 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
         "permission": permission,
         "ids": ids
     })
-
-    if isinstance(result, tuple):
-        result = result[0]
+    
     if result is None:
-        result = False
+        result = defaults[permission]
     
     return result

@@ -7,7 +7,7 @@ from utils import config, jsonIO
 from utils.utils import DIR, bot
 from utils.logger import Logger
 LOGGER = Logger()
-from db import db, server, user
+from db import db, server, users
 from api import gui
 
 async def setup(bot: commands.Bot) -> None:
@@ -23,7 +23,7 @@ class Extensions(commands.Cog):
 
     @extension.command(name="toggle", description="Toggle extensions")
     async def extension_toggle(self, interaction: discord.Interaction):
-        if not user.check_permission(interaction.guild.id, interaction.user.id, "manage_extensions"):
+        if not users.check_permission(interaction.guild.id, interaction.user.id, "manage_extensions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         return await interaction.response.send_message(view=ExtensionManager(interaction.guild))
 
@@ -77,7 +77,7 @@ class ExtensionManager(gui.PageUI):
             self.add_item(button)
 
     async def button_callback(self, interaction: discord.Interaction):
-        if not user.check_permission(interaction.guild.id, interaction.user.id, "manage_extensions"):
+        if not users.check_permission(interaction.guild.id, interaction.user.id, "manage_extensions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         extension = interaction.data["custom_id"]
         self.extensions[extension] = not self.extensions[extension]

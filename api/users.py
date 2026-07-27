@@ -1,46 +1,13 @@
-import discord, os, asyncio
-from db import user
-from utils import config, jsonIO
-from utils.bot import bot
-from utils.utils import DIR
+import discord, asyncio
+from psycopg import sql
+from db import db, users
+from utils import jsonIO
+from utils.utils import DIR, bot
 from api import _ext as ext
 
 __all__ = ["new_data_field", "has_permission", "get", "set_field", "overwrite", "toggle_permission", "resolve_user"]
 
-def new_data_field(name: str, data_type: type) -> bool:
-    """
-    Define a new field for storing data in user json files.
-    data_type must be a json compatible type.
-
-    If any data fields are already in the user config file, the registration will fail and the function will return False.
-    """
-    if ":" not in name:
-        extension = ext()
-    else:
-        extension, name = name.split(":")
-
-    def _register(id: str, data_type: type) -> bool:
-        if id not in config.user_config:
-            config.user_config[id] = data_type()
-            return True
-        return False
-
-    id = f"{extension}:{name}"
-    if not _register(id, data_type):
-        return False
-
-    config.save_user_config()
-
-    # update existing user files
-
-    for user_file in os.listdir(f"{DIR}/data/users"):
-        user = jsonIO.load(f"{DIR}/data/users/{user_file}")
-        user[id] = data_type()
-        jsonIO.dump(f"{DIR}/data/users/{user_file}", user)
-
-    return True
-
-def has_permission(user_id: int, permission: str) -> bool:
+def has_permission(server_id, user_id: int, permission: str) -> bool:
     """
     User permission check.
     This function must be called using await.
@@ -53,52 +20,53 @@ def has_permission(user_id: int, permission: str) -> bool:
     if ":" not in permission:
         extension = ext()
         permission = f"{extension}:{permission}"
-    return asyncio.create_task(user.permission_check(user_id, permission))
+    return asyncio.create_task(users.check_permission(server_id, user_id, permission))
 
-def get(user_id: int) -> tuple[int, dict[str, bool | None], dict[str, any]]:
+def get_user_data(server_id: int, user_id: int) -> dict:
     """
-    Get sonny user profile
+    Get user data, for global user data, use server id 0.
     """
-    return user.get_user_profile(user_id)
+    return get_user_data(server_id, user_id)
 
-def set_field(user_id: int, field, data):
+def set_field(server_id: int, user_id: int, field, data):
     """
     Set user data and automatically save it to disk.
-    Will raise a KeyError if the field is not in the user profile
+    Use server_id 0 for global data
     """
-    user = user.get_user_data(user_id)
-    if field not in user:
-        raise KeyError
-    user[field] = data
-    user.save_user_data(user_id, user)
+    if ":" not in field:
+        extension = ext()
+        field = f"{extension}:{field}"
+    user_data = get_user_data(server_id, user_id)
+    user_data[field] = data
+    users.save_user_data(server_id, user_id, user_data)
 
-def overwrite(user: tuple) -> tuple:
+def get_field(server_id: int, user_id: int, field: str):
+    query = sql.SQL("""SELECT data->>{field} FROM {schema}.user
+        WHERE server_id = {server_id} AND user_id = {user_id};""").format(
+            schema = db.SCHEMA,
+            field = sql.Literal(field),
+            server_id = sql.Placeholder(),
+            user_id = sql.Placeholder()
+        )
+    result, = db.single(query, (server_id, user_id))
+    return result
+
+def overwrite(server_id: int, user_id: int, user: dict):
     """
     Overwrite all data for this user
     """
-    return user.save_user_profile(user)
+    users.save_user_data(server_id, user_id, user)
 
-def toggle_permission(user_id: int, permission) -> bool:
-    """
-    Toggle user permission. Returns the updated value.
-    """
-    user = user.get_user_profile(user_id)
-    user["permissions"][permission] = not user["permissions"][permission]
-    jsonIO.dump(f"{DIR}/data/users/{user_id}.json", user)
-    return user["permissions"][permission]
-
-async def resolve_user(user: str | int) -> tuple[dict, discord.Member] | False:
+async def resolve_user(server_id: int, user: str | int) -> tuple[dict, discord.Member] | tuple[False, False]:
     if user.startswith("<@") and user.endswith(">"):
         user = user[2:-1]
-        user_object = await bot.guilds[0].get_member(user)
-    else:
-        user_object = bot.guilds[0].get_member_named(user)
+    user_object = bot.get_guild(server_id).get_member_named(user)
     if user_object == None:
         try:
             user = int(user)
-            user_object = bot.guilds[0].get_member(user)
+            user_object = bot.get_guild(server_id).get_member(user)
         except:
             return False, False
     if user_object == None:
             return False, False
-    return user.get_user_profile(user_object.id), user_object
+    return users.get_user_data(server_id, user_object.id), user_object
