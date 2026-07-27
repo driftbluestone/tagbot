@@ -4,6 +4,8 @@ from typing import Any
 from utils.logger import Logger
 from utils.utils import data
 
+__all__ = ["SCHEMA", "run", "single", "multiple", "insert", "delete", "get"]
+
 logger = Logger()
 data = data["DB"]
 SCHEMA = sql.Identifier(data["SCHEMA"])

@@ -26,8 +26,7 @@ class Extensions(commands.Cog):
     async def extension_toggle(self, interaction: discord.Interaction):
         if not user.check_permission(interaction.guild.id, interaction.user.id, "manage_extensions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        view = ExtensionManager(interaction.guild)
-        return await interaction.response.send_message(view=view)
+        return await interaction.response.send_message(view=ExtensionManager(interaction.guild))
 
     @extension.command(name="add", description="Requires bot admin. Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
@@ -35,6 +34,7 @@ class Extensions(commands.Cog):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
+        
         repo_name = repo.split("/")[-1]
         if server.check_extension(0, repo_name):
             return await interaction.response.send_message(":warning: Extension already installed.")
@@ -47,6 +47,7 @@ class Extensions(commands.Cog):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
+        
         repo_name = repo.split("/")[-1]
         if server.check_extension(0, repo_name):
             await uninstall(interaction, repo_name, True, True)
@@ -91,7 +92,6 @@ class ExtensionManager(gui.PageUI):
             db.delete("extensions", ("server_id", "extension"), (interaction.guild.id, extension))
             await unsync(extension, interaction.guild)
             
-            
         view = ExtensionManager(self.data_transfer, self.page)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(view=view)
@@ -100,6 +100,7 @@ class ExtensionManager(gui.PageUI):
 async def install_repo(interaction: discord.Interaction, repo: str, repo_name: str):
     await LOGGER.info(f"Downloading {repo_name} from {repo}...", interaction)
     await subprocess(["git", "clone", repo, f"{DIR}/extensions/{repo_name}"])
+
     dependencies = f"{DIR}/extensions/{repo_name}/dependencies.json"
     if os.path.exists(dependencies):
         await LOGGER.info(f"Downloaded {repo_name} from {repo}.", interaction)
@@ -116,12 +117,14 @@ async def install_dependencies(interaction: discord.Interaction, dependencies: d
             await LOGGER.info(f"pip dependency {package} found. Installing...", interaction)
             await subprocess([sys.executable, "-m", "pip", "install", package])
             await LOGGER.info(f"pip dependency {package} Installed.", interaction)
+
     if "extension" in dependencies:
         for extension in dependencies["extension"]:
             extension_name = extension.split("/")[-1]
             await LOGGER.info(f"Extension dependency {extension_name} found. Installing...", interaction)
             await install_repo(interaction, extension, extension_name)
             await LOGGER.info(f"Extension dependency {extension_name} Installed.", interaction)
+
     if "other" in dependencies:
         for other in dependencies["other"]:
             await LOGGER.warn(f"Other dependency '{other}' requires manual installation.", interaction)
@@ -194,35 +197,56 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
     except:
         pass
 
-    if not save_data:
-        # remove from extension table
-        query = sql.SQL("DELETE FROM {schema}.extensions WHERE extension = {extension};").format(
-            schema = db.SCHEMA,
-            extension = sql.Placeholder()
-        )
-        db.run(query, extension)
-        # remove permissions
-        query = sql.SQL("SELECT name FROM {schema}.perm WHERE name LIKE '{extension}:%';").format(
-            schema = db.SCHEMA,
-            extension = sql.Placeholder()
-        )
-        permissions = db.multiple(query, extension)
-        for permission, in permissions:
-            query = sql.SQL("DELETE FROM {schema}.permissions WHERE permission = {permission}").format(
-                schema = db.SCHEMA,
-                permission = sql.Placeholder()
-            )
-            db.run(query, permission)
-
-            query = sql.SQL("DELETE FROM {schema}.perm WHERE name = {permission}").format(
-                schema = db.SCHEMA,
-                permission = sql.Placeholder()
-            )
-            db.run(query, permission)
-        
     # remove files
+    if not save_data:
+        delete_data(extension)
         shutil.rmtree(f'{DIR}/data/{extension}', onexc=_remove_readonly)
     shutil.rmtree(f'{DIR}/extensions/{extension}', onexc=_remove_readonly)
+
     if not silent:
         await LOGGER.info(f":white_check_mark: Extension **{extension}** deleted.")
         await interaction.followup.send(f":white_check_mark: Extension **{extension}** deleted.")
+
+def delete_data(extension):
+    # drop all tables created by extension
+    query = sql.SQL("""SELECT TABLENAME FROM pg_catalog.pg_tables
+                    WHERE schemaname = {schema}
+                    AND tablename LIKE '{extension}$%';
+                    """).format(
+        schema = db.SCHEMA,
+        extension = sql.Placeholder()
+        )
+    tables = db.multiple(query, extension)
+    for table, in tables:
+        query = sql.SQL("DROP TABLE {schema}.{table};").format(
+            schema = db.SCHEMA,
+            table = sql.Identifier(table)
+        )
+        db.run(query)
+
+    # remove from extension table
+    query = sql.SQL("DELETE FROM {schema}.extensions WHERE extension = {extension};").format(
+        schema = db.SCHEMA,
+        extension = sql.Placeholder()
+    )
+    db.run(query, extension)
+
+    # remove permissions
+    query = sql.SQL("SELECT name FROM {schema}.perm WHERE name LIKE '{extension}:%';").format(
+        schema = db.SCHEMA,
+        extension = sql.Placeholder()
+    )
+    permissions = db.multiple(query, extension)
+    for permission, in permissions:
+        query = sql.SQL("DELETE FROM {schema}.permissions WHERE permission = {permission}").format(
+            schema = db.SCHEMA,
+            permission = sql.Placeholder()
+        )
+        db.run(query, permission)
+
+        query = sql.SQL("DELETE FROM {schema}.perm WHERE name = {permission}").format(
+            schema = db.SCHEMA,
+            permission = sql.Placeholder()
+        )
+        db.run(query, permission)
+    
