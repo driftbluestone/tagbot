@@ -1,8 +1,7 @@
 import discord, asyncio
 from psycopg import sql
 from db import db, users
-from utils import jsonIO
-from utils.utils import DIR, bot
+from utils.utils import bot
 from api import _ext as ext
 
 __all__ = ["new_data_field", "has_permission", "get", "set_field", "overwrite", "toggle_permission", "resolve_user"]
