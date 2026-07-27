@@ -3,7 +3,7 @@ Interact with user profiles at a lower level than the api
 """
 from psycopg import sql
 from db import db
-from utils.bot import bot
+from utils.utils import bot
 from utils import config, jsonIO
 
 def get_user_data(server_id: int, user_id: int) -> dict:

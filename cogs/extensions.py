@@ -4,8 +4,7 @@ from discord.ext import commands
 from functools import cache
 from psycopg import sql
 from utils import config, jsonIO
-from utils.bot import bot
-from utils.utils import DIR
+from utils.utils import DIR, bot
 from utils.logger import Logger
 LOGGER = Logger()
 from db import db, server, user

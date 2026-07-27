@@ -1,17 +1,16 @@
 import discord, traceback
 from discord.ext import commands
-from utils.bot import bot
 from modules import editing, message_embed
-from utils import config, logger, utils
-
+from utils import logger, utils
+from utils.utils import bot
 LOGGER = logger.Logger()
 
-if len(config.bot_config["bot_admins"]) == 0:
+if len(utils.bot_config["bot_admins"]) == 0:
     admin = input("Paste user id for bot admin (optional): ")
     try:
         admin = int(admin)
-        config.bot_config["bot_admins"].append(admin)
-        config.save_bot_config()
+        utils.bot_config["bot_admins"].append(admin)
+        utils.save_bot_config()
     except:
         pass
 

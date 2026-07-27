@@ -1,7 +1,7 @@
 import discord, typing
 from discord import app_commands
 from discord.ext import commands
-from utils import config
+from utils import utils
 from db import db, user, permission, server
 from api import gui
 
@@ -66,7 +66,7 @@ class DefaultPermissionPanel(gui.PageUI):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         name = interaction.data["custom_id"]
         perm = permission.get(name)
-        if not (perm["toggleable"]) or not (interaction.user.id in config.bot_config["bot_admins"]):
+        if not (perm["toggleable"]) or not (interaction.user.id in utils.bot_config["bot_admins"]):
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
         permission.set(interaction.guild.id, 0, name, not self.perm_values[name])
         await interaction.response.defer(ephemeral=True, thinking=False)
@@ -95,7 +95,7 @@ class UserPermissionPanel(gui.PageUI):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         name = interaction.data["custom_id"]
         perm = permission.get(name)
-        if not (perm["toggleable"]) or not (interaction.user.id in config.bot_config["bot_admins"]):
+        if not (perm["toggleable"]) or not (interaction.user.id in utils.bot_config["bot_admins"]):
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
         next = next_perm[self.user_perms[name]]
         if next is None:
@@ -159,7 +159,7 @@ class RolePermissionPanel(gui.PageUI):
 
         name = interaction.data["custom_id"]
         perm = permission.get(name)
-        if not (perm["toggleable"]) or not (interaction.user.id in config.bot_config["bot_admins"]):
+        if not (perm["toggleable"]) or not (interaction.user.id in utils.bot_config["bot_admins"]):
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
         next = next_perm[self.role[name]]
         if next is None:
