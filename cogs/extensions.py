@@ -16,9 +16,16 @@ async def setup(bot: commands.Bot) -> None:
         await LOGGER.info(f"Synced {len(synced)} commands.")
     except Exception as e:
         await LOGGER.error(f"Error syncing commands: {e}")
-    for extension in server.extensions(0).keys():
-        await bot.load_extension(f"extensions.{extension}.main")
+
+    files = os.listdir(f"{DIR}/extensions")
+    extensions = list(server.extensions(0).keys())
+    for file in files:
+        if file not in extensions:
+            await init_extension(file)
+        else:
+            await bot.load_extension(f"extensions.{file}.main")
     await load()
+    await LOGGER.info("Startup complete. All commands synced.")
 
 class Extensions(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -27,7 +34,7 @@ class Extensions(commands.Cog):
 
     @extension.command(name="toggle", description="Toggle extensions")
     async def extension_toggle(self, interaction: discord.Interaction):
-        if not users.check_permission(interaction.guild.id, interaction.user.id, "#:manage_extensions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "#:manage_extensions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         return await interaction.response.send_message(view=ExtensionManager(interaction.guild))
 
@@ -81,8 +88,9 @@ class ExtensionManager(gui.PageUI):
             self.add_item(button)
 
     async def button_callback(self, interaction: discord.Interaction):
-        if not users.check_permission(interaction.guild.id, interaction.user.id, "manage_extensions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "#:manage_extensions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        await interaction.response.defer(ephemeral=True, thinking=False)
         extension = interaction.data["custom_id"]
         self.extensions[extension] = not self.extensions[extension]
 
@@ -97,7 +105,7 @@ class ExtensionManager(gui.PageUI):
             await unsync(extension, interaction.guild)
             
         view = ExtensionManager(self.data_transfer, self.page)
-        await interaction.response.defer(ephemeral=True, thinking=False)
+        
         await interaction.message.edit(view=view)
 
 # internal extension installation functions
@@ -153,14 +161,16 @@ async def init_extension(extension: str):
     if os.path.exists(f"{DIR}/extensions/{extension}/init.py"):
         importlib.import_module(f"extensions.{extension}.init")
     await bot.load_extension(f"extensions.{extension}.main")
+    db.insert("extensions", ("server_id", "extension"), (), (0, extension))
     await LOGGER.info(f"Initialized new extension: {extension}.")
 
 @cache
-async def get_extension_commands(extension):
+def get_extension_commands(extension):
     extension_commands = []
     for cog in bot.cogs.values():
-        if cog.__module__.split["."][1] == extension:
-            extension_commands.extend[cog.get_app_commands()]
+        if cog.__module__.split(".")[1] == extension:
+            extension_commands.extend(cog.get_app_commands())
+    return extension_commands
 
 async def sync(extension: str, guild: discord.Guild):
     for command in get_extension_commands(extension):
@@ -169,18 +179,18 @@ async def sync(extension: str, guild: discord.Guild):
 
 async def unsync(extension: str, guild: discord.Guild):
     for command in get_extension_commands(extension):
-        bot.tree.remove_command(command, guild=guild)
+        bot.tree.remove_command(command.name, guild=guild)
     await bot.tree.sync(guild=guild)
 
 async def load():
     extensions = db.multiple(f"SELECT * FROM {db.SCHEMA.as_string()}.extensions WHERE server_id != 0")
     for server_id, extension in extensions:
-        await sync(server_id, extension)
+        await sync(extension, discord.Object(id=server_id))
 
 def add_permissions(extension: str, server_id: int):
-    query = sql.SQL("SELECT (name, default_enabled) FROM {schema}.perm WHERE source = {extension}").format(
+    query = sql.SQL("SELECT name, default_enabled FROM {schema}.perm WHERE source = {extension}").format(
         schema = db.SCHEMA, extension = sql.Placeholder())
-    result = db.multiple(query, (extension))
+    result = db.multiple(query, (extension,))
 
     for permission, default in result:
         db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, 0, permission, default))

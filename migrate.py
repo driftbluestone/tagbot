@@ -3,7 +3,7 @@ from psycopg import sql
 from db import db
 from utils.utils import DIR
 
-server_id = 1428076898000568492
+server_id = 0
 if server_id == 0:
     raise Exception("SET SERVER ID")
 

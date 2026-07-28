@@ -16,7 +16,7 @@ def get_user_data(server_id: int, user_id: int) -> dict:
     return data
 
 def save_user_data(server_id: int, user_id: int, data: dict):
-    db.insert("user", ("server_id", "user_id") ("data",), (server_id, user_id, jsonIO.dumps(data)))
+    db.insert("user", ("server_id", "user_id"), ("data",), (server_id, user_id, jsonIO.dumps(data)))
 
 def save_permission(server_id: int, id: int, permission: str, value: bool):
     if value is None:
@@ -44,6 +44,7 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
         return True
 
     defaults = server.perms(server_id)
+    
     # Ensure permission exists
     if permission not in defaults:
         raise KeyError(f"Permission not found: {permission}")
@@ -53,26 +54,23 @@ async def check_permission(server_id: int, user_id: int, permission: str) -> boo
     ids.insert(0, user_id)
 
     query = sql.SQL("""SELECT sub.value
-        FROM unnest({ids})
+        FROM unnest(%(ids)s)
         WITH ORDINALITY AS k(key_val, priority)
         CROSS JOIN LATERAL (
             SELECT value
             FROM {schema}.permissions
             WHERE id = k.key_val
-                AND server_id = {server_id}
-                AND permission = {permission}
+                AND server_id = %(server_id)s
+                AND permission = %(permission)s
                 AND value IS NOT NULL
             LIMIT 1
         ) sub
         ORDER BY k.priority
         LIMIT 1;
         """).format(
-        schema = db.SCHEMA,
-        server_id = sql.Placeholder("server_id"),
-        permission = sql.Placeholder("permission"),
-        ids = sql.Placeholder("ids")
+        schema = db.SCHEMA
     )
-    result, = db.single(query, {
+    result = db.single(query, {
         "server_id": server_id,
         "permission": permission,
         "ids": ids

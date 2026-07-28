@@ -17,7 +17,7 @@ def _get_server_id(*args) -> int:
 class Cog(commands.Cog):
     async def cog_check(self, ctx: commands.Context):
         """Do not override this function, use `command_check()` instead"""
-        if not self.command_check(ctx):
+        if not await self.command_check(ctx):
             return False
         extension = self.__module__.split(".")[1]
         return server.check_extension(ctx.guild.id, extension)

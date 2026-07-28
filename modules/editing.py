@@ -15,4 +15,4 @@ async def new_edit(message: discord.Message, deleted = False):
         await message_embed.message_reply(message)
 
 async def create_reply_entry(id: int, reply_id: int):
-    db.insert("history", ("message", "reply"), (reply_id, id))
+    db.insert("history", ("message",), ("reply",), (reply_id, id))

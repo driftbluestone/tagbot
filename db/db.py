@@ -33,7 +33,10 @@ def run(*args):
 
 def single(*args):
     cursor.execute(*args)
-    return cursor.fetchone()
+    result = cursor.fetchone()
+    if isinstance(result, tuple):
+        return result[0]
+    return result
 
 def multiple(*args):
     cursor.execute(*args)

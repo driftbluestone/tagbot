@@ -10,7 +10,7 @@ def update(server_id: int, fields: tuple[Literal["command_prefix"], ...], value:
     db.insert("server", ("server_id"), fields, (server_id,) + value)
 
 def perms(server_id: int) -> dict[str, bool]:
-    query = sql.SQL("""SELECT (permission, value)
+    query = sql.SQL("""SELECT permission, value
             FROM {schema}.permissions
             WHERE server_id = {server_id}
             AND id = 0
@@ -18,8 +18,7 @@ def perms(server_id: int) -> dict[str, bool]:
         schema = db.SCHEMA,
         server_id = sql.Placeholder()
             )
-    perms = db.multiple(query, server_id)
-
+    perms = db.multiple(query, (server_id,))
     return {k: v for k, v in perms}
 
 def extensions(server_id: int) -> dict:
@@ -31,15 +30,15 @@ def extensions(server_id: int) -> dict:
     if server_id == 0:
         return {k: True for k, in installed}
     server = db.multiple(query, (server_id,))
-    return {k: True if k in server else False for k, in installed}
+    return {k: True if k in [x for x, in server] else False for k, in installed}
 
 def check_extension(server_id: int, extension: str):
     query = sql.SQL("SELECT * FROM {schema}.extensions WHERE server_id = {server_id} AND extension = {extension}").format(
         schema = db.SCHEMA,
         server_id = sql.Placeholder(),
-        extension = sql.Placeholder
+        extension = sql.Placeholder()
     )
-    exists, = db.single(query, (server_id, extension))
+    exists = db.single(query, (server_id, extension))
     if exists is None:
         return False
     return True

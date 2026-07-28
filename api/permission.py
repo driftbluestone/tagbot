@@ -12,7 +12,7 @@ def create(name: str, display_name: str, toggleable: bool = True, default_enable
     if ":" not in name:
         name = f"{extension}:{name}"
 
-    exists = db.single("SELECT * FROM perm where name = %s", name)
+    exists = db.single(f"SELECT * FROM {db.SCHEMA.as_string()}.perm where name = %s", (name,))
     if not exists:
         db.insert("perm", ("name",), ("display_name", "toggleable", "default_enabled", "source"), (name, display_name, toggleable, default_enabled, extension))
         return True
