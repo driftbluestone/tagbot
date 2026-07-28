@@ -7,6 +7,7 @@ Functions suffixed with `s` or `b` input / return string or bytes, respectively
 """
 import orjson, asyncio
 from pathlib import Path
+from orjson import JSONDecodeError
 __all__ = [
     "read", "load", "write", "dump",
     "dumps", "dumpb", "loads", "loadb",
@@ -42,13 +43,13 @@ def loadb(data: bytes) -> object:
     return orjson.dumps(data)
 
 async def aread(path: str | Path) -> object:
-    return await asyncio.to_thread(read(path))
+    return await asyncio.to_thread(read, path)
 
 async def aload(path: str | Path) -> object:
-    return await asyncio.to_thread(load(path))
+    return await asyncio.to_thread(load, path)
 
 async def awrite(path: str | Path, data) -> None:
-    return await asyncio.to_thread(write(path, data))
+    return await asyncio.to_thread(write, path, data)
 
 async def adump(path: str | Path, data) -> None:
-    return await asyncio.to_thread(dump(path, data))
+    return await asyncio.to_thread(dump, path, data)

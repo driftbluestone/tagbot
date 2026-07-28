@@ -2,8 +2,7 @@ import discord, os, psutil
 from discord import app_commands
 from discord.ext import commands
 from api import gui
-from utils import config
-from utils.utils import DIR
+from utils.utils import DIR, bot_config
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Config(bot=bot))
@@ -18,9 +17,9 @@ class Config(commands.Cog):
     async def ram(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"{psutil.Process(os.getpid()).memory_info().rss /1024**2:.2f} MB")
 
-    @diagnostics.command(name="cogs", description=diagnostics.description)
+    @diagnostics.command(name="extensions", description=diagnostics.description)
     async def cogs(self, interaction: discord.Interaction):
-        await interaction.response.send_message(f"{self.bot.cogs}")
+        await interaction.response.send_message(f"{self.bot.extensions}")
 
     @diagnostics.command(name="member-count", description=diagnostics.description)
     async def member_count(self, interaction: discord.Interaction):
@@ -37,20 +36,28 @@ class Config(commands.Cog):
     async def ping(self, interaction: discord.Interaction):
         interaction.response.send_message(f"Ping: {self.bot.latency*1000} ms")
 
-    devops = app_commands.Group(name="devops", description="Bot admin only debug information")
+    class DevDiagnostics(app_commands.Group):
+        async def interaction_check(self, interaction: discord.Interaction):
+            if interaction.user.id in bot_config["bot_admins"]:
+                return True
+            await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+            return False
 
-    @devops.command(name="logs", description=devops.description)
+    devdiagnostics = DevDiagnostics(name="devdiagnostics", description="Bot admin only debug information")
+
+    @devdiagnostics.command(name="logs", description=devdiagnostics.description)
     async def logs(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.server_config["bot_admins"]:
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         file = discord.File(f"{DIR}/data/.log")
         await interaction.response.send_message(file=file)
 
-    @devops.command(name="ls", description=devops.description)
+    @devdiagnostics.command(name="ls", description=devdiagnostics.description)
     async def ls(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.server_config["bot_admins"]:
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.send_message(view=FileView(DIR))
+    
+    @devdiagnostics.command(name="quit", description=devdiagnostics.description)
+    async def quit(self, interaction: discord.Interaction):
+        await interaction.response.send_message("Quitting bot...")
+        await self.bot.close()
 
 class FileView(gui.PageUI):
     def __init__(self, workdir, page: int = 1):
@@ -69,7 +76,7 @@ class FileView(gui.PageUI):
         self.add_item(button)
 
     async def button_callback(self, interaction: discord.Interaction):
-        if not interaction.user.id in config.server_config["bot_admins"]:
+        if not interaction.user.id in bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         dir = interaction.data["custom_id"]
         fulldir = os.path.join(self.workdir, dir)

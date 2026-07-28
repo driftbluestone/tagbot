@@ -1,0 +1,81 @@
+"""
+Interact with user profiles at a lower level than the api
+"""
+from psycopg import sql
+from utils import jsonIO
+from utils.utils import bot, bot_config
+from db import db, server
+
+def get_user_data(server_id: int, user_id: int) -> dict:
+    """
+    Get user data, for global user data, use server id 0.
+    """
+    data = db.get("user", (server_id, user_id,), ("server_id", "user_id",), ("data",))
+    if data is None:
+        data = {}
+    return data
+
+def save_user_data(server_id: int, user_id: int, data: dict):
+    db.insert("user", ("server_id", "user_id"), ("data",), (server_id, user_id, jsonIO.dumps(data)))
+
+def save_permission(server_id: int, id: int, permission: str, value: bool):
+    if value is None:
+        return
+    db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, id, permission, value))
+
+def perms(server_id: int, user_id: int) -> dict[str, bool]:
+    query = sql.SQL("""SELECT permission, value
+            FROM {schema}.permissions
+            WHERE server_id = {server_id}
+            AND id = {id}
+            """).format(
+        schema = db.SCHEMA,
+        server_id = sql.Placeholder(),
+        id = sql.Placeholder()
+            )
+    perms = db.multiple(query, (server_id, user_id))
+    return {k: v for k, v in perms}
+
+# im gonna cry.
+async def check_permission(server_id: int, user_id: int, permission: str) -> bool:
+    # Bot admin bypass check
+    if user_id in bot_config["bot_admins"]:
+        return True
+
+    defaults = server.perms(server_id)
+    
+    # Ensure permission exists
+    if permission not in defaults:
+        raise KeyError(f"Permission not found: {permission}")
+
+    # get roles
+    ids = [role.id for role in reversed((bot.get_guild(server_id).get_member(user_id)).roles)]
+    ids.insert(0, user_id)
+
+    query = sql.SQL("""SELECT sub.value
+        FROM unnest(%(ids)s)
+        WITH ORDINALITY AS k(key_val, priority)
+        CROSS JOIN LATERAL (
+            SELECT value
+            FROM {schema}.permissions
+            WHERE id = k.key_val
+                AND server_id = %(server_id)s
+                AND permission = %(permission)s
+                AND value IS NOT NULL
+            LIMIT 1
+        ) sub
+        ORDER BY k.priority
+        LIMIT 1;
+        """).format(
+        schema = db.SCHEMA
+    )
+    result = db.single(query, {
+        "server_id": server_id,
+        "permission": permission,
+        "ids": ids
+    })
+    
+    if result is None:
+        result = defaults[permission]
+    
+    return result
