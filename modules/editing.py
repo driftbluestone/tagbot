@@ -7,7 +7,7 @@ async def new_edit(message: discord.Message, deleted = False):
     result = db.get("history", (id,), ("message",), ("reply",))
     if result is None:
         return
-    _, reply_id = result
+    reply_id = result
     reply: discord.PartialMessage = message.channel.get_partial_message(reply_id)
     await reply.delete()
     db.delete("history", ("message",), (id,))
