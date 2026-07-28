@@ -1,4 +1,4 @@
-import discord, traceback
+import discord, traceback, psycopg
 from discord.ext import commands
 from modules import editing, message_embed
 from db import db
@@ -47,14 +47,24 @@ async def on_guild_join(guild: discord.Guild):
 
 @bot.event
 async def on_command_error(ctx: commands.Context, error: Exception):
-    if isinstance(error, commands.CommandInvokeError):
-        if isinstance(error.original, RecursionError):
-            return await ctx.reply("Error: Recursion limit reached.")
-        else:
-            await LOGGER.error("".join(traceback.format_exception(error)))
-            raise error
+    if not isinstance(error, commands.CommandInvokeError):
+        await LOGGER.error("".join(traceback.format_exception(error)))
+        await ctx.channel.send("An unexpected error occured.")
+        raise error
+    
+    error = error.original
+    if isinstance(error, psycopg.errors.InFailedSqlTransaction):
+        db.connection.rollback()
+        await LOGGER.error("".join(traceback.format_exception(error)))
+        await ctx.channel.send("An unexpected database error occured.")
+        
+    elif isinstance(error, RecursionError):
+        return await ctx.reply("Error: Recursion limit reached.")
+    
     else:
         await LOGGER.error("".join(traceback.format_exception(error)))
+        await ctx.channel.send("An unexpected error occured.")
         raise error
+        
 
 bot.run(utils.data["TOKEN"])
