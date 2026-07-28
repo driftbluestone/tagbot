@@ -34,7 +34,7 @@ def run(*args):
 def single(*args):
     cursor.execute(*args)
     result = cursor.fetchone()
-    if isinstance(result, tuple):
+    if isinstance(result, tuple) and len(result) == 1:
         return result[0]
     return result
 
@@ -93,7 +93,7 @@ def delete(table: str, key: tuple[str, ...], value: tuple[Any, ...]):
     )
     run(query, value)
 
-def get(table: str, value: tuple[any], key: tuple[str] = ("id",), column: tuple[str] = ("*",)):
+def get(table: str, value: tuple[Any], key: tuple[str], column: tuple[str]):
     if not isinstance(key, tuple):
         raise ValueError("Argument `key` must be a tuple")
     if not isinstance(value, tuple):
@@ -106,11 +106,12 @@ def get(table: str, value: tuple[any], key: tuple[str] = ("id",), column: tuple[
     query = sql.SQL("SELECT {column} FROM {schema}.{table} WHERE {key}").format(
         schema = SCHEMA,
         table = sql.Identifier(table),
-        column = sql.SQL(", ").join(sql.Identifier(c) for c in column),
+        column = sql.SQL(", ").join(sql.Identifier(c) for c in column), # CANNOT PUT "*" IN HERE
         key = sql.SQL(" AND ").join(sql.SQL("{k} = %s").format(
             k = sql.Identifier(k)) for k in key
         )
     )
+    
     return single(query, value)
 
 def _init():
