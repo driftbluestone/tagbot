@@ -90,7 +90,10 @@ class ExtensionManager(gui.PageUI):
     async def button_callback(self, interaction: discord.Interaction):
         if not await users.check_permission(interaction.guild.id, interaction.user.id, "#:manage_extensions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        
         await interaction.response.defer(ephemeral=True, thinking=False)
+        await interaction.message.edit(content = "⏳ Processing request...")
+        
         extension = interaction.data["custom_id"]
         self.extensions[extension] = not self.extensions[extension]
 
@@ -106,7 +109,7 @@ class ExtensionManager(gui.PageUI):
             
         view = ExtensionManager(self.data_transfer, self.page)
         
-        await interaction.message.edit(view=view)
+        await interaction.message.edit(content=None, view=view)
 
 # internal extension installation functions
 async def install_repo(interaction: discord.Interaction, repo: str, repo_name: str):

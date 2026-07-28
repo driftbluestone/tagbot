@@ -1,13 +1,12 @@
 from db import db
 
 def get(permission: str) -> dict:
-    perm, = db.get("perm", (permission,), ("name",))
+    perm = db.get("perm", (permission,), ("name",), ("display_name", "toggleable", "default_enabled"))
     return {
         "name": permission,
         "display_name": perm[0],
         "toggleable": perm[1],
-        "default_enabled": perm[2],
-        "role_assignable": perm[3]
+        "default_enabled": perm[2]
     }
 
 def set(server_id: int, id: int, permission: str, value):

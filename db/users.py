@@ -24,7 +24,7 @@ def save_permission(server_id: int, id: int, permission: str, value: bool):
     db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, id, permission, value))
 
 def perms(server_id: int, user_id: int) -> dict[str, bool]:
-    query = sql.SQL("""SELECT (permission, value)
+    query = sql.SQL("""SELECT permission, value
             FROM {schema}.permissions
             WHERE server_id = {server_id}
             AND id = {id}
@@ -34,7 +34,6 @@ def perms(server_id: int, user_id: int) -> dict[str, bool]:
         id = sql.Placeholder()
             )
     perms = db.multiple(query, (server_id, user_id))
-
     return {k: v for k, v in perms}
 
 # im gonna cry.

@@ -48,8 +48,14 @@ async def on_guild_join(guild: discord.Guild):
 @bot.event
 async def on_command_error(ctx: commands.Context, error: Exception):
     if not isinstance(error, commands.CommandInvokeError):
+        
+        if isinstance(error, commands.CommandNotFound):
+            return
+        elif isinstance(error, commands.CheckFailure):
+            return
+
         await LOGGER.error("".join(traceback.format_exception(error)))
-        await ctx.channel.send("An unexpected error occured.")
+        await ctx.channel.send("An unexpected command error occured.")
         raise error
     
     error = error.original
