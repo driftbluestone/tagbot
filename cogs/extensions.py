@@ -27,7 +27,7 @@ class Extensions(commands.Cog):
 
     @extension.command(name="toggle", description="Toggle extensions")
     async def extension_toggle(self, interaction: discord.Interaction):
-        if not users.check_permission(interaction.guild.id, interaction.user.id, "manage_extensions"):
+        if not users.check_permission(interaction.guild.id, interaction.user.id, "#:manage_extensions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         return await interaction.response.send_message(view=ExtensionManager(interaction.guild))
 
@@ -90,6 +90,7 @@ class ExtensionManager(gui.PageUI):
         if self.extensions[extension]:
             db.insert("extensions", ("server_id", "extension"), (), (interaction.guild.id, extension))
             await sync(extension, interaction.guild)
+            add_permissions(extension, interaction.guild.id)
             
         else:
             db.delete("extensions", ("server_id", "extension"), (interaction.guild.id, extension))
@@ -175,6 +176,14 @@ async def load():
     extensions = db.multiple(f"SELECT * FROM {db.SCHEMA.as_string()}.extensions WHERE server_id != 0")
     for server_id, extension in extensions:
         await sync(server_id, extension)
+
+def add_permissions(extension: str, server_id: int):
+    query = sql.SQL("SELECT (name, default_enabled) FROM {schema}.perm WHERE source = {extension}").format(
+        schema = db.SCHEMA, extension = sql.Placeholder())
+    result = db.multiple(query, (extension))
+
+    for permission, default in result:
+        db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, 0, permission, default))
 
 def unload_modules(extension_name: str):
     extension_prefix = f"extensions.{extension_name}"

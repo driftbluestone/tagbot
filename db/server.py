@@ -27,10 +27,10 @@ def extensions(server_id: int) -> dict:
         schema = db.SCHEMA,
         server_id = sql.Placeholder()
     )
-    installed = db.multiple(query, 0)
+    installed = db.multiple(query, (0,))
     if server_id == 0:
         return {k: True for k, in installed}
-    server = db.multiple(query, server_id)
+    server = db.multiple(query, (server_id,))
     return {k: True if k in server else False for k, in installed}
 
 def check_extension(server_id: int, extension: str):

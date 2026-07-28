@@ -88,3 +88,6 @@ for file in os.listdir(f"{DIR}/data/users"):
 
 for extension in os.listdir(f"{DIR}/data/extensions"):
     db.insert("extensions", ("server_id", "extension"), (), (0, extension))
+
+db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, 0, "#:edit_permissions", False))
+db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, 0, "#:manage_extensions", False))

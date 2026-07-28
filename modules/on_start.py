@@ -59,8 +59,6 @@ if not os.path.exists(f"{DIR}/bot_info.json"):
 
     jsonIO.dump(f"{DIR}/bot_info.json", data)
 
-
-
 class _BOT(commands.Bot):
     def __init__(self, prefix):
         super().__init__(

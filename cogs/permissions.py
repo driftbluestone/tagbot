@@ -14,7 +14,7 @@ class Permissions(commands.Cog):
 
     class PermissionCommands(app_commands.Group):
         async def interaction_check(self, interaction: discord.Interaction):
-            permission = await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions")
+            permission = await users.check_permission(interaction.guild.id, interaction.user.id, "#:edit_permissions")
             if not permission:
                 await interaction.response.send_message(":warning: No permission", ephemeral=True)
             return permission
@@ -62,7 +62,7 @@ class DefaultPermissionPanel(gui.PageUI):
             self.add_item(button)
 
     async def callback(self, interaction: discord.Interaction):
-        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "#:edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         name = interaction.data["custom_id"]
         perm = permission.get(name)
@@ -91,7 +91,7 @@ class UserPermissionPanel(gui.PageUI):
             self.add_item(button)
 
     async def callback(self, interaction: discord.Interaction):
-        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "#:edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         name = interaction.data["custom_id"]
         perm = permission.get(name)
@@ -118,7 +118,7 @@ class RolePanel(gui.PageUI):
             self.add_item(button)
 
     async def callback(self, interaction: discord.Interaction):
-        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "#:edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.defer(ephemeral=True, thinking=False)
         role = int(interaction.data["custom_id"])
@@ -148,13 +148,13 @@ class RolePermissionPanel(gui.PageUI):
         self.add_item(button)
 
     async def back(self, interaction: discord.Interaction):
-        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "#:edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(content="", view=RolePanel(interaction.guild))
 
     async def callback(self, interaction: discord.Interaction):
-        if not await users.check_permission(interaction.guild.id, interaction.user.id, "edit_permissions"):
+        if not await users.check_permission(interaction.guild.id, interaction.user.id, "#:edit_permissions"):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
 
         name = interaction.data["custom_id"]

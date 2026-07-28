@@ -40,9 +40,10 @@ async def on_message_delete(message: discord.Message):
     if message.author.bot: return
     await editing.new_edit(message, True)
 
-# @bot.event
-# async def on_guild_join(guild: discord.Guild):
-
+@bot.event
+async def on_guild_join(guild: discord.Guild):
+    db.insert("permissions", ("server_id", "id", "permission"), ("value",), (guild.id, 0, "#:edit_permissions", False))
+    db.insert("permissions", ("server_id", "id", "permission"), ("value",), (guild.id, 0, "#:manage_extensions", False))
 
 @bot.event
 async def on_command_error(ctx: commands.Context, error: Exception):

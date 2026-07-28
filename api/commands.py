@@ -1,6 +1,6 @@
 import discord, functools
 from discord.ext import commands
-from commands import *
+from discord.ext.commands import *
 from discord.utils import MISSING
 from typing import Callable
 from db import server

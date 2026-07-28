@@ -27,83 +27,6 @@ def close_connection():
     connection.close()
     logger._logger.info("Database connection closed.")
 
-def _init():
-    """
-    Internal function. Creates the schema and tables.
-    """
-    connection.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA};")
-    
-    # permissions table
-    connection.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.permissions (
-            server_id BIGINT NOT NULL,
-            permission TEXT NOT NULL,
-            id BIGINT NOT NULL,
-            value BOOLEAN,
-            PRIMARY KEY (server_id, id, permission)
-        );
-    """)
-
-    # user data table
-    connection.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.user (
-            server_id BIGINT,
-            user_id BIGINT,
-            data JSONB,
-            PRIMARY KEY (server_id, user_id)
-        );
-        """)
-
-    # server data table
-    connection.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.server (
-            server_id BIGINT PRIMARY KEY,
-            command_prefix TEXT
-        );
-    """)
-
-    # extension table
-    connection.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.extensions (
-            server_id BIGINT,
-            extension TEXT,
-            PRIMARY KEY (server_id, extension)
-        );
-    """)
-
-    # permission metadata table
-    connection.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.perm (
-            name TEXT PRIMARY KEY,
-            display_name TEXT,
-            toggleable BOOLEAN,
-            default_enabled BOOLEAN,
-            source TEXT
-        );    
-    """)
-
-    # message history table
-    connection.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA}.history (
-            message BIGINT PRIMARY KEY,
-            reply BIGINT
-        );
-    """)
-    
-    logger._logger.info("Defined Schema and Tables")
-
-logger._logger.info("Connecting to the PostgreSQL database...")
-connection = psycopg.connect(
-    host=HOST,
-    dbname=NAME,
-    user=USER,
-    password=PASS,
-    port=PORT
-)
-cursor = connection.cursor()
-check_connection()
-_init()
-
 def run(*args):
     cursor.execute(*args)
     connection.commit()
@@ -186,3 +109,82 @@ def get(table: str, value: tuple[any], key: tuple[str] = ("id",), column: tuple[
         )
     )
     return single(query, value)
+
+def _init():
+    """
+    Internal function. Creates the schema and tables.
+    """
+    connection.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA.as_string()};")
+    
+    # permissions table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA.as_string()}.permissions (
+            server_id BIGINT NOT NULL,
+            permission TEXT NOT NULL,
+            id BIGINT NOT NULL,
+            value BOOLEAN,
+            PRIMARY KEY (server_id, id, permission)
+        );
+    """)
+
+    # user data table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA.as_string()}.user (
+            server_id BIGINT,
+            user_id BIGINT,
+            data JSONB,
+            PRIMARY KEY (server_id, user_id)
+        );
+        """)
+
+    # server data table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA.as_string()}.server (
+            server_id BIGINT PRIMARY KEY,
+            command_prefix TEXT
+        );
+    """)
+
+    # extension table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA.as_string()}.extensions (
+            server_id BIGINT,
+            extension TEXT,
+            PRIMARY KEY (server_id, extension)
+        );
+    """)
+
+    # permission metadata table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA.as_string()}.perm (
+            name TEXT PRIMARY KEY,
+            display_name TEXT,
+            toggleable BOOLEAN,
+            default_enabled BOOLEAN,
+            source TEXT
+        );    
+    """)
+
+    # message history table
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS {SCHEMA.as_string()}.history (
+            message BIGINT PRIMARY KEY,
+            reply BIGINT
+        );
+    """)
+    
+    logger._logger.info("Defined Schema and Tables")
+
+logger._logger.info("Connecting to the PostgreSQL database...")
+connection = psycopg.connect(
+    host=HOST,
+    dbname=NAME,
+    user=USER,
+    password=PASS,
+    port=PORT
+)
+cursor = connection.cursor()
+check_connection()
+_init()
+insert("perm", ("name",), ("display_name", "toggleable", "default_enabled", "source"), ("#:edit_permissions", "Edit Permissions", False, False, "#"))
+insert("perm", ("name",), ("display_name", "toggleable", "default_enabled", "source"), ("#:manage_extensions", "Manage Extensions", False, False, "#"))
