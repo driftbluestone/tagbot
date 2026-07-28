@@ -77,11 +77,4 @@ class _BOT(commands.Bot):
     async def setup_hook(self):
         await self.load_extension("cogs.config")
         await self.load_extension("cogs.permissions")
-        try:
-            synced = await self.tree.sync()
-            print(f"Synced {len(synced)} commands.")
-        except Exception as e:
-            print(f"Error syncing commands: {e}")
-
-        # load extensions
         await self.load_extension("cogs.extensions")

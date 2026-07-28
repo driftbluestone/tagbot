@@ -8,7 +8,7 @@ __all__ = ["SCHEMA", "run", "single", "multiple", "insert", "delete", "get"]
 
 logger = Logger()
 data = data["DB"]
-SCHEMA = sql.Identifier(data["SCHEMA"])
+SCHEMA = data["SCHEMA"]
 HOST = data["HOST"]
 NAME = data["NAME"]
 USER = data["USER"]
@@ -119,6 +119,8 @@ def single(*args):
 def multiple(*args):
     connection.execute(*args)
     return cursor.fetchall()
+
+SCHEMA = sql.Identifier(SCHEMA)
 
 def insert(table: str, key: tuple[str, ...], field: tuple[str, ...], value: tuple[Any, ...]):
     if not isinstance(key, tuple):

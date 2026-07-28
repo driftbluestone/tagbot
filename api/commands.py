@@ -1,9 +1,11 @@
 import discord, functools
 from discord.ext import commands
+from commands import *
 from discord.utils import MISSING
 from typing import Callable
 from db import server
-from commands import *
+class Bot(commands.Bot): ...
+class Context(commands.Context): ...
 
 def _get_server_id(*args) -> int:
     for arg in args:

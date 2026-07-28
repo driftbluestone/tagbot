@@ -3,15 +3,19 @@ from discord import app_commands
 from discord.ext import commands
 from functools import cache
 from psycopg import sql
-from utils import config, jsonIO
-from utils.utils import DIR, bot
-from utils.logger import Logger
-LOGGER = Logger()
+from utils import jsonIO, logger
+from utils.utils import DIR, bot, bot_config
 from db import db, server, users
 from api import gui
+LOGGER = logger.Logger()
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
+    try:
+        synced = await bot.tree.sync()
+        await LOGGER.info(f"Synced {len(synced)} commands.")
+    except Exception as e:
+        await LOGGER.error(f"Error syncing commands: {e}")
     for extension in server.extensions(0).keys():
         await bot.load_extension(f"extensions.{extension}.main")
     await load()
@@ -29,7 +33,7 @@ class Extensions(commands.Cog):
 
     @extension.command(name="add", description="Requires bot admin. Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
-        if interaction.user.id in config.bot_config["bot_admins"]:
+        if interaction.user.id in bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
@@ -42,7 +46,7 @@ class Extensions(commands.Cog):
     
     @extension.command(name="update", description="Requires bot admin. Update extensions")
     async def extension_update(self, interaction: discord.Interaction, repo: str):
-        if interaction.user.id in config.bot_config["bot_admins"]:
+        if interaction.user.id in bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
@@ -56,9 +60,9 @@ class Extensions(commands.Cog):
 
     @extension.command(name="delete", description="Requires bot admin. Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
-        if interaction.user.id in config.bot_config["bot_admins"]:
+        if interaction.user.id in bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
-        if extension not in config.bot_config["extensions"].keys():
+        if not server.check_extension(0, extension):
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
         await uninstall(interaction, extension, save_data)
 

@@ -27,7 +27,7 @@ def get_user_data(server_id: int, user_id: int) -> dict:
     """
     return get_user_data(server_id, user_id)
 
-def set_field(server_id: int, user_id: int, field, data):
+def set_field(server_id: int, user_id: int, field: str, data):
     """
     Set user data and automatically save it to disk.
     Use server_id 0 for global data
@@ -40,6 +40,10 @@ def set_field(server_id: int, user_id: int, field, data):
     users.save_user_data(server_id, user_id, user_data)
 
 def get_field(server_id: int, user_id: int, field: str):
+    if ":" not in field:
+        extension = ext()
+        field = f"{extension}:{field}"
+    
     query = sql.SQL("""SELECT data->>{field} FROM {schema}.user
         WHERE server_id = {server_id} AND user_id = {user_id};""").format(
             schema = db.SCHEMA,

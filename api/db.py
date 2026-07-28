@@ -9,4 +9,4 @@ def table(name: str, columns: list[str]):
         name = name.replace(":", "$")
     if "$" not in name:
         name = f"{_ext()}${name}"
-    run(f"CREATE TABLE IF NOT EXISTS {name} ({", ".join(columns)});")
+    run(f"CREATE TABLE IF NOT EXISTS {SCHEMA.as_string()}.{name} ({", ".join(columns)});")
