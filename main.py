@@ -1,6 +1,7 @@
 import discord, traceback
 from discord.ext import commands
 from modules import editing, message_embed
+from db import db
 from utils import logger, utils
 from utils.utils import bot
 LOGGER = logger.Logger()
@@ -38,6 +39,10 @@ async def on_message_edit(previous: discord.Message, current: discord.Message):
 async def on_message_delete(message: discord.Message):
     if message.author.bot: return
     await editing.new_edit(message, True)
+
+# @bot.event
+# async def on_guild_join(guild: discord.Guild):
+
 
 @bot.event
 async def on_command_error(ctx: commands.Context, error: Exception):

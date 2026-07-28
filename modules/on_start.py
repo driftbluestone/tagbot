@@ -1,8 +1,8 @@
 import discord, os
 from discord.ext import commands
-from db import db
+from pathlib import Path
 from utils import jsonIO
-from utils.utils import DIR
+DIR = Path(__file__).parent.parent.resolve()
 
 if not os.path.isdir(f"{DIR}/data"):
     os.mkdir(f"{DIR}/data")
@@ -59,7 +59,7 @@ if not os.path.exists(f"{DIR}/bot_info.json"):
 
     jsonIO.dump(f"{DIR}/bot_info.json", data)
 
-db._init()
+
 
 class _BOT(commands.Bot):
     def __init__(self, prefix):

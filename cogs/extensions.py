@@ -172,7 +172,7 @@ async def unsync(extension: str, guild: discord.Guild):
     await bot.tree.sync(guild=guild)
 
 async def load():
-    extensions = db.multiple(f"SELECT * FROM {db.SCHEMA}.extensions WHERE server_id != 0")
+    extensions = db.multiple(f"SELECT * FROM {db.SCHEMA.as_string()}.extensions WHERE server_id != 0")
     for server_id, extension in extensions:
         await sync(server_id, extension)
 
@@ -194,7 +194,7 @@ async def uninstall(interaction: discord.Interaction, extension: str, save_data:
     try:
         await bot.unload_extension(f"extensions.{extension}.main")
         unload_modules(extension)
-        ids = db.multiple(f"SELECT server_id FROM {db.SCHEMA}.extensions WHERE server_id != 0 and extension = {extension}")
+        ids = db.multiple(f"SELECT server_id FROM {db.SCHEMA.as_string()}.extensions WHERE server_id != 0 and extension = %s", (extension,))
         for server_id, in ids:
             await unsync(extension, discord.Object(id=server_id))
     except:

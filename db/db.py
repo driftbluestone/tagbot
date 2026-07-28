@@ -27,22 +27,6 @@ def close_connection():
     connection.close()
     logger._logger.info("Database connection closed.")
 
-try:
-    logger._logger.info("Connecting to the PostgreSQL database...")
-    connection = psycopg.connect(
-        host=HOST,
-        database=NAME,
-        user=USER,
-        password=PASS,
-        port=PORT
-    )
-    
-    cursor = connection.cursor()
-    check_connection()
-
-except Exception as error:
-    logger._logger.error(f"\nError while connecting to PostgreSQL: {error}")
-
 def _init():
     """
     Internal function. Creates the schema and tables.
@@ -62,7 +46,7 @@ def _init():
 
     # user data table
     connection.execute(f"""
-        TABLE IF NOT EXISTS {SCHEMA}.user (
+        CREATE TABLE IF NOT EXISTS {SCHEMA}.user (
             server_id BIGINT,
             user_id BIGINT,
             data JSONB,
@@ -80,7 +64,7 @@ def _init():
 
     # extension table
     connection.execute(f"""
-        CREATE TABLE IF NOT EXIST {SCHEMA}.extensions (
+        CREATE TABLE IF NOT EXISTS {SCHEMA}.extensions (
             server_id BIGINT,
             extension TEXT,
             PRIMARY KEY (server_id, extension)
@@ -102,22 +86,34 @@ def _init():
     connection.execute(f"""
         CREATE TABLE IF NOT EXISTS {SCHEMA}.history (
             message BIGINT PRIMARY KEY,
-            reply BIGINT,
+            reply BIGINT
         );
     """)
     
     logger._logger.info("Defined Schema and Tables")
 
+logger._logger.info("Connecting to the PostgreSQL database...")
+connection = psycopg.connect(
+    host=HOST,
+    dbname=NAME,
+    user=USER,
+    password=PASS,
+    port=PORT
+)
+cursor = connection.cursor()
+check_connection()
+_init()
+
 def run(*args):
-    connection.execute(*args)
+    cursor.execute(*args)
     connection.commit()
 
 def single(*args):
-    connection.execute(*args)
+    cursor.execute(*args)
     return cursor.fetchone()
 
 def multiple(*args):
-    connection.execute(*args)
+    cursor.execute(*args)
     return cursor.fetchall()
 
 SCHEMA = sql.Identifier(SCHEMA)
@@ -134,7 +130,13 @@ def insert(table: str, key: tuple[str, ...], field: tuple[str, ...], value: tupl
     if not key:
         raise ValueError("Arguments `key`, `field`, and `value` cannot be empty.")
     
-    query = sql.SQL("INSERT INTO {schema}.{table} ({fields}) VALUES ({values}) ON CONFLICT ({keys}) DO UPDATE SET {assignments}").format(
+    query = "INSERT INTO {schema}.{table} ({fields}) VALUES ({values}) ON CONFLICT ({keys}) DO"
+    if field:
+        query += " UPDATE SET {assignments}"
+    else:
+        query += " NOTHING"
+
+    query = sql.SQL(query).format(
         schema = SCHEMA,
         table = sql.Identifier(table),
         fields = sql.SQL(", ").join(sql.Identifier(f) for f in (key + field)),
