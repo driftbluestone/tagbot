@@ -141,14 +141,6 @@ def _init():
         );
         """)
 
-    # server data table
-    connection.execute(f"""
-        CREATE TABLE IF NOT EXISTS {SCHEMA.as_string()}.server (
-            server_id BIGINT PRIMARY KEY,
-            command_prefix TEXT
-        );
-    """)
-
     # extension table
     connection.execute(f"""
         CREATE TABLE IF NOT EXISTS {SCHEMA.as_string()}.extensions (
