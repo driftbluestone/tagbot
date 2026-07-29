@@ -1,4 +1,4 @@
-from modules import _bot
+from modules import on_start, _bot
 from utils import jsonIO
 from pathlib import Path
 DIR = Path(__file__).parent.parent.resolve()

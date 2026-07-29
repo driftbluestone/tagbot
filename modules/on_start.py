@@ -1,5 +1,4 @@
-import discord, os
-from discord.ext import commands
+import os
 from pathlib import Path
 from utils import jsonIO
 DIR = Path(__file__).parent.parent.resolve()
