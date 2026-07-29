@@ -139,7 +139,7 @@ class RolePermissionPanel(gui.PageUI):
             else:
                 color = self.role[perm]
             perm = permission.get(perm)
-            button = discord.ui.Button(label=perm["display_name"], style=colors[color], custom_id=perm)
+            button = discord.ui.Button(label=perm["display_name"], style=colors[color], custom_id=perm["name"])
             button.callback = self.callback
             self.add_item(button)
 
