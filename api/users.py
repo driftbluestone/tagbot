@@ -1,4 +1,5 @@
 import discord, asyncio
+from discord.ext import commands
 from psycopg import sql
 from db import db, users
 from utils.utils import bot
@@ -63,7 +64,7 @@ def overwrite(server_id: int, user_id: int, user: dict):
 async def resolve_user(server_id: int, user: str | int) -> tuple[dict, discord.Member] | tuple[False, False]:
     if user.startswith("<@") and user.endswith(">"):
         user = user[2:-1]
-    user_object = bot.get_guild(server_id).get_member_named(user)
+    user_object = bot.get_guild(server_id).get_member_named(user.lower())
     if user_object == None:
         try:
             user = int(user)
