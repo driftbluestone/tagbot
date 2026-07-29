@@ -1,16 +1,11 @@
 TOKEN.txt
 bot_info.json
-tags
-users
-history
-extensions/*
+extensions
 __pycache__
 data
 .vscode
 .log
 run.spec
 build
-bundler
 dist
 readme.txt
-bot_info.json
