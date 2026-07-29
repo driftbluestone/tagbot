@@ -2,7 +2,7 @@ import discord, os, psutil
 from discord import app_commands
 from discord.ext import commands
 from api import gui
-from db import users
+from db import db, users
 from utils.utils import DIR, bot_config
 
 async def setup(bot: commands.Bot) -> None:
@@ -77,6 +77,11 @@ class Config(commands.Cog):
         
         await interaction.guild.me.edit(banner=await image.read())
         return await interaction.response.send_message("Updated avatar.")
+
+    @customize.command(name="prefix", description="Change command prefix")
+    async def prefix(self, interaction: discord.Interaction, prefix: str):
+        db.insert("server", ("server_id",), ("command_prefix",), (interaction.guild.id, prefix))
+        return await interaction.response.send_message("Updated command prefix.")
 
     class DevDiagnostics(app_commands.Group):
         async def interaction_check(self, interaction: discord.Interaction):

@@ -31,13 +31,16 @@ async def on_message(message: discord.Message):
 
 @bot.event
 async def on_message_edit(previous: discord.Message, current: discord.Message):
-    if previous.author.bot: return
-    if previous.content == current.content: return
+    if previous.author.bot:
+        return
+    if previous.content == current.content:
+        return
     await editing.new_edit(current)
 
 @bot.event
 async def on_message_delete(message: discord.Message):
-    if message.author.bot: return
+    if message.author.bot:
+        return
     await editing.new_edit(message, True)
 
 @bot.event

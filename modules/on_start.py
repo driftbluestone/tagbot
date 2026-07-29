@@ -17,62 +17,43 @@ if not os.path.exists(f"{DIR}/bot_info.json"):
         quit()
     data["TOKEN"] = tkn
 
-    data["command_prefix"] = "%"
-
-    print("Database setup...")
+    print("Database setup:")
     data["DB"] = {}
-    schema = input("Paste database schema name: ")
+    schema = input("Paste database schema name (default 'public'): ")
     if not schema:
-        print("No database schema provided, default value `sonny` will be used.")
-        schema = "sonny"
+        print("No database schema provided, default value 'public' will be used.")
+        schema = "public"
     data["DB"]["SCHEMA"] = schema
     
-    host = input("Paste database host: ")
+    host = input("Paste database host (default 'localhost'): ")
     if not host:
-        print("No database host provided, default value `localhost` will be used.")
+        print("No database host provided, default value 'localhost' will be used.")
         host = "localhost"
     data["DB"]["HOST"] = host
 
-    name = input("Paste database name: ")
+    name = input("Paste database name (default 'postgres'): ")
     if not name:
-        print("No database name provided, default value `postgres` will be used.")
+        print("No database name provided, default value 'postgres' will be used.")
         name = "postgres"
     data["DB"]["NAME"] = name
 
-    user = input("Paste database user: ")
+    user = input("Paste database user (default 'postgres'): ")
     if not user:
-        print("No database user provided, default value `postgres` will be used.")
+        print("No database user provided, default value 'postgres' will be used.")
         user = "postgres"
     data["DB"]["USER"] = user
 
-    passw = input("Paste database password: ")
+    passw = input("Paste database password (default 'password'): ")
     if not passw:
-        print("No database password provided, default value `password` will be used.")
+        print("No database password provided, default value 'password' will be used.")
         passw = "password"
     data["DB"]["PASS"] = passw
 
-    port = input("Paste database port: ")
+    port = input("Paste database port (default '5432'): ")
     if not port:
-        print("No database port provided, default value `5432` will be used.")
+        print("No database port provided, default value '5432' will be used.")
         port = "5432"
     data["DB"]["PORT"] = port
 
     jsonIO.dump(f"{DIR}/bot_info.json", data)
 
-class _BOT(commands.Bot):
-    def __init__(self, prefix):
-        super().__init__(
-        command_prefix=prefix,
-        case_insensitive=True,
-        allowed_mentions=discord.AllowedMentions(
-            users=False,
-            everyone=False,
-            roles=False,
-            replied_user=True,
-        ),
-        intents=discord.Intents.all()
-        )
-    async def setup_hook(self):
-        await self.load_extension("cogs.config")
-        await self.load_extension("cogs.permissions")
-        await self.load_extension("cogs.extensions")

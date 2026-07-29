@@ -4,7 +4,7 @@ from utils.utils import bot
 
 async def message_reply(message: discord.Message):
     # Keep commands working
-    if message.content.startswith(f"{bot.command_prefix}"):
+    if message.content.startswith(await bot.get_prefix(message)):
         return await bot.process_commands(message)
     # check if message contains message link
     link = re.search(r"https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+", message.content)

@@ -1,19 +1,17 @@
 import psycopg
 from psycopg import sql
+from pathlib import Path
 from typing import Any
+from utils import jsonIO
 from utils.logger import Logger
-from utils.utils import data
+
+DIR = Path(__file__).parent.parent.resolve()
 
 __all__ = ["SCHEMA", "run", "single", "multiple", "insert", "delete", "get"]
 
 logger = Logger()
-data = data["DB"]
+data = jsonIO.load(f"{DIR}/bot_info.json")["DB"]
 SCHEMA = data["SCHEMA"]
-HOST = data["HOST"]
-NAME = data["NAME"]
-USER = data["USER"]
-PASS = data["PASS"]
-PORT = data["PORT"]
 
 def check_connection():
     cursor.execute("SELECT version();")
@@ -46,7 +44,6 @@ SCHEMA = sql.Identifier(SCHEMA)
 
 def insert(table: str, key: tuple[str, ...], field: tuple[str, ...], value: tuple[Any, ...]):
     """Actually an upsert function."""
-    
     if not isinstance(key, tuple):
         raise ValueError("Argument `key` must be a tuple.")
     if not isinstance(field, tuple):
@@ -183,11 +180,11 @@ def _init():
 
 logger._logger.info("Connecting to the PostgreSQL database...")
 connection = psycopg.connect(
-    host=HOST,
-    dbname=NAME,
-    user=USER,
-    password=PASS,
-    port=PORT
+    host=data["HOST"],
+    dbname=data["NAME"],
+    user=data["USER"],
+    password=data["PASS"],
+    port=data["PORT"]
 )
 cursor = connection.cursor()
 check_connection()

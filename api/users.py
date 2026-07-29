@@ -23,16 +23,11 @@ def has_permission(server_id, user_id: int, permission: str) -> bool:
     return asyncio.create_task(users.check_permission(server_id, user_id, permission))
 
 def get_user_data(server_id: int, user_id: int) -> dict:
-    """
-    Get user data, for global user data, use server id 0.
-    """
+    """Get user data, for global user data, use server id 0."""
     return get_user_data(server_id, user_id)
 
 def set_field(server_id: int, user_id: int, field: str, data):
-    """
-    Set user data and automatically save it to disk.
-    Use server_id 0 for global data
-    """
+    """Save user data. Use server_id 0 for global data."""
     if ":" not in field:
         extension = ext()
         field = f"{extension}:{field}"
@@ -56,9 +51,7 @@ def get_field(server_id: int, user_id: int, field: str):
     return result
 
 def overwrite(server_id: int, user_id: int, user: dict):
-    """
-    Overwrite all data for this user
-    """
+    """Overwrite all data for this user"""
     users.save_user_data(server_id, user_id, user)
 
 async def resolve_user(server_id: int, user: str | int) -> tuple[dict, discord.Member] | tuple[False, False]:

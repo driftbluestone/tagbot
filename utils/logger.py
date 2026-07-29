@@ -1,6 +1,7 @@
-import discord
-import logging
-from utils.utils import DIR
+import discord, logging
+from pathlib import Path
+
+DIR = Path(__file__).parent.parent.resolve()
 
 class Logger:
     def __init__(self, name: str = ":"):
