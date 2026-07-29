@@ -12,3 +12,4 @@ build
 bundler
 dist
 readme.txt
+bot_info.json
