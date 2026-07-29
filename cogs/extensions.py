@@ -1,7 +1,6 @@
 import discord, os, asyncio, importlib, sys, shutil, typing
 from discord import app_commands
 from discord.ext import commands
-from functools import cache
 from psycopg import sql
 from utils import jsonIO, logger
 from utils.utils import DIR, bot, bot_config
@@ -63,6 +62,7 @@ class Extensions(commands.Cog):
             await uninstall(interaction, repo_name, True, True)
             interaction = None
         await install_repo(interaction, repo, repo_name)
+        get_extension_commands.invalidate(repo_name)
         await init_extension(repo_name)
 
     @extension.command(name="delete", description="Requires bot admin. Uninstall extensions")
@@ -93,7 +93,7 @@ class ExtensionManager(gui.PageUI):
         
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(content = "⏳ Processing request...")
-        
+
         extension = interaction.data["custom_id"]
         self.extensions[extension] = not self.extensions[extension]
 
@@ -165,10 +165,28 @@ async def init_extension(extension: str):
         importlib.import_module(f"extensions.{extension}.init")
     await bot.load_extension(f"extensions.{extension}.main")
     db.insert("extensions", ("server_id", "extension"), (), (0, extension))
+
     await LOGGER.info(f"Initialized new extension: {extension}.")
 
-@cache
-def get_extension_commands(extension):
+def memoize(func):
+    cache = {}
+
+    def wrapper(*args, **kwargs):
+        key = (args, tuple(sorted(kwargs.items())))
+        if key not in cache:
+            cache[key] = func(*args, **kwargs)
+        return cache[key]
+
+    def invalidate(*args, **kwargs):
+        key = (args, tuple(sorted(kwargs.items())))
+        cache.pop(key, None)
+    
+    wrapper.invalidate = invalidate
+    wrapper.clear = cache.clear
+    return wrapper
+
+@memoize
+def get_extension_commands(extension: str):
     extension_commands = []
     for cog in bot.cogs.values():
         if cog.__module__.split(".")[1] == extension:
