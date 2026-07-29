@@ -106,6 +106,7 @@ class ExtensionManager(gui.PageUI):
         else:
             db.delete("extensions", ("server_id", "extension"), (interaction.guild.id, extension))
             await unsync(extension, interaction.guild)
+            remove_permissions(extension, interaction.guild.id)
             
         view = ExtensionManager(self.data_transfer, self.page)
         
@@ -215,6 +216,14 @@ def add_permissions(extension: str, server_id: int):
 
     for permission, default in result:
         db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, 0, permission, default))
+
+def remove_permissions(extension: str, server_id: int):
+    query = sql.SQL("SELECT name, default_enabled FROM {schema}.perm WHERE source = {extension}").format(
+        schema = db.SCHEMA, extension = sql.Placeholder())
+    result = db.multiple(query, (extension,))
+
+    for permission, default in result:
+        db.delete("permissions", (server_id, 0, permission), ("server_id", "id", "permission"))
 
 def unload_modules(extension_name: str):
     extension_prefix = f"extensions.{extension_name}"
