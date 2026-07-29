@@ -45,6 +45,8 @@ def multiple(*args):
 SCHEMA = sql.Identifier(SCHEMA)
 
 def insert(table: str, key: tuple[str, ...], field: tuple[str, ...], value: tuple[Any, ...]):
+    """Actually an upsert function."""
+    
     if not isinstance(key, tuple):
         raise ValueError("Argument `key` must be a tuple.")
     if not isinstance(field, tuple):

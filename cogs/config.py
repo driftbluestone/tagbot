@@ -2,6 +2,7 @@ import discord, os, psutil
 from discord import app_commands
 from discord.ext import commands
 from api import gui
+from db import users
 from utils.utils import DIR, bot_config
 
 async def setup(bot: commands.Bot) -> None:
@@ -35,6 +36,47 @@ class Config(commands.Cog):
     @diagnostics.command(name="ping", description=diagnostics.description)
     async def ping(self, interaction: discord.Interaction):
         interaction.response.send_message(f"Ping: {self.bot.latency*1000} ms")
+
+    class Customize(app_commands.Group):
+            async def interaction_check(self, interaction: discord.Interaction):
+                if await users.check_permission(interaction.guild.id, interaction.user.id, "#:manage_extensions"):
+                    return True
+                await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+                return False
+
+    customize = Customize(name="customize", description="Customize your bot")
+
+    @customize.command(name="avatar", description="Change avatar")
+    async def avatar(self, interaction: discord.Interaction, image: discord.Attachment):
+        if not image.content_type or not image.content_type.startswith("image/"):
+            return await interaction.response.send_message("Please upload a valid image file (PNG/JPEG).", ephemeral=True)
+
+        try:
+            await interaction.guild.me.edit(avatar=await image.read())
+        except discord.Forbidden:
+            return await interaction.response.send_message("Bot missing `Change Nickname` permission.", ephemeral=True)
+        return await interaction.response.send_message("Updated avatar.")
+
+    @customize.command(name="nick", description="Change display name")
+    async def nick(self, interaction: discord.Interaction, name: str):
+        try:
+            await interaction.guild.me.edit(nick=name)
+        except discord.Forbidden:
+            return await interaction.response.send_message("Bot missing `Change Nickname` permission.", ephemeral=True)
+        return await interaction.response.send_message("Updated nickname.")
+
+    @customize.command(name="bio", description="Change bio")
+    async def bio(self, interaction: discord.Interaction, bio: str):
+        await interaction.guild.me.edit(bio=bio)
+        return await interaction.response.send_message("Updated bio.")
+
+    @customize.command(name="banner", description="Change banner")
+    async def banner(self, interaction: discord.Interaction, image: discord.Attachment):
+        if not image.content_type or not image.content_type.startswith("image/"):
+            return await interaction.response.send_message("Please upload a valid image file (PNG/JPEG).", ephemeral=True)
+        
+        await interaction.guild.me.edit(banner=await image.read())
+        return await interaction.response.send_message("Updated avatar.")
 
     class DevDiagnostics(app_commands.Group):
         async def interaction_check(self, interaction: discord.Interaction):

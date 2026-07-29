@@ -1,4 +1,4 @@
-import discord, os, asyncio, importlib, sys, shutil, typing
+import discord, os, asyncio, importlib, sys, shutil
 from discord import app_commands
 from discord.ext import commands
 from functools import cache
@@ -66,7 +66,7 @@ class Extensions(commands.Cog):
         await init_extension(repo_name)
 
     @extension.command(name="delete", description="Requires bot admin. Uninstall extensions")
-    async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
+    async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: bool = True):
         if interaction.user.id in bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not server.check_extension(0, extension):
