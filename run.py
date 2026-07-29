@@ -15,20 +15,42 @@ async def run(args):
 try:
     import discord
 except ModuleNotFoundError:
-    print("Module 'discord.py' not found. Installing")
-    print(asyncio.run(run([sys.executable, "-m", "pip", "install", "-U", "discord.py"])))
+    print("Module 'discord.py' not found. Would you like to install?")
+    if input("Enter 'y' to install: ").lower() == 'y':
+        print(asyncio.run(run([sys.executable, "-m", "pip", "install", "-U", "discord.py"])))
+    else:
+        print("Installation skipped.")
+        quit()
 
 try:
     import psutil
 except ModuleNotFoundError:
-    print("Module 'psutil' not found. Installing")
-    print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psutil"])))
+    print("Module 'psutil' not found. Would you like to install?")
+    if input("Enter 'y' to install: ").lower() == 'y':
+        print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psutil"])))
+    else:
+        print("Installation skipped.")
+        quit()
 
 try:
     import orjson
 except ModuleNotFoundError:
-    print("Module 'orjson' not found. Installing")
-    print(asyncio.run(run([sys.executable, "-m", "pip", "install", "orjson"])))
+    print("Module 'orjson' not found. Would you like to install?")
+    if input("Enter 'y' to install: ").lower() == 'y':
+        print(asyncio.run(run([sys.executable, "-m", "pip", "install", "orjson"])))
+    else:
+        print("Installation skipped.")
+        quit()
+
+try:
+    import psycopg
+except ModuleNotFoundError:
+    print("Module 'psycopg' not found. Would you like to install?")
+    if input("Enter 'y' to install: ").lower() == 'y':
+        print(asyncio.run(run([sys.executable, "-m", "pip", "install", "psycopg[binary]"])))
+    else:
+        print("Installation skipped.")
+        quit()
 
 vinf = sys.version_info
 REQUIRED_VER = (3, 14)

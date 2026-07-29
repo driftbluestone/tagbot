@@ -1,5 +1,6 @@
 import discord, math
-from utils.bot import bot
+from utils import utils
+from utils.utils import bot
 from api import users
 
 __all__ = ["create_message_embed", "PageUI"]
@@ -75,8 +76,12 @@ class PageUI(discord.ui.View):
             self.add_item(button)
 
     async def page_selector(self, interaction: discord.Interaction):
-        if not await users.has_permission(interaction.user.id, self.interaction_permission):
-            return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        if self.interaction_permission == "!":
+            if interaction.user.id not in utils.bot_config["bot_admins"]:
+                return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
+        if self.interaction_permission is not None:
+            if not await users.has_permission(interaction.guild.id, interaction.user.id, self.interaction_permission):
+                return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         
         config = interaction.data["custom_id"]
     
@@ -122,7 +127,7 @@ class MenuGUI(discord.ui.View):
     This object must be inherited.
     
     This class implements page scrolling buttons in a discord View, the buttons are added on row 3,
-    leaving 10 places above for elements, and space below for action buttons. (i.e. "Create")
+    leaving 10 places above for elements, and space below for action buttons.
 
     The following variables must be declared using super().__init__():
     - interaction: the discord interaction object that triggered the view being sent

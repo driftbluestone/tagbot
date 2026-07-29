@@ -1,3 +1,14 @@
-import inspect
+from modules import on_start
+from utils import jsonIO
 from pathlib import Path
-DIR = Path(inspect.stack()[1].filename).parent.resolve()
+DIR = Path(__file__).parent.parent.resolve()
+
+__all__ = ["bot", "DIR", "bot_config", "save_bot_config", "data"]
+
+bot_config: dict = jsonIO.load(f"{DIR}/data/config.json")
+def save_bot_config():
+    jsonIO.dump(f"{DIR}/data/config.json", bot_config)
+
+data = jsonIO.load(f"{DIR}/bot_info.json")
+
+bot = on_start._BOT(data["command_prefix"])
