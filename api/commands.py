@@ -35,10 +35,11 @@ class Cog(commands.Cog):
     
     @classmethod
     def listener(cls, name: str = MISSING):
-        extension = cls.__module__.split(".")[1]
+        
         def decorator(func: Callable):
             @functools.wraps(func)
             async def wrapper(self, *args, **kwargs):
+                extension = self.__module__.split(".")[1]
                 server_id = _get_server_id(*args)
                 if not server.check_extension(server_id, extension):
                     return
