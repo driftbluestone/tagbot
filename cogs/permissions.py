@@ -101,7 +101,7 @@ class UserPermissionPanel(gui.PageUI):
         if next is None:
             db.delete("permissions", ("server_id", "permission", "id"), (interaction.guild.id, name, self.user.id))
         else:
-            users.save_permission(interaction.guild.id, interaction.user.id, name, next)
+            users.save_permission(interaction.guild.id, self.user.id, name, next)
             
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(view=UserPermissionPanel(self.user, self.page))
