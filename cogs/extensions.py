@@ -218,11 +218,11 @@ def add_permissions(extension: str, server_id: int):
         db.insert("permissions", ("server_id", "id", "permission"), ("value",), (server_id, 0, permission, default))
 
 def remove_permissions(extension: str, server_id: int):
-    query = sql.SQL("SELECT name, default_enabled FROM {schema}.perm WHERE source = {extension}").format(
+    query = sql.SQL("SELECT name FROM {schema}.perm WHERE source = {extension}").format(
         schema = db.SCHEMA, extension = sql.Placeholder())
     result = db.multiple(query, (extension,))
 
-    for permission, default in result:
+    for permission, in result:
         db.delete("permissions", (server_id, 0, permission), ("server_id", "id", "permission"))
 
 def unload_modules(extension_name: str):
