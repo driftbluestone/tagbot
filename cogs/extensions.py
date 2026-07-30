@@ -223,7 +223,7 @@ def remove_permissions(extension: str, server_id: int):
     result = db.multiple(query, (extension,))
 
     for permission, in result:
-        db.delete("permissions", (server_id, 0, permission), ("server_id", "id", "permission"))
+        db.delete("permissions", ("server_id", "id", "permission"), (server_id, 0, permission))
 
 def unload_modules(extension_name: str):
     extension_prefix = f"extensions.{extension_name}"
