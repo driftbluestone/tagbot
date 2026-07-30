@@ -66,8 +66,8 @@ class DefaultPermissionPanel(gui.PageUI):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         name = interaction.data["custom_id"]
         perm = permission.get(name)
-        if not (perm["toggleable"]) and not (interaction.user.id in utils.bot_config["bot_admins"]):
-            return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
+        if not (perm["toggleable"]) and not (interaction.user.id in utils.bot_config["bot_admins"] or interaction.user.guild_permissions.administrator):
+            return await interaction.response.send_message("Permission can only be toggled by admins", ephemeral=True)
         permission.set(interaction.guild.id, 0, name, not self.perm_values[name])
         await interaction.response.defer(ephemeral=True, thinking=False)
         await interaction.message.edit(view=DefaultPermissionPanel(self.data_transfer))
@@ -95,8 +95,8 @@ class UserPermissionPanel(gui.PageUI):
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         name = interaction.data["custom_id"]
         perm = permission.get(name)
-        if not (perm["toggleable"]) and not (interaction.user.id in utils.bot_config["bot_admins"]):
-            return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
+        if not (perm["toggleable"]) and not (interaction.user.id in utils.bot_config["bot_admins"] or interaction.user.guild_permissions.administrator):
+            return await interaction.response.send_message("Permission can only be toggled by admins", ephemeral=True)
         next = next_perm[self.user_perms[name] if name in self.user_perms else None]
         if next is None:
             db.delete("permissions", ("server_id", "permission", "id"), (interaction.guild.id, name, self.user.id))
@@ -159,8 +159,8 @@ class RolePermissionPanel(gui.PageUI):
 
         name = interaction.data["custom_id"]
         perm = permission.get(name)
-        if not (perm["toggleable"]) and not (interaction.user.id in utils.bot_config["bot_admins"]):
-            return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
+        if not (perm["toggleable"]) and not (interaction.user.id in utils.bot_config["bot_admins"] or interaction.user.guild_permissions.administrator):
+            return await interaction.response.send_message("Permission can only be toggled by admins", ephemeral=True)
         next = next_perm[self.role[name] if name in self.role else None]
         if next is None:
             db.delete("permissions", ("server_id", "permission", "id"), (interaction.guild.id, name, self.role_id))
