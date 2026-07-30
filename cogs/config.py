@@ -83,14 +83,14 @@ class Config(commands.Cog):
         db.insert("server", ("server_id",), ("command_prefix",), (interaction.guild.id, prefix))
         return await interaction.response.send_message("Updated command prefix.")
 
-    class DevDiagnostics(app_commands.Group):
+    class BotAdmin(app_commands.Group):
         async def interaction_check(self, interaction: discord.Interaction):
             if interaction.user.id in bot_config["bot_admins"]:
                 return True
             await interaction.response.send_message(":warning: No permission.", ephemeral=True)
             return False
 
-    botadmin = DevDiagnostics(name="botadmin", description="Bot admin only debug information")
+    botadmin = BotAdmin(name="botadmin", description="Bot admin only debug information")
 
     @botadmin.command(name="logs", description=botadmin.description)
     async def logs(self, interaction: discord.Interaction):
@@ -113,7 +113,7 @@ class Config(commands.Cog):
             read_message_history=True,
             administrator=True
         )
-        
+
         url = discord.utils.oauth_url(self.bot.user.id, permissions=permissions)
         await user.send(content=f"Invite {self.bot.user.name} to your server with this link: {url}")
         setattr(self.bot, "allowed_joins", getattr(self.bot, "allowed_joins", 0)+1)
