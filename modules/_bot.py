@@ -7,6 +7,7 @@ class BOT(commands.Bot):
         super().__init__(
         command_prefix=get_prefix,
         case_insensitive=True,
+        chunk_guilds_at_startup=False,
         allowed_mentions=discord.AllowedMentions(
             users=False,
             everyone=False,
