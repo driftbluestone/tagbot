@@ -39,7 +39,7 @@ class Extensions(commands.Cog):
 
     @extension.command(name="add", description="Requires bot admin. Install extensions")
     async def extension_add(self, interaction: discord.Interaction, repo: str):
-        if interaction.user.id in bot_config["bot_admins"]:
+        if interaction.user.id not in bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
@@ -52,7 +52,7 @@ class Extensions(commands.Cog):
     
     @extension.command(name="update", description="Requires bot admin. Update extensions")
     async def extension_update(self, interaction: discord.Interaction, repo: str):
-        if interaction.user.id in bot_config["bot_admins"]:
+        if interaction.user.id not in bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not repo.startswith("https://github.com/"):
             return await interaction.response.send_message(f":warning: Please specify a git repo", ephemeral=True)
@@ -67,7 +67,7 @@ class Extensions(commands.Cog):
 
     @extension.command(name="delete", description="Requires bot admin. Uninstall extensions")
     async def extension_delete(self, interaction: discord.Interaction, extension: str, save_data: typing.Optional[bool] = True):
-        if interaction.user.id in bot_config["bot_admins"]:
+        if interaction.user.id not in bot_config["bot_admins"]:
             return await interaction.response.send_message(":warning: No permission.", ephemeral=True)
         if not server.check_extension(0, extension):
             return await interaction.response.send_message(":warning: Extension not found.", ephemeral=True)
