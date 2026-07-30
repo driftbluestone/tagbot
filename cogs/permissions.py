@@ -76,7 +76,7 @@ class UserPermissionPanel(gui.PageUI):
     def __init__(self, member: discord.Member, page: int = 1):
         perms = list(server.perms(member.guild.id))
         
-        super().__init__(data_transfer=users, page=page, element_count=len(perms))
+        super().__init__(data_transfer=member, page=page, element_count=len(perms))
         self.user: discord.Member = member
         self.user_perms = users.perms(member.guild.id, member.id)
         perms = perms[((self.page-1)*10):(self.page*10)]
@@ -99,12 +99,12 @@ class UserPermissionPanel(gui.PageUI):
             return await interaction.response.send_message("Permission can only be toggled by bot admins", ephemeral=True)
         next = next_perm[self.user_perms[name] if name in self.user_perms else None]
         if next is None:
-            db.delete("permissions", ("server_id", "permission", "id"), (interaction.guild.id, name, interaction.user.id))
+            db.delete("permissions", ("server_id", "permission", "id"), (interaction.guild.id, name, self.user.id))
         else:
             users.save_permission(interaction.guild.id, interaction.user.id, name, next)
             
         await interaction.response.defer(ephemeral=True, thinking=False)
-        await interaction.message.edit(view=UserPermissionPanel(self.user))
+        await interaction.message.edit(view=UserPermissionPanel(self.user, self.page))
 
 class RolePanel(gui.PageUI):
     def __init__(self, guild: discord.Guild, page: int = 1):
