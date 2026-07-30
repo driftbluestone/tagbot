@@ -18,6 +18,10 @@ if len(utils.bot_config["bot_admins"]) == 0:
 @bot.event
 async def on_ready():
     await LOGGER.info(f"Logged in as {bot.user}.")
+    for guild in bot.guilds:
+        in_db = db.get("permissions", (guild.id, 0, "#:manage_extensions"), ("server_id", "id", "permission"), ("value",))
+        if in_db is None:
+            await guild.leave()
 
 @bot.event
 async def on_message(message: discord.Message):
@@ -45,6 +49,10 @@ async def on_message_delete(message: discord.Message):
 
 @bot.event
 async def on_guild_join(guild: discord.Guild):
+    if not getattr(bot, "allowed_joins", 0):
+        return await guild.leave()
+    setattr(bot, "allowed_joins", getattr(bot, "allowed_joins", 1)-1)
+
     db.insert("permissions", ("server_id", "id", "permission"), ("value",), (guild.id, 0, "#:edit_permissions", False))
     db.insert("permissions", ("server_id", "id", "permission"), ("value",), (guild.id, 0, "#:manage_extensions", False))
 

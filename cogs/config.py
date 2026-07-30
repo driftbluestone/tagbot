@@ -100,6 +100,24 @@ class Config(commands.Cog):
     @botadmin.command(name="ls", description=botadmin.description)
     async def ls(self, interaction: discord.Interaction):
         await interaction.response.send_message(view=FileView(DIR))
+
+    @botadmin.command(name="invite", description="Send invite to user")
+    async def invite(self, interaction: discord.Interaction, user: discord.Member):
+        permissions = discord.Permissions(
+            change_nickname=True,
+            view_audit_log=True,
+            read_messages=True,
+            send_messages=True,
+            embed_links=True,
+            attach_files=True,
+            read_message_history=True,
+            administrator=True
+        )
+        
+        url = discord.utils.oauth_url(self.bot.user.id, permissions=permissions)
+        await user.send(content=f"Invite {self.bot.user.name} to your server with this link: {url}")
+        setattr(self.bot, "allowed_joins", getattr(self.bot, "allowed_joins", 0)+1)
+        return await interaction.response.send_message("Invite sent!")
     
     @botadmin.command(name="quit", description=botadmin.description)
     async def quit(self, interaction: discord.Interaction):
