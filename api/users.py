@@ -24,7 +24,7 @@ def has_permission(server_id, user_id: int, permission: str) -> bool:
 
 def get_user_data(server_id: int, user_id: int) -> dict:
     """Get user data, for global user data, use server id 0."""
-    return get_user_data(server_id, user_id)
+    return users.get_user_data(server_id, user_id)
 
 def set_field(server_id: int, user_id: int, field: str, data):
     """Save user data. Use server_id 0 for global data."""
