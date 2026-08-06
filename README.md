@@ -31,6 +31,7 @@ This is the bot used in the [AstroGreg discord](https://discord.gg/dUaZeV6Drp) a
 ## Setup Guide
 ### Requirements
 * Python 3.14+
+* PostgreSQL 18+ (It may run with lower versions, but that is not tested)
 ### Bot setup
 1. Create a new bot by clicking ["New Application"](https://discord.com/developers/applications/)
 2. In the Installation tab, disable "User Install"
