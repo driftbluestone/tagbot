@@ -3,7 +3,7 @@ from utils import jsonIO
 from pathlib import Path
 DIR = Path(__file__).parent.parent.resolve()
 
-__all__ = ["_bot", "DIR", "bot_config", "save_bot_config", "data"]
+__all__ = ["DIR", "bot_config", "save_bot_config", "data"]
 
 bot_config: dict = jsonIO.load(f"{DIR}/data/config.json")
 def save_bot_config():
