@@ -49,7 +49,11 @@ class PageUI(discord.ui.View):
     def __init__(self, element_count: int, interaction_permission: str = None, data_transfer = None, text: str = None, embed: discord.Embed = None, page: int = 1, row: int = 3):
         super().__init__(timeout=None)
         self.page = page
-        self.max_page = math.ceil(element_count/10)
+        
+        if row > 5 or row < 1:
+            raise ValueError("api.gui.PageUI.row must be between 1 and 5!")
+        
+        self.max_page = math.ceil(element_count / ((row - 1) * 5))
         self.interaction_permission = interaction_permission
         self.data_transfer = data_transfer
         self.text = text
