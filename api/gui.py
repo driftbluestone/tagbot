@@ -44,8 +44,9 @@ class PageUI(discord.ui.View):
     - data_transfer: any information that must persist between page selects
     - text: any text displayed with the message
     - embed: an embed displayed with the message
+    - row: the row the buttons will show up on, 3 by default
     """
-    def __init__(self, element_count: int, interaction_permission: str = None, data_transfer = None, text: str = None, embed: discord.Embed = None, page: int = 1):
+    def __init__(self, element_count: int, interaction_permission: str = None, data_transfer = None, text: str = None, embed: discord.Embed = None, page: int = 1, row: int = 3):
         super().__init__(timeout=None)
         self.page = page
         self.max_page = math.ceil(element_count/10)
@@ -53,25 +54,26 @@ class PageUI(discord.ui.View):
         self.data_transfer = data_transfer
         self.text = text
         self.embed = embed
+        self.row = row
         self._page_select_buttons()
 
     def _page_select_buttons(self: PageUI):
         if self.page != 1:
-            button = discord.ui.Button(label="<<", custom_id="page1", row=3)
+            button = discord.ui.Button(label="<<", custom_id="page1", row=self.row)
             button.callback = self.page_selector
             self.add_item(button)
-            button = discord.ui.Button(label="<", custom_id="back1", row=3)
+            button = discord.ui.Button(label="<", custom_id="back1", row=self.row)
             button.callback = self.page_selector
             self.add_item(button)
         if self.max_page > 1:
-            button = discord.ui.Button(label=self.page, custom_id="select", row=3)
+            button = discord.ui.Button(label=self.page, custom_id="select", row=self.row)
             button.callback = self.page_selector
             self.add_item(button)
         if self.page != self.max_page and self.max_page != 0:
-            button = discord.ui.Button(label=">", custom_id="next1", row=3)
+            button = discord.ui.Button(label=">", custom_id="next1", row=self.row)
             button.callback = self.page_selector
             self.add_item(button)
-            button = discord.ui.Button(label=">>", custom_id="last", row=3)
+            button = discord.ui.Button(label=">>", custom_id="last", row=self.row)
             button.callback = self.page_selector
             self.add_item(button)
 
