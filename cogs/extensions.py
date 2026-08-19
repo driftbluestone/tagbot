@@ -159,7 +159,7 @@ async def subprocess(args):
 
 async def init_extension(extension: str):
     try:
-        os.mkdir(f"{DIR}/extensions/{extension}")
+        os.mkdir(f"{DIR}/data/{extension}")
     except FileExistsError:
         pass
     if os.path.exists(f"{DIR}/extensions/{extension}/init.py"):
