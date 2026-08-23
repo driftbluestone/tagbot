@@ -40,7 +40,7 @@ def loads(data: str) -> object:
     return orjson.loads(data.encode())
 
 def loadb(data: bytes) -> object:
-    return orjson.dumps(data)
+    return orjson.loads(data)
 
 async def aread(path: str | Path) -> object:
     return await asyncio.to_thread(read, path)
