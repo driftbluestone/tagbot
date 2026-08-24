@@ -8,13 +8,17 @@ from db import db, server, users
 from api import gui
 LOGGER = logger.Logger()
 
+STARTUP_SYNCING = True
+
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
-    try:
-        synced = await bot.tree.sync()
-        await LOGGER.info(f"Synced {len(synced)} commands.")
-    except Exception as e:
-        await LOGGER.error(f"Error syncing commands: {e}")
+
+    if STARTUP_SYNCING:
+        try:
+            synced = await bot.tree.sync()
+            await LOGGER.info(f"Synced {len(synced)} commands.")
+        except Exception as e:
+            await LOGGER.error(f"Error syncing commands: {e}")
 
     files = os.listdir(f"{DIR}/extensions")
     extensions = list(server.extensions(0).keys())
@@ -23,7 +27,6 @@ async def setup(bot: commands.Bot) -> None:
             await init_extension(file)
         else:
             await bot.load_extension(f"extensions.{file}.main")
-    await load()
     await LOGGER.info("Startup complete. All commands synced.")
 
 class Extensions(commands.Cog):
@@ -203,11 +206,6 @@ async def unsync(extension: str, guild: discord.Guild):
     for command in get_extension_commands(extension):
         bot.tree.remove_command(command.name, guild=guild)
     await bot.tree.sync(guild=guild)
-
-async def load():
-    extensions = db.multiple(f"SELECT * FROM {db.SCHEMA.as_string()}.extensions WHERE server_id != 0")
-    for server_id, extension in extensions:
-        await sync(extension, discord.Object(id=server_id))
 
 def add_permissions(extension: str, server_id: int):
     query = sql.SQL("SELECT name, default_enabled FROM {schema}.perm WHERE source = {extension}").format(

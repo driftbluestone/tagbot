@@ -4,6 +4,7 @@ from discord.ext import commands
 from api import gui
 from db import db, users
 from utils.utils import DIR, bot_config
+from cogs import extensions
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Config(bot=bot))
@@ -123,6 +124,20 @@ class Config(commands.Cog):
     async def quit(self, interaction: discord.Interaction):
         await interaction.response.send_message("Quitting bot...")
         await self.bot.close()
+
+    @botadmin.command(name="sync-commands", description=botadmin.description)
+    async def sync_commands(self, interaction):
+        await extensions.LOGGER.info(f"Syncing commands...", interaction)
+        try:
+            synced = await self.bot.tree.sync()
+            await extensions.LOGGER.info(f"Synced {len(synced)} commands.", interaction)
+        except Exception as e:
+            await extensions.LOGGER.error(f"Error syncing commands: {e}", interaction)
+        await extensions.LOGGER.info(f"Syncing per-server commands...", interaction)
+        extensions_list = db.multiple(f"SELECT * FROM {db.SCHEMA.as_string()}.extensions WHERE server_id != 0")
+        for server_id, extension in extensions_list:
+            await extensions.sync(extension, discord.Object(id=server_id))
+        await extensions.LOGGER.info(f"Synced per-server commands.\nSync complete!", interaction)
 
 class FileView(gui.PageUI):
     def __init__(self, workdir, page: int = 1):
