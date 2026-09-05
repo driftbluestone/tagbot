@@ -8,7 +8,7 @@ from db import db, server, users
 from api import gui
 LOGGER = logger.Logger()
 
-STARTUP_SYNCING = True
+STARTUP_SYNCING = False
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Extensions(bot=bot))
